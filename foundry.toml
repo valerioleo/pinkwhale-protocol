@@ -1,0 +1,34 @@
+[profile.default]
+src = "contracts"
+test = "test"
+out = "out"
+libs = ["node_modules", "lib"]
+cache_path = "cache"
+
+solc = "0.8.28"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 4_294_967_295
+
+# Legacy codegen, deliberately. Seaport 1.6's vendored source predates memory-safe
+# assembly annotations, so the IR pipeline cannot spill `OrderCombiner` to memory
+# and dies with "stack too deep" on every solc from 0.8.24 through 0.8.30. Since
+# the tests deploy Seaport from source alongside Pinkwhale, the whole graph has to
+# share a pipeline. Pinkwhale is written to stay inside the legacy stack limits.
+via_ir = false
+
+# Seaport is assembly-heavy and trips these on its own vendored source.
+ignored_error_codes = [1878, 5574, 3628, 2018]
+
+fs_permissions = [{ access = "read", path = "./out" }]
+
+[fmt]
+line_length = 110
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+
+[rpc_endpoints]
+anvil = "${ANVIL_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
+mainnet = "${MAINNET_RPC_URL}"

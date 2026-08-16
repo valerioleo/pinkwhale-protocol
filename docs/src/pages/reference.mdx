@@ -1,0 +1,167 @@
+---
+showAskAi: false
+title: Reference
+description: The four orders, the events, and every revert Pinkwhale can produce.
+---
+
+import {AttackPlayground} from '../components/AttackPlayground'
+
+# Reference
+
+## The four orders
+
+| Order | Offerer | Offer | Consideration | Window | Who may fulfil |
+| --- | --- | --- | --- | --- | --- |
+| Lender creation | Lender | principal | collateral to **Pinkwhale** | signer's choice | matched inside `executeLoan` |
+| Borrower creation | Borrower | collateral | principal to borrower | signer's choice | matched inside `executeLoan` |
+| Repayment | Pinkwhale | collateral | principal rising to principal + interest, to lender | `t0` to `t0 + duration` | the borrower |
+| Default | Pinkwhale | collateral | *(empty)* | `expiry + 1` to `type(uint256).max` | the lender |
+
+All four are `FULL_RESTRICTED` with `zone = Pinkwhale` and `conduitKey = 0`.
+
+The two creation orders are plain Seaport orders. Any wallet or SDK that can sign an
+`OrderComponents` struct can produce them, and Pinkwhale contributes only three conventions:
+`zone` points at it, `zoneHash` holds the terms hash, and the collateral consideration is
+directed at it.
+
+The two resolution orders carry no signature. Pinkwhale calls `seaport.validate` on them
+itself, which is what lets a contract be an offerer.
+
+## zoneHash
+
+```solidity
+// [!include ~/../../contracts/Pinkwhale/Utils/PinkwhaleUtils.sol:zone-hash]
+```
+
+| Order | `upstreamOrder` | `authorisedCaller` |
+| --- | --- | --- |
+| Repayment | `bytes32(0)` | the borrower |
+| Default | the repayment order's hash | the lender |
+
+On the creation orders the same field carries something else entirely: the keccak of the
+repayment terms that signer agreed to. Same 32 bytes, two different jobs, because the zone
+only ever sees the resolution orders.
+
+:::info
+The zoneHash does not mix in the collateral token or id. It doesn't need to. The order's own
+offer items pin those down, and Seaport folds them into the order hash.
+:::
+
+## Deriving the default order
+
+The default order is not signed or stored anywhere. It is computed from the repayment order in
+the same transaction, and every argument is doing something:
+
+```solidity
+// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:default-order]
+```
+
+1. It reuses `repaymentOrder.parameters.offer`, so both orders offer **the same collateral**.
+2. `considerationItems` is a **new, empty array**, which is what makes the claim free.
+3. The window runs from `repaymentOrder.parameters.endTime + 1` to `type(uint256).max`, so it
+   opens one second after the repayment window shuts and never closes.
+4. `defaultOrderZoneHash` binds the order to the lender and to the repayment order it came
+   from. See [zoneHash](#zonehash).
+5. `uint256(repaymentOrderHash)` is the **salt**, and it is easy to skim past. Salt exists so
+   that otherwise-identical orders hash differently, and it is folded into the order hash.
+   Deriving it from the repayment order hash ties every default order to its own loan. Without
+   it, two loans on the same token with the same terms and timing could produce byte-identical
+   default orders, and therefore a single shared order on Seaport that one fill would settle.
+
+## Interest
+
+Pinkwhale has no interest rate, no accrual, and no per-second maths. It copies the lender's
+`ConsiderationItem` into the repayment order untouched, including `startAmount` and
+`endAmount`, and Seaport interpolates between them linearly across the order's window.
+
+So a lender signing `startAmount = 100 USDC, endAmount = 110 USDC` over 30 days has expressed
+10% over the term, accruing by the second. Setting both amounts equal gives a flat fee
+instead. Both are proven in `test/HappyPath.t.sol`.
+
+The same mechanism would give the default order a Dutch auction: start at the debt, decay to
+zero.
+
+## Zone hooks
+
+Seaport 1.6 calls two hooks on a restricted order, in this sequence, and only when the caller
+is not the zone:
+
+| Hook | When | What Pinkwhale does |
+| --- | --- | --- |
+| `authorizeOrder` | before any transfer | checks the caller and the upstream order, reverts if either is wrong |
+| `validateOrder` | after every transfer settles | emits `LoanRepaid` or `DefaultedCollateralClaimed` |
+
+Both require `msg.sender == address(seaport)`. Each returns its own selector as the magic
+value, which Seaport checks separately.
+
+During `executeLoan` neither hook runs, because Pinkwhale is the caller.
+
+## extraData
+
+Resolution orders carry `abi.encode(upstreamOrderHash)`: 32 bytes, nothing else.
+
+Creation orders carry nothing, and that is a security property. The zone's `abi.decode`
+reverts on empty bytes, which is what stops anyone matching them outside `executeLoan`.
+
+## Events
+
+```solidity
+event LoanExecuted(
+    bytes32 indexed loanId,        // the repayment order's hash
+    address indexed lender,
+    address indexed borrower,
+    address executor,
+    ReceivedItem[] collateral,     // what actually entered custody
+    OfferItem[] principal,
+    ConsiderationItem[] repayment, // what redeems it
+    uint256 expiry,
+    bytes32 defaultOrderHash
+);
+
+event LoanRepaid(bytes32 indexed orderHash);
+event DefaultedCollateralClaimed(bytes32 indexed orderHash);
+```
+
+`loanId` is the handle for everything. It is the order the borrower fulfils to redeem, the
+hash `LoanRepaid` fires with, and the value the default order commits to in its `zoneHash`.
+
+## Errors
+
+Pinkwhale's own reverts. Seaport's come through unchanged: `InvalidTime`,
+`InvalidRestrictedOrder`, `OrderAlreadyFilled`, `InvalidProof`.
+
+```solidity [contracts/Pinkwhale/PinkwhaleErrors.sol]
+// [!include ~/../../contracts/Pinkwhale/PinkwhaleErrors.sol]
+```
+
+### Try to break it
+
+Every one of these is reachable, and every one of them is a test in the repo.
+
+<AttackPlayground />
+
+## Collateral types
+
+| Type | Supported | Notes |
+| --- | --- | --- |
+| ERC721 | yes | |
+| ERC1155 | yes | needs `onERC1155Received`, since Seaport moves 1155s with `safeTransferFrom` |
+| ERC721_WITH_CRITERIA | yes | collection offers (`criteria = 0`) and merkle-set bundles |
+| ERC1155_WITH_CRITERIA | yes | |
+| Native ETH | no | a contract offerer cannot offer native tokens on Seaport |
+
+## Contracts
+
+| File | What it does |
+| --- | --- |
+| `Pinkwhale.sol` | `executeLoan`, custody, the `LoanExecuted` event |
+| `PinkwhaleZone.sol` | the two Seaport 1.6 zone hooks |
+| `PinkwhaleErrors.sol` | every typed revert |
+| `PinkwhaleStructs.sol` | the terms structs |
+| `Utils/SeaportUtils.sol` | mints and validates the resolution orders |
+| `Utils/PinkwhaleUtils.sol` | the three hashes |
+| `Utils/TokenUtils.sol` | approvals and token receivers |
+
+All seven compile into a single 13.1 KB contract. Everything else is Seaport's 25 KB, not
+ours: signature verification, order matching, time windows, criteria proofs, partial fills,
+reentrancy protection.

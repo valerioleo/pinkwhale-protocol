@@ -1,0 +1,270 @@
+---
+title: Two Futures, One Collateral
+description: How I built an NFT lending protocol out of marketplace orders, and what I got wrong.
+showAskAi: false
+---
+
+import {LifecycleScrubber} from '../components/LifecycleScrubber'
+import {OrderAnatomy} from '../components/OrderAnatomy'
+import {Pill} from '../components/Pill'
+
+{/*
+  Every Solidity block below is pulled out of the real .sol files at build time with
+  vocs' `[!include]` markers. `~` resolves to docs/src, so `~/../../contracts/...`
+  reaches the actual contracts this site is documenting. Rename a region and the
+  block goes empty, which is the point: the article cannot drift from the repo.
+*/}
+
+# Two Futures, One Collateral
+
+**A loan is just two trades that haven't happened yet.**
+
+Pinkwhale is an NFT lending protocol with **no escrow logic, no settlement logic, and no
+liquidation engine**. It writes down both possible futures of a loan as marketplace orders,
+then lets the clock and a little access control pick which one becomes real.
+
+Here is what it does, how it holds together, and what I would build differently.
+
+By [Valerio Leo](https://valeriohq.com).
+
+:::warning
+This is a research artifact, shared as-is with no safety guarantees. It has not been
+audited. Read it, fork it, learn from it. Don't put money in it.
+:::
+
+## Loans as orders
+
+Pinkwhale comes out of one realisation: **everything you need to build an NFT lending
+platform, escrow and settlement and liquidation, comes off the shelf with
+[Seaport](https://docs.opensea.io/docs/seaport).**
+
+Seaport is OpenSea's settlement protocol and by far the largest NFT protocol in existence,
+with essentially all OpenSea volume running through it plus a long tail of other
+marketplaces. It is also not really a marketplace. It is a general engine for *"these items
+move this way, if and only if those items move that way"*, with signatures, time windows and
+approvals all checked for you.
+
+Once you see it that way, a loan is three trades:
+
+- **Taking a loan** is a trade: with collateral sent to an escrow in exchange for principal
+  immediately.
+- **Repaying** is the same trade backwards: money plus interest goes straight to the lender,
+  collateral is returned from escrow.
+- **Defaulting** is that same reverse trade again, with the lender allowed to buy collateral
+  from escrow with price set at zero.
+
+The first is one match. The other two are
+[orders](https://github.com/ProjectOpenSea/seaport/blob/main/docs/SeaportDocumentation.md)
+Pinkwhale writes on both parties' behalf the moment the loan opens, with validity windows
+that sit next to each other and never overlap.
+
+**Nobody has to decide later whether a loan defaulted. The clock decides.**
+
+## Anatomy of a Seaport order
+
+Four orders make a loan. Two are signed by people and matched immediately. Two are minted by
+Pinkwhale and left on Seaport, waiting to see how the story ends.
+
+<OrderAnatomy />
+
+**All four are ordinary Seaport orders.** Same
+[`OrderParameters`](https://github.com/ProjectOpenSea/seaport-types/blob/main/src/lib/ConsiderationStructs.sol) struct,
+same rules. The only difference between the two groups is who puts the signature on them: a
+person signs the first two in their wallet, and Pinkwhale calls `seaport.validate` on the
+other two so a contract can be an offerer.
+
+There is no Pinkwhale order format, no SDK, no `createLoanOffer` call to make first. A lender
+funding a loan signs the same kind of object they would sign to make an offer on OpenSea. All
+Pinkwhale adds is three conventions about fields Seaport already has:
+
+- point `zone` at Pinkwhale, with `orderType = FULL_RESTRICTED`, so Seaport calls back into
+  Pinkwhale before it will settle either resolution order
+  ([what a zone is](https://docs.opensea.io/docs/seaport))
+- put the hash of the repayment terms in `zoneHash`, because the terms themselves are handed
+  to `executeLoan` as plain calldata and could be rewritten by whoever sends the transaction.
+  Committing to them in a field the signer signs is what makes them binding
+- send the collateral to Pinkwhale as the consideration recipient, so it lands in custody
+  rather than in the lender's wallet
+
+Collection offers and bundles work as well, using `ERC721_WITH_CRITERIA` as the item type.
+Order cancellation works because Seaport has `cancel`. **Nothing in this protocol had to be
+built twice.**
+
+Fees follow the same principle, and Pinkwhale deliberately has none of its own. On Seaport a
+fee is just **another consideration item on the order**, which is how OpenSea charges theirs,
+enforced off-chain by a frontend that simply refuses to store an order that doesn't carry its
+fee item. A marketplace built on Pinkwhale would append its own item to the repayment order.
+
+## The loan lifecycle
+
+### 1. Loan execution
+
+The lender signs an order offering money and asking for the collateral. The borrower signs the
+mirror image. Both are EIP-712 signatures made in a wallet, off chain, costing nothing.
+
+Then anyone at all, the lender, the borrower, or even a bot, submits both to `executeLoan`,
+which hands them to `seaport.matchAdvancedOrders`. One transaction, and either all of it
+happens or none of it does.
+
+The repayment terms are passed to `executeLoan` **separately**, as ordinary calldata, because
+a Seaport order has nowhere to carry arbitrary data. What it does carry is an arbitrary hash,
+`zoneHash`, fixed at the moment the order is signed and free for the zone to define. So the
+terms travel alongside, and the order commits to their hash.
+
+Which is why `executeLoan` checks that the two match:
+
+```solidity [contracts/Pinkwhale/Pinkwhale.sol] {16-21}
+// [!include ~/../../contracts/Pinkwhale/Pinkwhale.sol:assert-terms]
+```
+
+Lines 16 to 21 are the pair that matters. Rehash the terms that were handed in, compare
+against what each signer committed to, and revert if they differ. Whoever submits the
+transaction can rewrite the calldata all they like; they cannot make it hash to something
+somebody else signed.
+
+The rest of the function is the same idea applied to the rest of the deal: the collateral must
+be directed at Pinkwhale, the borrower cannot ask for a longer term than the lender offered,
+and both sides must describe the same repayment item for item.
+
+### 2. The collateral lands in escrow
+
+Seaport does the moving. The principal goes from the lender straight to the borrower, and the
+<Pill token="bayc">ape</Pill> goes to Pinkwhale, because that is what the lender's
+consideration item says and step 1 made sure of it.
+
+Pinkwhale is now holding collateral, and the borrower is holding money.
+
+### 3. Pinkwhale writes both futures
+
+Still inside the same transaction, Pinkwhale builds two new orders and puts them on Seaport:
+
+```solidity [contracts/Pinkwhale/Utils/SeaportUtils.sol] {29}
+// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:create-resolution-orders]
+```
+
+`seaport.validate` on line 29 is the whole reason this works. It marks an order as valid **on
+chain**, which lets a contract be an offerer without ever producing a signature. Pinkwhale has
+no private key, and does not need one.
+
+Both orders are built straight from the terms that were checked in step 1, **including any
+interest**. The lender's consideration is copied in verbatim, `startAmount` and `endAmount`
+included, and Seaport interpolates every item linearly across the order's window. So a lender
+who signed "100 now, 110 at expiry" has expressed a rate that accrues by the second; equal
+amounts give a flat fee instead. Either way **Pinkwhale contains no interest code at all**.
+
+#### Locking each order to one caller
+
+The other thing decided here is *who* is allowed to fulfil each order, and this is the part
+worth slowing down for.
+
+Both orders are `FULL_RESTRICTED`, which means Seaport will not settle them without calling
+their zone first:
+
+```solidity [seaport-core/src/lib/ZoneInteraction.sol]
+// OrderType 2-3 requires zone to call or approve via authorizeOrder.
+if (
+    _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
+) {
+    // ...encode the `authorizeOrder` call...
+
+    // Perform call and ensure a corresponding magic value was returned.
+    _callAndCheckStatus(parameters.zone, orderHash, callData, size);
+}
+```
+
+That is Seaport's own code, and it is the hinge of the whole design. Any restricted order
+hands control to `parameters.zone` before settling, and the zone can refuse.
+
+So Pinkwhale writes a `zoneHash` into each order naming the one address allowed to fulfil it,
+then checks it when the call comes back:
+
+```solidity [contracts/Pinkwhale/PinkwhaleZone.sol] {11}
+// [!include ~/../../contracts/Pinkwhale/PinkwhaleZone.sol:authorize-order]
+```
+
+Seaport hands the zone a `ZoneParameters` struct, and two of its fields matter: `zoneHash`,
+copied straight off the order, and **`fulfiller`, which is whoever called
+`fulfillAdvancedOrder`**. Pinkwhale hashes the caller the same way it built the hash in the
+first place and compares. A mismatch is `ZoneHashMismatch`, thrown before a single token has
+moved.
+
+No allowlist, no mapping of loans to borrowers, no storage at all. The permission rides along
+inside the order, and Seaport is the one that tells the zone who is knocking.
+
+From here the loan can end two ways, and both of them are now sitting on Seaport, waiting.
+
+<LifecycleScrubber />
+
+The two windows never overlap. The default order opens one second after the repayment window
+shuts.
+
+### 4. The borrower repays
+
+The repayment order offers the <Pill token="bayc">BAYC #8817</Pill> back and asks for whatever
+the loan terms say is owed. The borrower fulfils it like any other Seaport order, and the ape
+goes home.
+
+Its `zoneHash` is `keccak256(bytes32(0), borrower)`, so by the mechanism above **only the
+borrower** can do this. A stranger who tries to pay the money and take the ape is turned away
+by the zone.
+
+```solidity [contracts/Pinkwhale/Utils/SeaportUtils.sol] {3-6}
+// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:repayment-order]
+```
+
+### 5. Or the lender claims
+
+If the window closes with the loan unpaid, the default order opens one second later.
+
+It offers the same <Pill token="bayc">BAYC #8817</Pill> and asks for **nothing at all**, so it
+costs nothing to fill. That is the entire liquidation engine: no auction, no oracle, no keeper.
+
+Its `zoneHash` is `keccak256(repaymentOrderHash, lender)`, so **only the lender** can fulfil
+it. But the hash commits to a second thing: the repayment order it was derived from. The
+lender has to hand that hash back in `extraData`, and the zone uses it for one more check:
+
+```solidity [contracts/Pinkwhale/Utils/SeaportUtils.sol] {5-11}
+// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:assert-order-execution]
+```
+
+`getOrderStatus` is Seaport's own record of what has been filled. If the repayment order named
+here has been filled, the borrower paid the loan off and the claim is refused with
+`UpstreamOrderAlreadyFulfilled`.
+
+Which is why, in the widget above, repaying kills the default bar. Nothing cancelled it. It is
+still a perfectly valid Seaport order. It just can no longer answer the question the zone asks
+it.
+
+## Possible improvements
+- **Liquidation hands the lender a free option, and the borrower gets no surplus.** The default
+order costs nothing to fill whatever the collateral is worth. Miss the deadline by an hour on
+a loan that was over-collateralised three times over and you lose everything above the debt.
+And since the default order never expires, the lender can sit on the claim indefinitely,
+exercising it only if the price moves their way. <br/><br/>
+Seaport can express the fix without any new Pinkwhale machinery, using the exact mechanism the
+interest curve already uses. Amounts interpolate linearly from `startAmount` to `endAmount`
+across an order's window. Give the default order a consideration item that starts at the full
+debt and decays to zero and you have a **Dutch auction**: anyone can buy the collateral, the lender is repaid out of the proceeds, and the
+borrower keeps the rest. Same shape, same number of orders, no auction contract.
+
+- **There is no refinancing and no partial repayment.** Both are plausible as more orders rather
+than more code. A refinance is a new loan whose principal happens to fulfil the old repayment
+order; a partial repayment is Seaport's `PARTIAL_RESTRICTED` order type, which I never
+reached for. Either that is the elegance of the design, or it is a sign I was enjoying the
+trick too much and stopped before the hard parts.
+
+## Run it yourself
+
+No backend, no signup, no faucet.
+
+```bash
+git clone https://github.com/valerioleo/pinkwhale-protocol
+cd pinkwhale-protocol
+pnpm install
+forge test
+```
+
+Thirty-one tests, including every attack in the [Reference](/reference#try-to-break-it). See
+[Run it yourself](/run) for the local
+deployment and the end-to-end demo, or [Reference](/reference) for the order shapes and the
+full error surface.

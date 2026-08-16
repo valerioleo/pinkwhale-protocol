@@ -1,0 +1,99 @@
+---
+showAskAi: false
+title: Run it yourself
+description: Tests, a local deployment, and a full loan lifecycle on anvil.
+---
+
+# Run it yourself
+
+## Requirements
+
+[Foundry](https://book.getfoundry.sh/getting-started/installation) and Node 20+ with
+[pnpm](https://pnpm.io). Nothing else. No API keys, no accounts, no testnet ETH.
+
+```bash
+git clone https://github.com/valerioleo/pinkwhale-protocol
+cd pinkwhale-protocol
+git submodule update --init
+pnpm install
+```
+
+## Tests
+
+```bash
+forge test
+```
+
+Thirty-one tests across three suites, all against a Seaport 1.6 deployed fresh in `setUp()`.
+Nothing is forked, so a run is fully offline and deterministic.
+
+| Suite | What it proves |
+| --- | --- |
+| `test/HappyPath.t.sol` | open then repay, and open then default, for ERC20 principal against ERC721 and ERC1155 collateral |
+| `test/Guards.t.sol` | every attack in [Try to break it](/reference#try-to-break-it) |
+| `test/Criteria.t.sol` | collection offers and merkle-set bundles, end to end |
+
+## A local deployment
+
+Seaport built from source is 25,229 bytes, which is 653 over the EIP-170 limit. The copy on
+mainnet was compiled through the IR pipeline and this one cannot be, because its vendored
+source predates memory-safe assembly annotations and `viaIR` dies with "stack too deep". Local
+anvil needs the limit raised. Live networks do not, because there Pinkwhale registers the
+canonical Seaport 1.6 instead of deploying its own.
+
+```bash
+cp .env.example .env
+anvil --code-size-limit 40000
+```
+
+In another terminal:
+
+```bash
+forge build
+pnpm generate         # deployoor reads out/, writes typed deployers
+pnpm deploy:anvil
+```
+
+Every address lands in `deployments/31337-anvil/<Contract>.json`: plain JSON with the address,
+the ABI as deployed, the constructor args, and the compiler settings. Running `deploy:anvil`
+again does nothing, because `getOrDeploy*` returns the recorded contract without sending a
+transaction.
+
+## A whole loan
+
+```bash
+pnpm demo
+```
+
+This mints an NFT and some currency, signs both creation orders with anvil's default accounts,
+opens the loan from a third address, then repays it:
+
+```
+>> executeLoan (submitted by a third party)
+     loanId            0x4493b118...0c327f6b
+     defaultOrderHash  0x928c5bcf...696b5025
+     expiry            2026-09-15T15:57:50.000Z
+     collateral owner  0x9fE467...  (Pinkwhale)
+     borrower balance  110.00 mUSD
+
+>> Repay
+     collateral owner  0x3C44Cd...  (borrower)
+     lender balance    110.00 mUSD
+     borrower balance  0.00 mUSD
+```
+
+The order building and EIP-712 signing live in
+[`scripts/lib/orders.ts`](https://github.com/valerioleo/pinkwhale-protocol/blob/main/scripts/lib/orders.ts).
+That file is also what the widgets on the [article page](/) import, so the hashes on screen
+there come from the same code that produces orders Seaport accepts.
+
+## Sepolia
+
+```bash
+# fill SEPOLIA_RPC_URL and DEPLOYER_PRIVATE_KEY in .env
+pnpm deploy:sepolia
+```
+
+Pinkwhale points at the canonical Seaport 1.6 at
+`0x0000000000000068F116a894984e2DB1123eB395`, which is registered into `deployments/` rather
+than redeployed.

@@ -1,0 +1,672 @@
+/*
+ * The actor colour system. One colour per actor, used everywhere: bars, buttons,
+ * addresses, badges. By the third widget you should be able to read a diagram
+ * without a legend.
+ */
+:root {
+  --pw-borrower: #e0a144;
+  --pw-lender: #35b9c4;
+  --pw-brand: #ff5fa2;
+  --pw-muted: #8b8b93;
+
+  --pw-ok: #37a06a;
+  --pw-bad: #d2504a;
+
+  --pw-surface: rgba(127, 127, 145, 0.06);
+  --pw-border: rgba(127, 127, 145, 0.28);
+}
+
+/* vocs styles prose <code> as `display: block; padding: 0 24px`, which pushes any
+   inline code inside a widget off to the right. Put it back to being inline. */
+.pw-widget code {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  font-size: 0.92em;
+}
+
+.pw-widget {
+  margin: 2rem 0;
+  border: 1px solid var(--pw-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--pw-surface);
+  font-size: 0.9rem;
+}
+
+.pw-widget__body {
+  padding: 1.1rem 1.2rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.pw-widget__lead {
+  margin: 0;
+  color: var(--vocs-color_text3, inherit);
+  line-height: 1.6;
+}
+
+/* -- tabs ----------------------------------------------------------------- */
+
+.pw-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--pw-border);
+}
+
+.pw-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.55rem 0.95rem 0.5rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--pw-muted);
+}
+
+/* Who signs it. The two creation orders come from a person's wallet; the two
+   resolution orders are minted by the contract. */
+.pw-pill {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.08rem 0.4rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid currentColor;
+}
+
+.pw-pill--user {
+  color: var(--pw-borrower);
+}
+
+.pw-pill--protocol {
+  color: var(--pw-brand);
+}
+
+.pw-tab--active {
+  color: var(--pw-brand);
+  border-bottom-color: var(--pw-brand);
+}
+
+/* -- generic bits --------------------------------------------------------- */
+
+.pw-hex {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-size: 0.82em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pw-icon {
+  width: 1.15em;
+  height: 1.15em;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  vertical-align: -0.2em;
+}
+
+/* The mark is 28x24, so let the width drive and keep its proportions. */
+.pw-icon--mark {
+  border-radius: 0;
+  color: var(--pw-brand);
+  width: 1.45em;
+  height: auto;
+}
+
+/* Inline token chip for prose. Small radius, so it reads as a label rather than
+   a button. */
+.pw-inline-pill {
+  position: relative;
+  top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.05em 4px;
+  border-radius: 999px;
+  /* Brand tint rather than a neutral, so it does not read as inline code. */
+  background: color-mix(in srgb, var(--pw-brand) 16%, transparent);
+  font-size: 0.92em;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.pw-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.pw-kv dt {
+  color: var(--pw-muted);
+}
+
+.pw-kv dd {
+  margin: 0;
+}
+
+.pw-verdict {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.pw-scrubber .pw-verdict {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+}
+
+.pw-verdict--ok {
+  background: color-mix(in srgb, var(--pw-ok) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pw-ok) 40%, transparent);
+}
+
+.pw-verdict--bad {
+  background: color-mix(in srgb, var(--pw-bad) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pw-bad) 40%, transparent);
+}
+
+/* -- order anatomy -------------------------------------------------------- */
+
+.pw-anatomy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .pw-anatomy {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pw-anatomy__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.pw-detail__note h4 {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-size: 0.85rem;
+}
+
+.pw-items__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.pw-items__name {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+}
+
+.pw-items__subtitle {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--pw-muted);
+}
+
+.pw-fields {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pw-item {
+  width: 100%;
+  min-height: 2.6rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--pw-border);
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  color: inherit;
+}
+
+.pw-item--empty {
+  border-style: dashed;
+}
+
+.pw-item__box {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  color: var(--pw-muted);
+}
+
+.pw-item:hover,
+.pw-item--selected {
+  border-color: var(--pw-brand);
+}
+
+.pw-item__amount {
+  font-weight: 600;
+}
+
+.pw-item__type {
+  color: var(--pw-muted);
+}
+
+.pw-item__recipient {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--pw-muted);
+  font-size: 0.8rem;
+}
+
+.pw-field {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.pw-field:hover {
+  border-color: var(--pw-border);
+}
+
+.pw-field--changed {
+  background: color-mix(in srgb, var(--pw-brand) 10%, transparent);
+}
+
+.pw-field--selected {
+  border-color: var(--pw-brand);
+}
+
+.pw-field__name {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pw-field__value {
+  color: var(--pw-muted);
+  text-align: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.pw-detail {
+  border-left: 1px solid var(--pw-border);
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  position: sticky;
+  top: 1rem;
+  min-width: 0;
+}
+
+/* Solidity identifiers are long and unbreakable; let them wrap rather than
+   run out of the panel. */
+.pw-detail p {
+  overflow-wrap: anywhere;
+}
+
+.pw-detail__note p {
+  margin: 0 0 0.7rem;
+}
+
+.pw-detail__note p:last-child {
+  margin-bottom: 0;
+}
+
+.pw-code {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-size: 0.86em;
+  background: color-mix(in srgb, var(--pw-muted) 14%, transparent);
+  border-radius: 4px;
+  padding: 0.05em 0.3em !important;
+}
+
+@media (max-width: 860px) {
+  .pw-detail {
+    border-left: none;
+    border-top: 1px solid var(--pw-border);
+    padding-left: 0;
+    padding-top: 1rem;
+    position: static;
+  }
+}
+
+.pw-detail h4 {
+  margin: 0 0 0.4rem;
+}
+
+.pw-detail__empty {
+  color: var(--pw-muted);
+}
+
+/* -- lifecycle scrubber --------------------------------------------------- */
+
+.pw-custody {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--pw-brand);
+}
+
+.pw-custody[data-settled='true'] {
+  color: var(--pw-muted);
+}
+
+/* The two signed orders, before anyone has matched them. */
+.pw-creation {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.pw-creation__order {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--pw-border);
+  border-radius: 8px;
+}
+
+.pw-creation__order--lender {
+  border-color: color-mix(in srgb, var(--pw-lender) 55%, transparent);
+}
+
+.pw-creation__order--borrower {
+  border-color: color-mix(in srgb, var(--pw-borrower) 55%, transparent);
+}
+
+.pw-creation__who {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pw-muted);
+}
+
+.pw-creation__flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.pw-creation__arrow {
+  color: var(--pw-muted);
+  font-weight: 400;
+  margin: 0 0.15rem;
+}
+
+.pw-pending {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--pw-muted);
+  line-height: 1.6;
+}
+
+/* Before the match the two resolution orders do not exist yet. */
+.pw-axis[data-pending='true'] {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+/* Two equal halves, split by the one-second gap. The scale is schematic; the
+   timestamp readout underneath is the honest one. */
+.pw-axis {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 3px 1fr;
+  gap: 0;
+  padding-top: 10px;
+}
+
+.pw-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  overflow: hidden;
+  transition:
+    opacity 0.25s ease,
+    filter 0.25s ease;
+}
+
+.pw-bar strong {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+/* Wrap rather than truncate. Both halves live in the same grid row, so they stay
+   the same height and the text stays readable down to a 320px viewport. */
+.pw-bar span {
+  overflow-wrap: anywhere;
+}
+
+.pw-bar__line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.pw-bar__time {
+  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-size: 0.62rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 520px) {
+  .pw-bar {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.64rem;
+  }
+
+  .pw-bar strong {
+    font-size: 0.66rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pw-bar {
+    transition: none;
+  }
+}
+
+.pw-bar--repayment {
+  background: color-mix(in srgb, var(--pw-borrower) 22%, transparent);
+  border: 1px solid var(--pw-borrower);
+  border-radius: 6px 0 0 6px;
+}
+
+.pw-bar--default {
+  background: color-mix(in srgb, var(--pw-lender) 18%, transparent);
+  border: 1px solid var(--pw-lender);
+  border-radius: 0 6px 6px 0;
+}
+
+.pw-bar--filled {
+  outline: 2px solid var(--pw-ok);
+  outline-offset: -2px;
+}
+
+/* Repay, and the lender's claim visibly dies. */
+.pw-bar--dead {
+  opacity: 0.3;
+  filter: grayscale(1);
+  text-decoration: line-through;
+}
+
+/* endTime and endTime + 1, drawn as the sliver it is. */
+.pw-gap {
+  background: var(--pw-brand);
+  align-self: stretch;
+}
+
+.pw-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: currentColor;
+  pointer-events: none;
+}
+
+.pw-playhead::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pw-due {
+  color: var(--pw-muted);
+}
+
+.pw-slider {
+  width: 100%;
+}
+
+.pw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pw-button {
+  padding: 0.45rem 0.85rem;
+  border-radius: 7px;
+  border: 1px solid var(--pw-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.83rem;
+  cursor: pointer;
+}
+
+.pw-button--borrower {
+  border-color: var(--pw-borrower);
+  color: var(--pw-borrower);
+}
+
+.pw-button--lender {
+  border-color: var(--pw-lender);
+  color: var(--pw-lender);
+}
+
+.pw-button--match {
+  border-color: var(--pw-brand);
+  color: var(--pw-brand);
+  font-weight: 600;
+}
+
+.pw-button--ghost {
+  color: var(--pw-muted);
+}
+
+/* -- attack playground ---------------------------------------------------- */
+
+.pw-attacks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pw-attack {
+  border: 1px solid var(--pw-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pw-attack--open {
+  border-color: var(--pw-brand);
+}
+
+.pw-attack__head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  text-align: left;
+  color: inherit;
+}
+
+.pw-attack__revert {
+  color: var(--pw-bad);
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.pw-attack__selector {
+  color: var(--pw-muted);
+  font-size: 0.9em;
+}
+
+.pw-attack__body {
+  padding: 0 0.8rem 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.pw-attack__meta {
+  color: var(--pw-muted);
+  font-size: 0.82rem;
+}

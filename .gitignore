@@ -1,0 +1,26 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Node
+node_modules/
+.env
+.env.*.local
+
+# vocs
+docs/dist/
+docs/.vocs/
+docs/.vercel/
+
+# Vercel
+.vercel/
+
+# Local chain records — regenerate with `pnpm deploy:anvil`
+deployments/31337-anvil/
+
+# misc
+.DS_Store
+*.log
+deployments/sources/
+.gstack/

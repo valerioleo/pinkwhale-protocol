@@ -1,0 +1,4 @@
+seaport-core/=node_modules/seaport-core/
+seaport-types/=node_modules/seaport-types/
+@openzeppelin/=node_modules/@openzeppelin/
+forge-std/=lib/forge-std/src/

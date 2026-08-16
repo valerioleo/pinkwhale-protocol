@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Pinkwhale">
+  <title>Pinkwhale</title>
+  <rect width="64" height="64" rx="14" fill="#0d1b26" />
+  <!-- Two futures: one warm bar, one cool bar, adjacent and non-overlapping. -->
+  <rect x="10" y="22" width="21" height="8" rx="4" fill="#e0a144" />
+  <rect x="33" y="22" width="21" height="8" rx="4" fill="#35b9c4" />
+  <!-- The collateral, sinking. -->
+  <circle cx="32" cy="43" r="5" fill="#ff5fa2" />
+</svg>
