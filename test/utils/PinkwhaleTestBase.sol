@@ -352,11 +352,7 @@ abstract contract PinkwhaleTestBase is Test {
         returns (AdvancedOrder memory)
     {
         return AdvancedOrder({
-            parameters: params,
-            numerator: 1,
-            denominator: 1,
-            signature: signature,
-            extraData: extraData
+            parameters: params, numerator: 1, denominator: 1, signature: signature, extraData: extraData
         });
     }
 
@@ -512,11 +508,7 @@ abstract contract PinkwhaleTestBase is Test {
         bytes32[] memory proof
     ) internal pure returns (CriteriaResolver memory) {
         return CriteriaResolver({
-            orderIndex: orderIndex,
-            side: side,
-            index: index,
-            identifier: identifier,
-            criteriaProof: proof
+            orderIndex: orderIndex, side: side, index: index, identifier: identifier, criteriaProof: proof
         });
     }
 }

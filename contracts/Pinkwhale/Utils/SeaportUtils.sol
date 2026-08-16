@@ -162,6 +162,7 @@ contract SeaportUtils is PinkwhaleUtils {
 
         return defaultOrder;
     }
+
     // [!endregion default-order]
 
     /**
@@ -269,6 +270,7 @@ contract SeaportUtils is PinkwhaleUtils {
         // Check two: do the zoneHashes match?
         _assertZoneHash(zoneHash, upstreamOrderHash, authorisedCaller);
     }
+
     // [!endregion assert-order-execution]
 
     /// @notice Check two on its own: the caller is the one this order was minted for.

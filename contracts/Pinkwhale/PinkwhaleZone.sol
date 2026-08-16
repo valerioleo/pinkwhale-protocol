@@ -68,6 +68,7 @@ abstract contract PinkwhaleZone is ZoneInterface, SeaportUtils {
 
         authorizedOrderMagicValue = ZoneInterface.authorizeOrder.selector;
     }
+
     // [!endregion authorize-order]
 
     /**
@@ -104,6 +105,7 @@ abstract contract PinkwhaleZone is ZoneInterface, SeaportUtils {
 
         validOrderMagicValue = ZoneInterface.validateOrder.selector;
     }
+
     // [!endregion validate-order]
     // [!endregion zone-hooks]
 
