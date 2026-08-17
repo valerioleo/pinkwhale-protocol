@@ -1,6 +1,6 @@
 ---
-title: Two Futures, One Collateral
-description: How I built an NFT lending protocol out of marketplace orders, and what I got wrong.
+title: Seaport as a loan book
+description: An NFT lending protocol built entirely on Seaport, and what I got wrong.
 showAskAi: false
 ---
 
@@ -15,17 +15,16 @@ import {Pill} from '../components/Pill'
   block goes empty, which is the point: the article cannot drift from the repo.
 */}
 
-# Two Futures, One Collateral
+# Seaport as a loan book
 
-**A loan is just two trades that haven't happened yet.**
+**Pinkwhale is an NFT lending protocol, built entirely on
+[Seaport](https://docs.opensea.io/docs/seaport).**
 
-Pinkwhale is an NFT lending protocol with **no escrow logic, no settlement logic, and no
-liquidation engine**. It writes down both possible futures of a loan as marketplace orders,
-then lets the clock and a little access control pick which one becomes real.
+The loans are ordinary orders on OpenSea's settlement protocol. Pinkwhale is the
+contract that turns those orders into a loan book. This is how it holds together,
+and what I would build differently.
 
-Here is what it does, how it holds together, and what I would build differently.
-
-By [Valerio Leo](https://valeriohq.com).
+Built by [Valerio Leo](https://valeriohq.com), inspired by [Jason Saunders](https://www.linkedin.com/in/jalea/).
 
 :::warning
 This is a research artifact, shared as-is with no safety guarantees. It has not been

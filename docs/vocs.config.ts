@@ -60,7 +60,7 @@ export default defineConfig({
 
   sidebar: [
     {
-      text: 'Two Futures, One Collateral',
+      text: 'Seaport as a loan book',
       link: '/',
       items: [
         {text: 'Loans as orders', link: '/#loans-as-orders'},
