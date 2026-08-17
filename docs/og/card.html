@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pinkwhale — social card</title>
+
+    <style>
+      /* The font vocs itself serves, loaded from the same file the site loads it
+         from, so the card cannot drift onto a different typeface. */
+      @font-face {
+        font-family: 'Geist';
+        font-style: normal;
+        font-weight: 100 900;
+        src: url('../../node_modules/vocs/src/server/fonts/geist.woff2') format('woff2');
+      }
+
+      :root {
+        /* Dark-mode vocs tokens, resolved by hand because the card is rendered
+           outside the app: --background-color-primary is gray2 in dark, and
+           --text-color-primary / --text-color-secondary are gray12 / gray10. */
+        --bg: oklch(0.195 0 0);
+        --text: oklch(0.933 0 0);
+        --text-secondary: oklch(0.72 0 0);
+
+        /* Verbatim from src/components/pinkwhale.css. */
+        --pw-borrower: #e0a144;
+        --pw-lender: #35b9c4;
+        --pw-brand: #ff5fa2;
+        --pw-muted: #8b8b93;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 68px 72px 64px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+        font-feature-settings: 'rlig' 1, 'calt' 1;
+        letter-spacing: 0.005em;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* -- wordmark ----------------------------------------------------------
+         Same composition as public/logo-dark.svg: the whale carries the pink,
+         the word is set in the near-white the logo uses. */
+
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .mark svg {
+        /* 62:52 is the path's own 28.2:23.8. */
+        width: 62px;
+        height: 52px;
+        display: block;
+      }
+
+      .mark span {
+        font-size: 38px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: #f4f2f0;
+      }
+
+      /* -- headline ----------------------------------------------------------
+         Broken by hand rather than by width: the line has to land after
+         "trades" for the second clause to carry the turn. */
+
+      h1 {
+        font-size: 62px;
+        font-weight: 600;
+        line-height: 1.14;
+        letter-spacing: -0.028em;
+        color: var(--text);
+      }
+
+      h1 em {
+        font-style: normal;
+        color: var(--text-secondary);
+      }
+
+      /* -- the lifecycle axis ------------------------------------------------
+         The real widget from LifecycleScrubber, scaled up: two tinted bars with
+         1px actor borders, meeting at the 3px pink gap that is `endTime + 1`. */
+
+      .pw-axis {
+        display: grid;
+        grid-template-columns: 1fr 6px 1fr;
+      }
+
+      .pw-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+        padding: 18px 22px;
+      }
+
+      .pw-bar strong {
+        font-size: 25px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+      }
+
+      /* Both bars are one line each by design — a wrap here would desynchronise
+         their heights and break the axis. */
+      .pw-bar__line,
+      .pw-bar__time {
+        white-space: nowrap;
+      }
+
+      .pw-bar__line {
+        font-size: 24px;
+      }
+
+      .pw-bar__time {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 21px;
+        opacity: 0.7;
+      }
+
+      .pw-bar--repayment {
+        background: color-mix(in srgb, var(--pw-borrower) 22%, transparent);
+        border: 1px solid var(--pw-borrower);
+        border-radius: 12px 0 0 12px;
+      }
+
+      .pw-bar--default {
+        background: color-mix(in srgb, var(--pw-lender) 18%, transparent);
+        border: 1px solid var(--pw-lender);
+        border-radius: 0 12px 12px 0;
+      }
+
+      .pw-gap {
+        background: var(--pw-brand);
+      }
+
+      /* -- footer ----------------------------------------------------------- */
+
+      p {
+        font-size: 26px;
+        line-height: 1.5;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="mark">
+      <svg viewBox="0 0 28.2 23.8" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path
+          fill="#ff5fa2"
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z"
+        />
+      </svg>
+      <span>Pinkwhale</span>
+    </div>
+
+    <h1>A loan is just two trades<br /><em>that haven&rsquo;t happened yet.</em></h1>
+
+    <div class="pw-axis">
+      <div class="pw-bar pw-bar--repayment">
+        <strong>REPAYMENT</strong>
+        <span class="pw-bar__line">the borrower buys the collateral back</span>
+        <span class="pw-bar__time">principal + interest, to expiry</span>
+      </div>
+
+      <!-- The gap is real: the default order starts at endTime + 1. -->
+      <div class="pw-gap"></div>
+
+      <div class="pw-bar pw-bar--default">
+        <strong>DEFAULT</strong>
+        <span class="pw-bar__line">the lender claims it, for free</span>
+        <span class="pw-bar__time">expiry + 1 to forever</span>
+      </div>
+    </div>
+
+    <p>An NFT lending protocol built entirely out of Seaport orders.</p>
+  </body>
+</html>
