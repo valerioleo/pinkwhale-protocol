@@ -13,6 +13,7 @@
     "deploy:sepolia": "tsx scripts/deploy.ts --network sepolia",
     "demo": "tsx scripts/demo.ts",
     "docs:og": "tsx scripts/og-image.ts",
+    "docs:favicon": "tsx scripts/favicon.ts",
     "docs:dev": "cd docs && vocs dev",
     "docs:build": "cd docs && vocs build",
     "docs:preview": "cd docs && vocs preview",

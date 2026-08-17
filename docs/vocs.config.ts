@@ -41,8 +41,15 @@ export default defineConfig({
   // prefer absolute URLs.
   baseUrl: 'https://pinkwhale.valeriohq.com',
 
-  // One static card for every page: the two-bars motif at 1200x630.
-  ogImageUrl: (_path, {baseUrl}) => `${baseUrl ?? ''}/og.png`,
+  // One static card for every page: the lifecycle axis at 1200x630, built by
+  // `pnpm docs:og` from docs/og/card.html.
+  //
+  // Bump the `?v=` whenever the card changes. X retired its card validator in
+  // 2022, so there is no way left to purge a preview by hand; a new image URL at
+  // least guarantees that when a scraper does re-read the page it fetches the
+  // new bytes instead of serving a cached og.png. It cannot fix posts that are
+  // already up — those carry X's own copy until it expires, about a week.
+  ogImageUrl: (_path, {baseUrl}) => `${baseUrl ?? ''}/og.png?v=2`,
 
   socials: [
     {
@@ -74,9 +81,39 @@ export default defineConfig({
   ],
 
   head: {
+    meta: {
+      // vocs emits og:image itself but not its dimensions. Without them a
+      // scraper has to download the file before it can lay the card out, and
+      // Slack and Facebook will both render a small preview on the first fetch
+      // and only correct it later.
+      ogImageWidth: 1200,
+      ogImageHeight: 630,
+      ogImageType: 'image/png',
+
+      // og:image:alt is what screen readers on X and Slack read out. Describe
+      // the card, not the page — the description meta already covers the page.
+      ogImageAlt:
+        'The Pinkwhale loan lifecycle: a repayment order and a default order, separated by one second.',
+      twitterImageAlt:
+        'The Pinkwhale loan lifecycle: a repayment order and a default order, separated by one second.',
+
+      ogLocale: 'en_US'
+
+      // No theme-color. It wants a light/dark pair differing only by `media`,
+      // and React 19 dedupes hoisted <meta name> down to the last one, so only
+      // half the pair survives — which tints the mobile chrome wrongly in the
+      // other scheme. Better nothing than half. color-scheme already tells the
+      // browser to use its own dark UI.
+    },
+
     link: [
       // Full-bleed square; iOS applies its own corner mask.
-      {rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png'}
+      {rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png'},
+
+      // vocs' iconUrl already emits the SVG, which is what every current browser
+      // uses. This is for the clients that ask for /favicon.ico and never read
+      // the HTML. Built by `pnpm docs:favicon`.
+      {rel: 'icon', sizes: '16x16 32x32 48x48', type: 'image/x-icon', href: '/favicon.ico'}
     ],
     style: [
       {
