@@ -97,7 +97,14 @@ export default defineConfig({
       twitterImageAlt:
         'The Pinkwhale loan lifecycle: a repayment order and a default order, separated by one second.',
 
-      ogLocale: 'en_US'
+      ogLocale: 'en_US',
+
+      // Both of these are @handles, not URLs. twitter:site is the account X
+      // credits under the card and twitter:creator is the byline; with no
+      // separate project account they are the same person. Point site at a
+      // @pinkwhale account if one ever exists.
+      twitterSite: '@valeriohq',
+      twitterCreator: '@valeriohq'
 
       // No theme-color. It wants a light/dark pair differing only by `media`,
       // and React 19 dedupes hoisted <meta name> down to the last one, so only
