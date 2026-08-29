@@ -44,9 +44,11 @@ conventions on fields Seaport already has:
 - `zoneHash` holds the keccak of the repayment terms that signer agreed to
 - the collateral consideration item is directed at Pinkwhale
 
-That is where the leverage comes from. Collection offers and bundles work because
-`ERC721_WITH_CRITERIA` is already an item type. Cancellation works because Seaport has
-`cancel`. None of it had to be built twice.
+That is where the leverage comes from. Offer and consideration are arrays and nothing reads
+their length, so one loan can be secured by an ape, a penguin and an ERC20 at once, across
+unrelated contracts and standards, redeemed by one repayment order. `ERC721_WITH_CRITERIA` is a
+separate dial deciding *which* token fills a slot, which is what a collection offer is, and the
+two compose. Cancellation works because Seaport has `cancel`. None of it had to be built twice.
 
 Fees work the same way, and there is deliberately no fee switch here. On Seaport a fee is just
 another consideration item on the order, which is how OpenSea does it, enforced off chain by
@@ -117,14 +119,15 @@ pnpm install
 forge test
 ```
 
-31 tests across three suites, all against a Seaport 1.6 deployed fresh in `setUp()`. Nothing
+35 tests across four suites, all against a Seaport 1.6 deployed fresh in `setUp()`. Nothing
 forked, fully offline.
 
 | Suite | What it proves |
 | --- | --- |
 | `test/HappyPath.t.sol` | open then repay, and open then default, for ERC721 and ERC1155 collateral |
 | `test/Guards.t.sol` | every documented attack, as a typed revert |
-| `test/Criteria.t.sol` | collection offers and merkle-set bundles, end to end |
+| `test/Criteria.t.sol` | collection offers and merkle sets, end to end |
+| `test/Bundles.t.sol` | multi-item mixed collateral, split repayments, and the two composed |
 
 ### A local deployment, and a whole loan
 

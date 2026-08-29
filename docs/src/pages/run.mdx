@@ -24,14 +24,15 @@ pnpm install
 forge test
 ```
 
-Thirty-one tests across three suites, all against a Seaport 1.6 deployed fresh in `setUp()`.
+Thirty-five tests across four suites, all against a Seaport 1.6 deployed fresh in `setUp()`.
 Nothing is forked, so a run is fully offline and deterministic.
 
 | Suite | What it proves |
 | --- | --- |
 | `test/HappyPath.t.sol` | open then repay, and open then default, for ERC20 principal against ERC721 and ERC1155 collateral |
 | `test/Guards.t.sol` | every attack in [Try to break it](/reference#try-to-break-it) |
-| `test/Criteria.t.sol` | collection offers and merkle-set bundles, end to end |
+| `test/Criteria.t.sol` | collection offers and merkle sets, end to end |
+| `test/Bundles.t.sol` | multi-item mixed collateral, split repayments, and the two composed |
 
 ## A local deployment
 

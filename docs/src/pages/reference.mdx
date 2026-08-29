@@ -146,9 +146,38 @@ Every one of these is reachable, and every one of them is a test in the repo.
 | --- | --- | --- |
 | ERC721 | yes | |
 | ERC1155 | yes | needs `onERC1155Received`, since Seaport moves 1155s with `safeTransferFrom` |
-| ERC721_WITH_CRITERIA | yes | collection offers (`criteria = 0`) and merkle-set bundles |
+| ERC20 | yes | as collateral in its own right, or alongside NFTs |
+| ERC721_WITH_CRITERIA | yes | collection offers (`criteria = 0`) and merkle sets |
 | ERC1155_WITH_CRITERIA | yes | |
 | Native ETH | no | a contract offerer cannot offer native tokens on Seaport |
+
+## Bundles
+
+Collateral is an array and nothing reads its length. `_collectCollateral` keeps every execution
+addressed to Pinkwhale, and `_createSeaportRepaymentOrder` turns each one into an offer item, so
+a loan against four things runs the same code as a loan against one.
+
+The items need not share a contract or a standard. An ERC721 from one collection, an ERC721
+from another, an ERC1155 balance and an ERC20 amount can secure a single principal, be
+redeemed by a single repayment order, and be claimed by a single default order.
+
+The consideration side is just as free, and a repayment paid to two recipients is what a
+frontend fee looks like:
+
+| Slot | Item | Recipient |
+| --- | --- | --- |
+| `consideration[0]` | 110 USDC | the lender |
+| `consideration[1]` | 2 USDC | the marketplace |
+
+`_assertTermsAgree` compares the two sides item for item on type, token, identifier and amounts.
+It never looks at `recipient`, which is why the fee item passes and why the lender is free to
+direct their own repayment anywhere.
+
+:::info
+Bundles are not the criteria mechanism. Criteria decide *which* token fills one slot; the array
+length decides how many slots there are. They compose, and `test/Bundles.t.sol` covers both,
+including a bundle holding a named item and a criteria item at once.
+:::
 
 ## Contracts
 
