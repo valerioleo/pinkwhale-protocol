@@ -88,11 +88,13 @@ Pinkwhale adds is three conventions about fields Seaport already has:
 Every field those conventions don't touch stays free, and two of them are worth spelling out.
 
 **The offer and consideration are arrays, and Pinkwhale never reads their length.** One loan can
-be secured by one ape, or by an ape *and* a penguin *and* 5,000 of an ERC20, across three
-unrelated contracts and three token standards, against a single principal. One repayment order
-hands the whole set back at once; one default order claims all of it. That is the case for
-NFTs whose value is bound up with a paired token: pledge them together, borrow against the pair.
-The consideration side is just as free, which is where a marketplace fee ends up.
+be secured by a single <Pill token="bayc">BAYC #8817</Pill>, or by that ape *and* a
+<Pill token="pudgy">Pudgy Penguin #3572</Pill> *and* <Pill token="apecoin">5,000 APE</Pill> at
+once: three unrelated contracts, two token standards, one principal. One repayment order hands
+the whole set back together, and one default order claims all of it. That last item is the point
+of the exercise, because an NFT whose value is bound up with a paired token should be able to
+borrow against the pair. The consideration side is just as free, which is where a marketplace fee
+ends up.
 
 **`ERC721_WITH_CRITERIA` is a different dial, and it decides *which* token fills a slot.** That
 is what makes a collection offer a collection offer: lend against any ape in the collection, or

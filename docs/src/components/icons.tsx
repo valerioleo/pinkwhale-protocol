@@ -1,8 +1,10 @@
-export type TokenKind = 'usdc' | 'bayc' | 'pinkwhale';
+export type TokenKind = 'usdc' | 'bayc' | 'pudgy' | 'apecoin' | 'pinkwhale';
 
-const TOKEN_IMAGES: Record<'usdc' | 'bayc', {src: string; alt: string}> = {
+const TOKEN_IMAGES: Record<Exclude<TokenKind, 'pinkwhale'>, {src: string; alt: string}> = {
   usdc: {src: '/tokens/usdc.png', alt: 'USDC'},
-  bayc: {src: '/tokens/bayc.png', alt: 'Bored Ape Yacht Club'}
+  bayc: {src: '/tokens/bayc.png', alt: 'Bored Ape Yacht Club'},
+  pudgy: {src: '/tokens/pudgy.png', alt: 'Pudgy Penguins'},
+  apecoin: {src: '/tokens/apecoin.png', alt: 'ApeCoin'}
 };
 
 /** The Pinkwhale mark, inlined so it takes the surrounding text colour. */
