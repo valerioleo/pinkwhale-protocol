@@ -24,7 +24,7 @@ pnpm install
 forge test
 ```
 
-Thirty-five tests across four suites, all against a Seaport 1.6 deployed fresh in `setUp()`.
+Forty-three tests across five suites, all against a Seaport 1.6 deployed fresh in `setUp()`.
 Nothing is forked, so a run is fully offline and deterministic.
 
 | Suite | What it proves |
@@ -33,6 +33,7 @@ Nothing is forked, so a run is fully offline and deterministic.
 | `test/Guards.t.sol` | every attack in [Try to break it](/reference#try-to-break-it) |
 | `test/Criteria.t.sol` | collection offers and merkle sets, end to end |
 | `test/Bundles.t.sol` | multi-item mixed collateral, split repayments, and the two composed |
+| `test/Tokens.t.sol` | the faucet mocks: per-token decimals, and random minting into a collection |
 
 ## A local deployment
 
@@ -88,12 +89,18 @@ The order building and EIP-712 signing live in
 That file is also what the widgets on the [article page](/) import, so the hashes on screen
 there come from the same code that produces orders Seaport accepts.
 
-## Sepolia
+## Live networks
 
 ```bash
-# fill SEPOLIA_RPC_URL and DEPLOYER_PRIVATE_KEY in .env
 pnpm deploy:sepolia
+pnpm deploy:base-sepolia
 ```
+
+Live deployments sign through a **Privy server wallet**, so no deployer key sits on disk or in
+CI: fill `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_ADMIN_WALLET_ID` and
+`PRIVY_ADMIN_WALLET_ADDRESS` in `.env`, and give that wallet gas on the target chain. Anvil is
+the exception and keeps a raw key, because a local chain should not need an account with a
+vendor.
 
 Pinkwhale points at the canonical Seaport 1.6 at
 `0x0000000000000068F116a894984e2DB1123eB395`, which is registered into `deployments/` rather

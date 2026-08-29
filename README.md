@@ -119,7 +119,7 @@ pnpm install
 forge test
 ```
 
-35 tests across four suites, all against a Seaport 1.6 deployed fresh in `setUp()`. Nothing
+43 tests across five suites, all against a Seaport 1.6 deployed fresh in `setUp()`. Nothing
 forked, fully offline.
 
 | Suite | What it proves |
@@ -128,6 +128,7 @@ forked, fully offline.
 | `test/Guards.t.sol` | every documented attack, as a typed revert |
 | `test/Criteria.t.sol` | collection offers and merkle sets, end to end |
 | `test/Bundles.t.sol` | multi-item mixed collateral, split repayments, and the two composed |
+| `test/Tokens.t.sol` | the faucet mocks: per-token decimals, random minting into a collection |
 
 ### A local deployment, and a whole loan
 
