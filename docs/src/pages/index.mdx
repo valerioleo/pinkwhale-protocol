@@ -85,7 +85,20 @@ Pinkwhale adds is three conventions about fields Seaport already has:
 - send the collateral to Pinkwhale as the consideration recipient, so it lands in custody
   rather than in the lender's wallet
 
-Collection offers and bundles work as well, using `ERC721_WITH_CRITERIA` as the item type.
+Every field those conventions don't touch stays free, and two of them are worth spelling out.
+
+**The offer and consideration are arrays, and Pinkwhale never reads their length.** One loan can
+be secured by one ape, or by an ape *and* a penguin *and* 5,000 of an ERC20, across three
+unrelated contracts and three token standards, against a single principal. One repayment order
+hands the whole set back at once; one default order claims all of it. That is the case for
+NFTs whose value is bound up with a paired token: pledge them together, borrow against the pair.
+The consideration side is just as free, which is where a marketplace fee ends up.
+
+**`ERC721_WITH_CRITERIA` is a different dial, and it decides *which* token fills a slot.** That
+is what makes a collection offer a collection offer: lend against any ape in the collection, or
+any ape from a named set, and let the borrower pick which one to post when the loan opens. The
+two compose, so a bundle can hold named items and criteria items side by side.
+
 Order cancellation works because Seaport has `cancel`. **Nothing in this protocol had to be
 built twice.**
 
@@ -252,6 +265,65 @@ order; a partial repayment is Seaport's `PARTIAL_RESTRICTED` order type, which I
 reached for. Either that is the elegance of the design, or it is a sign I was enjoying the
 trick too much and stopped before the hard parts.
 
+## The half that isn't on chain
+
+Pinkwhale settles loans. It does not find them. Everything above happens once two signed orders
+reach the same transaction, and the protocol has no opinion whatsoever about how they got there.
+
+Seaport doesn't either, and this is the gap worth naming. **A signed order is a JSON object and a
+signature, and until someone submits it, it lives nowhere.** Storing orders before they settle is
+the one piece of infrastructure a Pinkwhale marketplace cannot avoid building.
+
+Nearly everything after that is already on chain. `LoanExecuted` carries the collateral, the
+principal, the repayment and the expiry, indexed by loan, lender and borrower. Seaport emits its
+own `OrderValidated` with the **full `OrderParameters`** of both resolution orders, which is
+exactly the struct `fulfillAdvancedOrder` wants back. So a client can rebuild every open loan,
+and both ways to close it, out of `eth_getLogs`.
+
+### A minimal live demo
+
+The smallest thing that lets a stranger take out a loan end to end:
+
+| Piece | What it is |
+| --- | --- |
+| Contracts on a testnet | `pnpm deploy:sepolia`, already here |
+| A faucet | `ERC20Token.mint` and `ERC721Token.mintNext` are unpermissioned. Two buttons, no server |
+| A table of signed orders | one row each: parameters, signature, terms. Any KV store does |
+| A frontend | signs orders with [`scripts/lib/orders.ts`](https://github.com/valerioleo/pinkwhale-protocol/blob/main/scripts/lib/orders.ts), calls `executeLoan`, reads loans back from logs |
+
+That is the whole list. No indexer, no matching engine, no oracle, no keeper, no server-side
+signing. The table is the only stateful thing in it, and every row in it is a signature its
+author can cancel on chain or simply replace.
+
+The flow is symmetrical. A borrower signs an order offering collateral and asking for principal;
+a lender signs the mirror. Either can go first, because whichever order is already in the table
+is enough for the other side to derive its mirror and execute. Whoever moves second pays the gas.
+
+### What a real one adds
+
+- **Spam and staleness.** Signing is free, so anyone can flood the table with orders they cannot
+honour. Every row needs its balance, approval and Seaport counter checked before it is shown, and
+rechecked when `OrderCancelled` or `CounterIncremented` fires. Nothing on chain announces that a
+stored order has gone bad, so the table has to go and look.
+
+- **Search and ranking.** An offer is a duration, a principal and a repayment amount, and none of
+those sort usefully on their own. APR comes from `startAmount`, `endAmount` and the window; LTV
+needs a floor price. That is where an oracle finally enters this design, and not to liquidate
+anything: only to order a list.
+
+- **Standing offers, and the shape they force.** A lender's order names no borrower: its
+consideration is collateral addressed to Pinkwhale, and the lender is named only inside the
+repayment terms. Point it at `ERC721_WITH_CRITERIA` and it becomes a standing offer against a
+whole collection that any borrower can take. But `executeLoan` requires both sides to describe
+the same repayment item for item, and the only slack is duration, where a borrower may ask for
+less than the lender allowed. **So the book never crosses on price.** A marketplace here is a
+listing board where the taker signs the maker's exact terms, and the matching engine is client
+code deriving one order from the other.
+
+- **Telling people.** Nothing forces a lender to claim a defaulted loan and nothing warns a
+borrower that the window is closing. The expiry is in `LoanExecuted`, so the reminder is a cron
+over the logs, but somebody has to run it.
+
 ## Run it yourself
 
 No backend, no signup, no faucet.
@@ -263,7 +335,7 @@ pnpm install
 forge test
 ```
 
-Thirty-one tests, including every attack in the [Reference](/reference#try-to-break-it). See
+Thirty-five tests, including every attack in the [Reference](/reference#try-to-break-it). See
 [Run it yourself](/run) for the local
 deployment and the end-to-end demo, or [Reference](/reference) for the order shapes and the
 full error surface.
