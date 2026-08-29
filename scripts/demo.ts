@@ -41,14 +41,16 @@ import {
   type OfferItem,
   type OrderParameters
 } from './lib/orders.js';
+import {erc20Args, erc721Args} from './lib/tokens.ts';
 
 // anvil's default mnemonic, accounts 1 to 3.
 const LENDER_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
 const BORROWER_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a';
 const EXECUTOR_KEY = '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6';
 
-const PRINCIPAL = 100n * 10n ** 18n;
-const REPAYMENT = 110n * 10n ** 18n;
+// Six decimals, matching the USDC the mock stands in for.
+const PRINCIPAL = 100n * 10n ** 6n;
+const REPAYMENT = 110n * 10n ** 6n;
 const DURATION = 30n * 24n * 60n * 60n;
 const TOKEN_ID = 1n;
 
@@ -78,11 +80,13 @@ async function main() {
   const {contract: pinkwhale} = await getOrDeployPinkwhale({...clients, args: [seaport.address]});
   const {contract: currency} = await getOrDeployERC20Token({
     ...clients,
-    args: ['Pinkwhale Mock USD', 'mUSD', 0n, deployer.account.address]
+    deploymentName: 'USDC',
+    args: erc20Args('USDC', deployer.account.address)
   });
   const {contract: collection} = await getOrDeployERC721Token({
     ...clients,
-    args: ['Pinkwhale Mock Apes', 'MAPE', 'ipfs://']
+    deploymentName: 'BoredApeYachtClub',
+    args: erc721Args('BoredApeYachtClub')
   });
 
   step('Fund and approve');
@@ -234,7 +238,7 @@ async function main() {
   console.log(`     defaultOrderHash  ${defaultOrderHash}`);
   console.log(`     expiry            ${new Date(Number(expiry) * 1000).toISOString()}`);
   console.log(`     collateral owner  ${await owner(collection, TOKEN_ID)}  (Pinkwhale)`);
-  console.log(`     borrower balance  ${fmt(await balance(currency, borrowerAddress))} mUSD`);
+  console.log(`     borrower balance  ${fmt(await balance(currency, borrowerAddress))} USDC`);
 
   step('Repay');
   const repayHash = await seaport.write.fulfillAdvancedOrder(
@@ -249,8 +253,8 @@ async function main() {
   await publicClient.waitForTransactionReceipt({hash: repayHash});
 
   console.log(`     collateral owner  ${await owner(collection, TOKEN_ID)}  (borrower)`);
-  console.log(`     lender balance    ${fmt(await balance(currency, lenderAddress))} mUSD`);
-  console.log(`     borrower balance  ${fmt(await balance(currency, borrowerAddress))} mUSD`);
+  console.log(`     lender balance    ${fmt(await balance(currency, lenderAddress))} USDC`);
+  console.log(`     borrower balance  ${fmt(await balance(currency, borrowerAddress))} USDC`);
 
   console.log('\nLoan opened, collateral custodied, loan repaid, collateral returned.\n');
 }
@@ -281,7 +285,7 @@ async function balance(currency: any, account: Address): Promise<bigint> {
 }
 
 function fmt(amount: bigint) {
-  return (Number(amount) / 1e18).toFixed(2);
+  return (Number(amount) / 1e6).toFixed(2);
 }
 
 main().catch((error) => {

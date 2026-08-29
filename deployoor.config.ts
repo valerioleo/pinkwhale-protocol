@@ -18,5 +18,10 @@ export default defineConfig({
     'ERC1155Token'
   ],
 
-  plugins: []
+  plugins: [],
+
+  // Bytecode-driven idempotency: redeploy only when the deploy identity moves
+  // (runtime bytecode + constructor args), reuse the record otherwise. Every
+  // redeploy appends to the record's history rather than overwriting it.
+  redeploymentStrategy: 'on-change'
 });
