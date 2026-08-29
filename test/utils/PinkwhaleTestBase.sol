@@ -68,6 +68,9 @@ abstract contract PinkwhaleTestBase is Test {
     uint256 internal constant REPAYMENT = 110e18;
     uint256 internal constant DURATION = 30 days;
 
+    /// @dev What the mock ape collection pretends to be, matching BAYC.
+    uint256 internal constant COLLECTION_SIZE = 10_000;
+
     ConduitController16 internal conduitController;
     Seaport16 internal seaport;
     Pinkwhale internal pinkwhale;
@@ -97,8 +100,8 @@ abstract contract PinkwhaleTestBase is Test {
 
         (, domainSeparator,) = seaport.information();
 
-        currency = new ERC20Token("Mock USD", "mUSD", 0, address(this));
-        collection = new ERC721Token("Mock Apes", "MAPE", "ipfs://");
+        currency = new ERC20Token("Mock USD", "mUSD", 18, 0, address(this));
+        collection = new ERC721Token("Mock Apes", "MAPE", "ipfs://", COLLECTION_SIZE);
         editions = new ERC1155Token("ipfs://");
 
         lender = _actor("lender");

@@ -36,8 +36,8 @@ contract BundlesTest is PinkwhaleTestBase {
     function setUp() public override {
         super.setUp();
 
-        penguins = new ERC721Token("Mock Penguins", "MPEN", "ipfs://");
-        paired = new ERC20Token("Mock Paired", "mPAIR", 0, address(this));
+        penguins = new ERC721Token("Mock Penguins", "MPEN", "ipfs://", 8_888);
+        paired = new ERC20Token("Mock Paired", "mPAIR", 18, 0, address(this));
     }
 
     /// @dev Two ERC721s from different contracts, an ERC1155 balance, and an ERC20.
