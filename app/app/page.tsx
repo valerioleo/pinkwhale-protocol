@@ -1,69 +1,71 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import {Punk} from '../components/Punk';
+import {pinkwhale, punks, seaport, usdc, CHAIN_ID} from '../lib/deployment';
+import {readDeployment} from '../lib/reads';
 
-export default function Home() {
+/**
+ * A wiring check, not the playground.
+ *
+ * It proves the three things everything else rests on: the records in
+ * `deployments/` resolve to contracts that actually answer, the CDP node is
+ * reachable through our own route, and a token id turns into the right art with no
+ * asset pipeline behind it.
+ */
+/** Read at request time: these values are chain state, not build output. */
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const live = await readDeployment();
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main>
+      <h1>Pinkwhale playground</h1>
+      <p className="sub">Base Sepolia · chain {CHAIN_ID} · wiring check</p>
+
+      <div className="card">
+        <h2>Deployed contracts</h2>
+        <div className="row">
+          <span className="k">Pinkwhale</span>
+          <span className="v">{pinkwhale.address}</span>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="row">
+          <span className="k">points at Seaport</span>
+          <span className="v">
+            {live.seaport}{' '}
+            {live.seaport?.toLowerCase() === seaport.address.toLowerCase() ? (
+              <span className="ok">✓ canonical</span>
+            ) : (
+              <span className="bad">✗ unexpected</span>
+            )}
+          </span>
         </div>
-      </main>
-    </div>
+        <div className="row">
+          <span className="k">USDC</span>
+          <span className="v">
+            {usdc.address} · {live.usdcSymbol} · {String(live.usdcDecimals)}dp
+          </span>
+        </div>
+        <div className="row">
+          <span className="k">CryptoPunks</span>
+          <span className="v">
+            {punks.address} · {live.punkName} · {String(live.collectionSize)}
+          </span>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>Art, straight out of the grid</h2>
+        <div className="punks">
+          {[0, 1, 42, 3572, 6734, 9999].map((id) => (
+            <span key={id} className="punk-tile">
+              <Punk id={id} scale={3} />
+              <div>#{id}</div>
+            </span>
+          ))}
+        </div>
+        <p className="sub" style={{margin: '14px 0 0'}}>
+          One 848KB sheet, cropped by CSS. No per-token asset and no gateway.
+        </p>
+      </div>
+    </main>
   );
 }

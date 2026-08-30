@@ -66,7 +66,7 @@ const waitForPng = async (path: string, deadline: number): Promise<void> => {
 };
 
 type ScreenshotOptions = {
-  /** Absolute path to the HTML or SVG file to render. */
+  /** Absolute path to an HTML or SVG file, or an http(s) URL. */
   source: string;
   width: number;
   height: number;
@@ -105,7 +105,8 @@ export const screenshot = async ({
       ...(transparent ? ['--default-background-color=00000000'] : []),
       `--window-size=${width},${height}`,
       `--screenshot=${staging}`,
-      `file://${source}`
+      // A path is a local file; anything with a scheme is served, so pass it through.
+      /^https?:\/\//.test(source) ? source : `file://${source}`
     ],
     {stdio: 'ignore'}
   );

@@ -5,7 +5,7 @@
  * `imageHash` on the CryptoPunks contract is the sha256 of exactly these bytes,
  * which is why this is the right artifact to serve rather than a shortcut around
  * the art: the collection vouches for the file on chain. `pnpm verify:punks`
- * re-checks the copy in `docs/public` against that hash.
+ * re-checks the copy in `app/public` against that hash.
  *
  * Punk N sits at row floor(N / 100), column N % 100.
  */

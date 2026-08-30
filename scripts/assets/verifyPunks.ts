@@ -13,7 +13,7 @@ import {mainnet} from 'viem/chains';
 
 import {PUNKS_CONTRACT, PUNKS_IMAGE_SHA256} from './punks.js';
 
-const FILE = 'docs/public/punks.png';
+const FILE = 'app/public/punks.png';
 
 const main = async () => {
   const onFile = createHash('sha256').update(readFileSync(FILE)).digest('hex');
