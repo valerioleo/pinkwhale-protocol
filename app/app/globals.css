@@ -229,3 +229,6 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .panel-note { font-size: 12.5px; color: var(--pw-muted); }
 .panel--wallets { margin-top: 0; margin-bottom: 22px; }
 .signin { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+
+.clock { font-size: 13px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
+.step--done .step-content { opacity: .92; }

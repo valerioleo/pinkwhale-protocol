@@ -5,7 +5,7 @@ import {useIsSignedIn, useSignOut} from '@coinbase/cdp-hooks';
 import {useEffect, useState} from 'react';
 
 import {LoanRow} from '../components/LoanRow';
-import {OrderBook} from '../components/OrderBook';
+import {LoanTable} from '../components/LoanTable';
 import {OrderPreview} from '../components/OrderPreview';
 import {Step, type StepState} from '../components/Step';
 import {TxList} from '../components/TxList';
@@ -13,7 +13,7 @@ import {WalletCard} from '../components/WalletCard';
 import {useExecuteLoan} from '../lib/execute';
 import {useAutoFund, useHoldings} from '../lib/holdings';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC, termsFor} from '../lib/loan';
-import {useLoan} from '../lib/loans';
+import {useLoans} from '../lib/loans';
 import {orderFor, useClearOrders, useStoredLoan} from '../lib/orderStore';
 import {usePersonas} from '../lib/personas';
 import {useResolveLoan} from '../lib/resolve';
@@ -35,7 +35,7 @@ export default function Playground() {
   const clearOrders = useClearOrders();
   const sign = useSignLoanOrder(personas);
   const execute = useExecuteLoan(personas, storedLoan);
-  const {data: loan} = useLoan(personas?.borrower);
+  const {loans, latest: loan} = useLoans(personas?.borrower);
   const resolve = useResolveLoan(personas, loan);
 
   const [viewAs, setViewAs] = useState<'lender' | 'borrower'>('borrower');
@@ -87,13 +87,13 @@ export default function Playground() {
         ) : null}
       </header>
 
-      {/* Not a step: the two wallets are the ground everything else stands on. */}
-      <section className="panel panel--wallets">
-        <div className="panel-head">
-          <h2>Your two wallets</h2>
-          {connected ? <span className="panel-note">one email, two accounts</span> : null}
-        </div>
-
+      <Step
+        index={1}
+        title="Create two wallets"
+        state={connected ? 'done' : 'active'}
+        alwaysOpen
+        summary={connected ? 'funded and ready' : 'one email, two accounts'}
+      >
         {connected ? (
           <>
             <div className="wallets">
@@ -111,24 +111,25 @@ export default function Playground() {
               />
             </div>
             <p className="hint">
-              A loan needs two sides. Both are funded the moment they exist, so there is nothing to
-              claim and no faucet to find.
+              One for the lender, one for the borrower, under a single email. Both are funded the
+              moment they exist — assets and gas — so there is no faucet to find.
             </p>
             <TxList transactions={walletTxs} />
           </>
         ) : (
           <div className="signin">
             <p className="hint">
-              Signing in creates two wallets under one email and funds them both.
+              Signing in creates two wallets on Base Sepolia, one to lend with and one to borrow
+              with, and funds them both automatically.
             </p>
             <AuthButton />
             {creating ? <p className="hint">Creating the second wallet…</p> : null}
           </div>
         )}
-      </section>
+      </Step>
 
       <Step
-        index={1}
+        index={2}
         title="Create the orders"
         state={stateOf(1)}
         summary={bothSigned ? 'two signatures, nothing on chain' : 'off chain · costs nothing'}
@@ -158,7 +159,7 @@ export default function Playground() {
       </Step>
 
       <Step
-        index={2}
+        index={3}
         title="Match them"
         state={stateOf(2)}
         summary={loan ? 'collateral in escrow' : 'one transaction, either side may send it'}
@@ -177,7 +178,7 @@ export default function Playground() {
       </Step>
 
       <Step
-        index={3}
+        index={4}
         title="Repay, or don't"
         state={stateOf(3)}
         summary={
@@ -207,16 +208,18 @@ export default function Playground() {
         )}
       </Step>
 
-      {/* Always on: the four orders are the whole protocol, not a step in it. */}
       <section className="panel">
-        <h2>The four orders</h2>
-        <OrderBook stored={storedLoan} loan={loan} now={now} />
-        <p className="hint">
-          The top two are signed by people and spent the moment they match. The bottom two are
-          minted by Pinkwhale and left on Seaport, each locked to one address. Same kind of object
-          throughout — the only difference is who signed.
-        </p>
+        <div className="panel-head">
+          <h2>Your loans</h2>
+          {connected ? <span className="panel-note">read from the chain, by borrower</span> : null}
+        </div>
+        {connected ? (
+          <LoanTable loans={loans} now={now} />
+        ) : (
+          <p className="hint">Sign in to see yours.</p>
+        )}
       </section>
+
     </main>
   );
 }

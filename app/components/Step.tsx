@@ -15,6 +15,8 @@ export const Step = ({
   persona,
   state,
   summary,
+  /** Keeps a finished step expanded, for the ones worth looking at afterwards. */
+  alwaysOpen = false,
   children
 }: {
   index: number;
@@ -22,6 +24,7 @@ export const Step = ({
   persona?: 'lender' | 'borrower';
   state: StepState;
   summary?: ReactNode;
+  alwaysOpen?: boolean;
   children?: ReactNode;
 }) => (
   <section className={`step step--${state}`} aria-current={state === 'active' ? 'step' : undefined}>
@@ -36,7 +39,9 @@ export const Step = ({
         {summary ? <span className="step-summary">{summary}</span> : null}
       </div>
 
-      {state === 'active' && children ? <div className="step-content">{children}</div> : null}
+      {(state === 'active' || alwaysOpen) && children ? (
+        <div className="step-content">{children}</div>
+      ) : null}
     </div>
   </section>
 );
