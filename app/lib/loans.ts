@@ -38,12 +38,17 @@ export const useLoan = (borrower?: Address) =>
     enabled: Boolean(borrower),
     refetchInterval: 5_000,
     queryFn: async () => {
+      // `toBlock: 'latest'` is rejected outright by the CDP node — "invalid block
+      // range params" — even for a range it happily serves when both ends are
+      // numbers. So resolve the head first and ask for a concrete window.
+      const [fromBlock, toBlock] = await Promise.all([deployedBlock(), publicClient.getBlockNumber()]);
+
       const logs = await publicClient.getLogs({
         address: pinkwhaleAddress[chain.id],
         event: LOAN_EXECUTED,
         args: {borrower},
-        fromBlock: await deployedBlock(),
-        toBlock: 'latest'
+        fromBlock,
+        toBlock
       });
 
       const latest = logs.at(-1);
