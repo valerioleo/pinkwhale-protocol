@@ -39,8 +39,6 @@ const countdown = (seconds: bigint) => {
 
 const usdc = (amount: bigint) => formatUnits(amount, USDC_DECIMALS);
 
-/** Two places. Six is what USDC stores, not what anybody reads. */
-const money = (amount: bigint) => Number(usdc(amount)).toFixed(2);
 
 const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
 
@@ -165,20 +163,6 @@ const LoanCard = ({
           <dd>
             <Amount value={amount} animated={!loan.settled} />
           </dd>
-          <dl className="breakdown">
-            <div>
-              <dt>Principal</dt>
-              <dd>
-                {money(loan.owed.start)} <span className="unit">USDC</span>
-              </dd>
-            </div>
-            <div>
-              <dt>Interest</dt>
-              <dd>
-                {money(amount - loan.owed.start)} <span className="unit">USDC</span>
-              </dd>
-            </div>
-          </dl>
         </div>
 
         <div className="figure">

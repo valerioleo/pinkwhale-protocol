@@ -1,9 +1,9 @@
 'use client';
 
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
-import type {Address} from 'viem';
+import {parseUnits, type Address} from 'viem';
 
-import {chain, publicClient} from './chain';
+import {chain, publicClient, USDC_DECIMALS} from './chain';
 import {useRecordTx} from './txLog';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from './generated';
 import type {Persona, Personas} from './personas';
@@ -102,22 +102,51 @@ export const useAutoFund = (personas: Personas) => {
   return {funding: lender.isFetching || borrower.isFetching, error: lender.error ?? borrower.error};
 };
 
-/** Top up on request. Same endpoint, asked a different question. */
-export const useTopUp = (personas: Personas) => {
+/**
+ * Enough to open a loan and still have something left over. Below this a persona
+ * cannot play its part, and above it more would only be clutter.
+ */
+const ENOUGH_USDC = parseUnits('2000', USDC_DECIMALS);
+
+/** Whether this persona is short of anything it needs. */
+const needsFunding = (persona: Persona, holdings: Holdings) =>
+  persona === 'lender'
+    ? holdings.usdc < ENOUGH_USDC
+    : holdings.punks.length < 1 || holdings.usdc < ENOUGH_USDC;
+
+/**
+ * Top up whichever side is short.
+ *
+ * Idempotent by measurement rather than by memory: it looks at what each wallet
+ * holds and skips the ones that are already set. Pressing it repeatedly on a
+ * funded pair costs nothing and sends nothing.
+ */
+export const useFundWallets = (
+  personas: Personas,
+  balances: {lender: Holdings; borrower: Holdings}
+) => {
   const queryClient = useQueryClient();
   const record = useRecordTx();
 
-  return useMutation({
-    mutationFn: async (persona: Persona) => {
-      const result = await fund(personas![persona], persona, true);
+  const short = (['borrower', 'lender'] as const).filter((persona) =>
+    needsFunding(persona, balances[persona])
+  );
 
-      result.sent?.forEach((hash, index) =>
-        record({step: 'wallets', label: `${persona}: top up ${index + 1}`, hash})
-      );
+  const mutation = useMutation({
+    mutationFn: async () => {
+      // Sequential: both mints are signed by the same server wallet, so
+      // concurrent sends read the same nonce and the second is rejected.
+      for (const persona of short) {
+        const result = await fund(personas![persona], persona, true);
 
-      return result;
-    },
-    onSuccess: (_result, persona) =>
-      queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])})
+        result.sent?.forEach((hash, index) =>
+          record({step: 'wallets', label: `${persona}: funding ${index + 1}`, hash})
+        );
+
+        await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
+      }
+    }
   });
+
+  return {...mutation, short};
 };

@@ -10,7 +10,7 @@ import {Section} from '../components/Section';
 import {TxList} from '../components/TxList';
 import {WalletCard} from '../components/WalletCard';
 import {useExecuteLoan} from '../lib/execute';
-import {useAutoFund, useHoldings, useTopUp} from '../lib/holdings';
+import {useAutoFund, useFundWallets, useHoldings} from '../lib/holdings';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC, termsFor} from '../lib/loan';
 import {useLoans} from '../lib/loans';
 import {orderFor, useClearOrders, useStoredLoan} from '../lib/orderStore';
@@ -29,7 +29,7 @@ export default function Playground() {
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
   const {funding} = useAutoFund(personas);
-  const topUp = useTopUp(personas);
+  const fundWallets = useFundWallets(personas, {lender, borrower});
 
   const storedLoan = useStoredLoan();
   const clearOrders = useClearOrders();
@@ -81,7 +81,24 @@ export default function Playground() {
         ) : null}
       </header>
 
-      <Section title="Wallets" aside={connected ? 'one email, two accounts' : undefined}>
+      <Section
+        title="Wallets"
+        aside={
+          connected ? (
+            <button
+              className="btn btn--small btn--quiet"
+              disabled={fundWallets.isPending || fundWallets.short.length === 0}
+              onClick={() => fundWallets.mutate()}
+            >
+              {fundWallets.isPending
+                ? 'Funding…'
+                : fundWallets.short.length === 0
+                  ? 'Both funded'
+                  : 'Fund wallets'}
+            </button>
+          ) : undefined
+        }
+      >
         {connected ? (
           <>
             <div className="wallets">
@@ -91,9 +108,7 @@ export default function Playground() {
                   persona={persona}
                   address={personas![persona]}
                   holdings={persona === 'lender' ? lender : borrower}
-                  funding={funding}
-                  toppingUp={topUp.isPending && topUp.variables === persona}
-                  onTopUp={() => topUp.mutate(persona)}
+                  funding={funding || fundWallets.isPending}
                 />
               ))}
             </div>
@@ -120,7 +135,7 @@ export default function Playground() {
           title="Orders"
           aside={bothSigned ? 'signed, nothing on chain yet' : 'off chain · costs nothing'}
         >
-          <OrderPreview collateral={terms.collateral} signed={bothSigned} />
+          <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
 
           {bothSigned ? (
             <>
@@ -141,9 +156,11 @@ export default function Playground() {
           ) : (
             <>
               <p className="hint">
-                One click signs both. The lender asks for <em>any</em> CryptoPunk rather than naming
-                one, so the offer would fund whoever turned up first; the borrower names the punk
-                they are putting up, and a resolver settles the two together at match time.
+                On a real marketplace these two would never be written together. Each side would
+                sign alone and leave its order in a book, and a loan would happen when someone
+                found a counterpart already sitting there — the lender asks for <em>any</em>{' '}
+                CryptoPunk precisely so the offer can wait for whoever turns up. There is no book
+                here, so the playground signs both at once and plays both parts.
               </p>
               <button
                 className="btn"

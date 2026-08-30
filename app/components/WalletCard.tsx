@@ -16,22 +16,18 @@ export const WalletCard = ({
   persona,
   address,
   holdings,
-  funding,
-  onTopUp,
-  toppingUp
+  funding
 }: {
   persona: 'lender' | 'borrower';
   address: string;
   holdings: Holdings;
   funding: boolean;
-  onTopUp: () => void;
-  toppingUp: boolean;
 }) => (
   <div className={`wallet wallet--${persona}`}>
     <div className="wallet-head">
       <span className="wallet-who">
         {/* Seeded on the address, so the same wallet always wears the same face. */}
-        <Blobatar name={address} size={38} hue={PERSONA_HUE[persona]} />
+        <Blobatar name={address} size={52} hue={PERSONA_HUE[persona]} />
         <span className="wallet-role">{persona}</span>
       </span>
       <a
@@ -61,11 +57,6 @@ export const WalletCard = ({
       </div>
     </dl>
 
-    <div className="wallet-foot">
-      <button className="btn btn--small btn--quiet" onClick={onTopUp} disabled={funding || toppingUp}>
-        {toppingUp ? 'Minting…' : 'Mint more'}
-      </button>
-      {funding ? <span className="wallet-note">funding…</span> : null}
-    </div>
+    {funding ? <p className="wallet-note">funding…</p> : null}
   </div>
 );

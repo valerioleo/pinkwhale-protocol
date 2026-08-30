@@ -34,12 +34,16 @@ export const usePersonas = (): {personas: Personas; creating: boolean} => {
 };
 
 /**
- * The accent each role wears, and the hue its blobatar is tinted to.
+ * The hue each role's blobatar is tinted to.
  *
- * Derived from the same two colours the article uses, so a persona looks like
- * itself in the stripe down its card and in the face at the top of it.
+ * These are OKLCh angles, not the HSL ones the same two colours give — blobatar
+ * builds its palette in OKLCh, and feeding it an HSL angle lands somewhere else
+ * entirely, which is why the borrower came out pink against an amber accent.
+ *
+ *   #e0a144 -> oklch(0.753 0.131 74)
+ *   #35b9c4 -> oklch(0.722 0.110 203)
  */
 export const PERSONA_HUE: Record<Persona, number> = {
-  borrower: 36,
-  lender: 185
+  borrower: 74,
+  lender: 203
 };

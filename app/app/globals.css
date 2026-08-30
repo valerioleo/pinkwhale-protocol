@@ -139,6 +139,7 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 
 /* ---- masthead and panels -------------------------------------------------- */
 .masthead { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
+.masthead .btn { white-space: nowrap; flex: none; }
 .masthead h1 { margin-bottom: 4px; }
 .masthead .sub { margin: 0; max-width: 56ch; }
 
@@ -151,10 +152,8 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 /* ---- wallets --------------------------------------------------------------- */
 .wallets { display: flex; gap: 12px; flex-wrap: wrap; width: 100%; }
 .wallet { flex: 1 1 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
-.wallet--lender { border-left: 3px solid var(--pw-lender); }
-.wallet--borrower { border-left: 3px solid var(--pw-borrower); }
 .wallet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.wallet-role { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.wallet-role { font-size: 19px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
 .wallet-address { font-size: 12px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
 .wallet-balances { display: flex; gap: 22px; margin: 0; flex-wrap: wrap; }
 .wallet-balances div { display: flex; flex-direction: column; gap: 3px; }
@@ -227,7 +226,7 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .preview-side { flex: 1 1 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
 .preview-side--lender { border-left: 3px solid var(--pw-lender); }
 .preview-side--borrower { border-left: 3px solid var(--pw-borrower); }
-.preview-role { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--pw-muted); font-weight: 600; }
+.preview-role { display: flex; align-items: center; gap: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--pw-muted); font-weight: 700; }
 .preview-side p { margin: 8px 0 0; font-size: 14px; line-height: 1.9; }
 .preview-terms { color: var(--pw-muted); font-size: 13px !important; }
 
@@ -257,7 +256,7 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 
 
 
-.wallet-who { display: inline-flex; align-items: center; gap: 11px; }
+.wallet-who { display: inline-flex; align-items: center; gap: 13px; }
 .wallet-address { color: var(--pw-muted); text-decoration: none; }
 .wallet-address:hover { color: var(--pw-brand); }
 
