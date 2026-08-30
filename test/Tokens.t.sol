@@ -101,4 +101,24 @@ contract TokensTest is Test {
         uint256 id = apes.mintRandom(makeAddr("collector"));
         assertEq(apes.tokenURI(id), string.concat("ipfs://", vm.toString(id)));
     }
+
+    /// @dev Enumerable is why the playground can ask the chain what an address holds.
+    function test_enumerable_listsWhatAnAddressOwns() public {
+        address collector = makeAddr("collector");
+
+        uint256 first = apes.mintRandom(collector);
+        uint256 second = apes.mintRandom(collector);
+
+        assertEq(apes.balanceOf(collector), 2);
+        assertEq(apes.totalSupply(), 2);
+
+        uint256[] memory owned = new uint256[](2);
+        owned[0] = apes.tokenOfOwnerByIndex(collector, 0);
+        owned[1] = apes.tokenOfOwnerByIndex(collector, 1);
+
+        assertTrue(
+            (owned[0] == first && owned[1] == second) || (owned[0] == second && owned[1] == first),
+            "enumeration returns exactly what was minted"
+        );
+    }
 }

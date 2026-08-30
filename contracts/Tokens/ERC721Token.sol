@@ -2,9 +2,15 @@
 pragma solidity 0.8.28;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-/// @notice Unpermissioned test collectible. Anyone can mint; do not use outside tests.
-contract ERC721Token is ERC721 {
+/**
+ * @notice Unpermissioned test collectible. Anyone can mint; do not use outside tests.
+ * @dev    Enumerable so a frontend can ask the chain what an address owns instead of
+ *         replaying Transfer logs, which needs a block range no provider will keep
+ *         serving as the chain grows.
+ */
+contract ERC721Token is ERC721Enumerable {
     /// @dev How many ids the collection pretends to have, so a mock can mint into
     ///      the same range as the collection it stands in for.
     uint256 public immutable collectionSize;
@@ -70,5 +76,16 @@ contract ERC721Token is ERC721 {
 
         _mintedCount++;
         _safeMint(recipient, tokenId);
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
+        internal
+        override(ERC721Enumerable)
+    {
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }

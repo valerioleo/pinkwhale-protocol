@@ -261,7 +261,7 @@ export const conduitController16Config = {
 
 /**
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const cryptoPunksAbi = [
   {
@@ -409,9 +409,33 @@ export const cryptoPunksAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'index', internalType: 'uint256', type: 'uint256' }],
+    name: 'tokenByIndex',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'owner', internalType: 'address', type: 'address' },
+      { name: 'index', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'tokenOfOwnerByIndex',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     inputs: [{ name: 'tokenId', internalType: 'uint256', type: 'uint256' }],
     name: 'tokenURI',
     outputs: [{ name: '', internalType: 'string', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -490,16 +514,16 @@ export const cryptoPunksAbi = [
 
 /**
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const cryptoPunksAddress = {
   31337: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
-  84532: '0xB77C6D39ada76184b44E581F4d1BB43Fd856aEf6',
+  84532: '0xf8a39dC6C55a324a2E0C16503547a108B5eaD949',
 } as const
 
 /**
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const cryptoPunksConfig = {
   address: cryptoPunksAddress,
@@ -3410,7 +3434,7 @@ export const useWatchConduitController16PotentialOwnerUpdatedEvent =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunks = /*#__PURE__*/ createUseReadContract({
   abi: cryptoPunksAbi,
@@ -3421,7 +3445,7 @@ export const useReadCryptoPunks = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"balanceOf"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksBalanceOf = /*#__PURE__*/ createUseReadContract({
   abi: cryptoPunksAbi,
@@ -3433,7 +3457,7 @@ export const useReadCryptoPunksBalanceOf = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"collectionSize"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksCollectionSize =
   /*#__PURE__*/ createUseReadContract({
@@ -3446,7 +3470,7 @@ export const useReadCryptoPunksCollectionSize =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"getApproved"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksGetApproved =
   /*#__PURE__*/ createUseReadContract({
@@ -3459,7 +3483,7 @@ export const useReadCryptoPunksGetApproved =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"getTokenCount"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksGetTokenCount =
   /*#__PURE__*/ createUseReadContract({
@@ -3472,7 +3496,7 @@ export const useReadCryptoPunksGetTokenCount =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"isApprovedForAll"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksIsApprovedForAll =
   /*#__PURE__*/ createUseReadContract({
@@ -3485,7 +3509,7 @@ export const useReadCryptoPunksIsApprovedForAll =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"name"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksName = /*#__PURE__*/ createUseReadContract({
   abi: cryptoPunksAbi,
@@ -3497,7 +3521,7 @@ export const useReadCryptoPunksName = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"ownerOf"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksOwnerOf = /*#__PURE__*/ createUseReadContract({
   abi: cryptoPunksAbi,
@@ -3509,7 +3533,7 @@ export const useReadCryptoPunksOwnerOf = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"supportsInterface"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksSupportsInterface =
   /*#__PURE__*/ createUseReadContract({
@@ -3522,7 +3546,7 @@ export const useReadCryptoPunksSupportsInterface =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"symbol"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksSymbol = /*#__PURE__*/ createUseReadContract({
   abi: cryptoPunksAbi,
@@ -3531,10 +3555,36 @@ export const useReadCryptoPunksSymbol = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"tokenByIndex"`
+ *
+ * -
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
+ */
+export const useReadCryptoPunksTokenByIndex =
+  /*#__PURE__*/ createUseReadContract({
+    abi: cryptoPunksAbi,
+    address: cryptoPunksAddress,
+    functionName: 'tokenByIndex',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"tokenOfOwnerByIndex"`
+ *
+ * -
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
+ */
+export const useReadCryptoPunksTokenOfOwnerByIndex =
+  /*#__PURE__*/ createUseReadContract({
+    abi: cryptoPunksAbi,
+    address: cryptoPunksAddress,
+    functionName: 'tokenOfOwnerByIndex',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"tokenURI"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useReadCryptoPunksTokenUri = /*#__PURE__*/ createUseReadContract({
   abi: cryptoPunksAbi,
@@ -3543,10 +3593,23 @@ export const useReadCryptoPunksTokenUri = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"totalSupply"`
+ *
+ * -
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
+ */
+export const useReadCryptoPunksTotalSupply =
+  /*#__PURE__*/ createUseReadContract({
+    abi: cryptoPunksAbi,
+    address: cryptoPunksAddress,
+    functionName: 'totalSupply',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunks = /*#__PURE__*/ createUseWriteContract({
   abi: cryptoPunksAbi,
@@ -3557,7 +3620,7 @@ export const useWriteCryptoPunks = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"approve"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksApprove = /*#__PURE__*/ createUseWriteContract({
   abi: cryptoPunksAbi,
@@ -3569,7 +3632,7 @@ export const useWriteCryptoPunksApprove = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"mint"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksMint = /*#__PURE__*/ createUseWriteContract({
   abi: cryptoPunksAbi,
@@ -3581,7 +3644,7 @@ export const useWriteCryptoPunksMint = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"mintNext"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksMintNext = /*#__PURE__*/ createUseWriteContract(
   {
@@ -3595,7 +3658,7 @@ export const useWriteCryptoPunksMintNext = /*#__PURE__*/ createUseWriteContract(
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"mintRandom"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksMintRandom =
   /*#__PURE__*/ createUseWriteContract({
@@ -3608,7 +3671,7 @@ export const useWriteCryptoPunksMintRandom =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"safeTransferFrom"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksSafeTransferFrom =
   /*#__PURE__*/ createUseWriteContract({
@@ -3621,7 +3684,7 @@ export const useWriteCryptoPunksSafeTransferFrom =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"setApprovalForAll"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksSetApprovalForAll =
   /*#__PURE__*/ createUseWriteContract({
@@ -3634,7 +3697,7 @@ export const useWriteCryptoPunksSetApprovalForAll =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"transferFrom"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWriteCryptoPunksTransferFrom =
   /*#__PURE__*/ createUseWriteContract({
@@ -3647,7 +3710,7 @@ export const useWriteCryptoPunksTransferFrom =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunks = /*#__PURE__*/ createUseSimulateContract({
   abi: cryptoPunksAbi,
@@ -3658,7 +3721,7 @@ export const useSimulateCryptoPunks = /*#__PURE__*/ createUseSimulateContract({
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"approve"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksApprove =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3671,7 +3734,7 @@ export const useSimulateCryptoPunksApprove =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"mint"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksMint =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3684,7 +3747,7 @@ export const useSimulateCryptoPunksMint =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"mintNext"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksMintNext =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3697,7 +3760,7 @@ export const useSimulateCryptoPunksMintNext =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"mintRandom"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksMintRandom =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3710,7 +3773,7 @@ export const useSimulateCryptoPunksMintRandom =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"safeTransferFrom"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksSafeTransferFrom =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3723,7 +3786,7 @@ export const useSimulateCryptoPunksSafeTransferFrom =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"setApprovalForAll"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksSetApprovalForAll =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3736,7 +3799,7 @@ export const useSimulateCryptoPunksSetApprovalForAll =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link cryptoPunksAbi}__ and `functionName` set to `"transferFrom"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useSimulateCryptoPunksTransferFrom =
   /*#__PURE__*/ createUseSimulateContract({
@@ -3749,7 +3812,7 @@ export const useSimulateCryptoPunksTransferFrom =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link cryptoPunksAbi}__
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWatchCryptoPunksEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -3761,7 +3824,7 @@ export const useWatchCryptoPunksEvent =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link cryptoPunksAbi}__ and `eventName` set to `"Approval"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWatchCryptoPunksApprovalEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -3774,7 +3837,7 @@ export const useWatchCryptoPunksApprovalEvent =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link cryptoPunksAbi}__ and `eventName` set to `"ApprovalForAll"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWatchCryptoPunksApprovalForAllEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -3787,7 +3850,7 @@ export const useWatchCryptoPunksApprovalForAllEvent =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link cryptoPunksAbi}__ and `eventName` set to `"Transfer"`
  *
  * -
- * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xb77c6d39ada76184b44e581f4d1bb43fd856aef6)
+ * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xf8a39dc6c55a324a2e0c16503547a108b5ead949)
  */
 export const useWatchCryptoPunksTransferEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
