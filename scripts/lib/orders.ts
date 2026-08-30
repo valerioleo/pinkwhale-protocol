@@ -154,19 +154,21 @@ export const SEAPORT_ORDER_TYPES = {
   ]
 } as const;
 
-export async function signOrder(
-  walletClient: WalletClient,
+/**
+ * The EIP-712 payload Seaport verifies an order against.
+ *
+ * Split out from `signOrder` because not every wallet is a viem `WalletClient`:
+ * the playground signs through CDP's embedded wallet, which takes this same
+ * `{domain, types, primaryType, message}` object. Keeping the payload in one place
+ * means the browser and the test suite sign the identical bytes.
+ */
+export function buildOrderTypedData(
   seaportAddress: Address,
   chainId: number,
   params: OrderParameters,
   counter: bigint
-): Promise<Hex> {
-  const account = walletClient.account;
-
-  if (!account) throw new Error('signOrder needs a wallet client with an account');
-
-  return walletClient.signTypedData({
-    account,
+) {
+  return {
     domain: {
       name: 'Seaport',
       version: '1.6',
@@ -187,8 +189,25 @@ export async function signOrder(
       salt: params.salt,
       conduitKey: params.conduitKey,
       counter
-    } as never
-  });
+    }
+  } as const;
+}
+
+export async function signOrder(
+  walletClient: WalletClient,
+  seaportAddress: Address,
+  chainId: number,
+  params: OrderParameters,
+  counter: bigint
+): Promise<Hex> {
+  const account = walletClient.account;
+
+  if (!account) throw new Error('signOrder needs a wallet client with an account');
+
+  return walletClient.signTypedData({
+    account,
+    ...buildOrderTypedData(seaportAddress, chainId, params, counter)
+  } as never);
 }
 
 /**

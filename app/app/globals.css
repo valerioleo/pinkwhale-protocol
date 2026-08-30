@@ -86,3 +86,35 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .btn:disabled { opacity: .5; cursor: default; }
 
 .punks-inline { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---- terms form ---------------------------------------------------------- */
+.terms { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.field { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.field-label { width: 62px; flex: none; color: var(--pw-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+.fixed-amount { font-family: ui-monospace, Menlo, monospace; font-size: 14px; min-width: 92px; }
+.hint--inline { margin: 0; font-size: 12.5px; }
+.hint--bad { color: #b4483a; }
+
+.pledge { display: flex; gap: 8px; flex-wrap: wrap; }
+.pledge-item {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: #fff; border-radius: 10px;
+  padding: 6px 10px 6px 6px; font-size: 13px; font-family: ui-monospace, Menlo, monospace;
+  color: var(--pw-muted);
+}
+.pledge-item--on { border-color: var(--ink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+.field input[type='range'] { width: 190px; accent-color: var(--ink); }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button {
+  border: 0; border-right: 1px solid var(--line); background: #fff;
+  padding: 6px 14px; font-size: 13px; cursor: pointer; color: var(--pw-muted);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--ink); color: #fff; }
+
+.mirror { display: flex; gap: 26px; margin: 0; flex-wrap: wrap; }
+.mirror div { display: flex; flex-direction: column; gap: 3px; }
+.mirror dt { font-size: 11.5px; color: var(--pw-muted); text-transform: uppercase; letter-spacing: .05em; }
+.mirror dd { margin: 0; font-size: 14px; font-family: ui-monospace, Menlo, monospace; display: flex; align-items: center; gap: 6px; }

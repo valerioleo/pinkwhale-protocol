@@ -6,9 +6,14 @@ import {formatUnits} from 'viem';
 
 import {Punk} from '../components/Punk';
 import {Step, type StepState} from '../components/Step';
+import {TermsForm} from '../components/TermsForm';
 import {USDC_DECIMALS} from '../lib/chain';
 import {useFaucet, useHoldings} from '../lib/holdings';
+import {DURATIONS, PRINCIPAL, type LoanTerms} from '../lib/loan';
+import {orderFor, useStoredLoan} from '../lib/orderStore';
 import {usePersonas} from '../lib/personas';
+import {useSignLoanOrder} from '../lib/signing';
+import {useState} from 'react';
 
 const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
@@ -18,8 +23,20 @@ export default function Playground() {
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
   const faucet = useFaucet(personas);
+  const storedLoan = useStoredLoan();
+  const sign = useSignLoanOrder(personas);
+
+  const [terms, setTerms] = useState<LoanTerms>({
+    collateral: [],
+    repaymentUsdc: 110,
+    durationSeconds: DURATIONS[0].seconds
+  });
 
   const minting = faucet.isPending ? faucet.variables : null;
+  const signing = sign.isPending ? sign.variables?.side : null;
+
+  const borrowerOrder = orderFor(storedLoan, 'borrower');
+  const lenderOrder = orderFor(storedLoan, 'lender');
 
   const connected = Boolean(isSignedIn && personas);
   const hasPunks = borrower.punks.length > 0;
@@ -90,10 +107,26 @@ export default function Playground() {
         index={3}
         title="Sign your borrow request"
         persona="borrower"
-        state={state(false, hasPunks)}
-        summary="off chain · costs nothing"
+        state={state(Boolean(borrowerOrder), hasPunks)}
+        summary={
+          borrowerOrder
+            ? `${borrowerOrder.parameters.offer.length} pledged · ${storedLoan!.terms.repaymentUsdc} USDC back`
+            : 'off chain · costs nothing'
+        }
       >
-        <p className="hint">Next.</p>
+        <TermsForm owned={borrower.punks} terms={terms} onChange={setTerms} />
+        <button
+          className="btn"
+          disabled={terms.collateral.length === 0 || sign.isPending}
+          onClick={() => sign.mutate({side: 'borrower', terms})}
+        >
+          {signing === 'borrower' ? 'Waiting for signature…' : 'Sign request'}
+        </button>
+        {sign.isError ? <p className="hint hint--bad">{(sign.error as Error).message}</p> : null}
+        <p className="hint">
+          Nothing reaches the chain here. A signature costs no gas and commits to nothing until
+          somebody submits it.
+        </p>
       </Step>
 
       <Step
@@ -108,8 +141,57 @@ export default function Playground() {
         </button>
       </Step>
 
-      <Step index={5} title="Sign the matching lender offer" persona="lender" state="locked" summary="derived from step 3, not retyped" />
-      <Step index={6} title="Your order book" state="locked" summary="two signatures, nothing on chain yet" />
+      <Step
+        index={5}
+        title="Sign the matching lender offer"
+        persona="lender"
+        state={state(Boolean(lenderOrder), Boolean(borrowerOrder) && hasUsdc)}
+        summary={
+          lenderOrder ? 'mirrored and signed' : 'derived from step 3, not retyped'
+        }
+      >
+        {storedLoan ? (
+          <dl className="mirror">
+            <div>
+              <dt>you lend</dt>
+              <dd>{formatUnits(PRINCIPAL, USDC_DECIMALS)} USDC</dd>
+            </div>
+            <div>
+              <dt>you get back</dt>
+              <dd>{storedLoan.terms.repaymentUsdc} USDC</dd>
+            </div>
+            <div>
+              <dt>against</dt>
+              <dd className="punks-inline">
+                {storedLoan.terms.collateral.map((id: number) => (
+                  <Punk key={id} id={id} scale={1} />
+                ))}
+                {storedLoan.terms.collateral.map((id: number) => `#${id}`).join(' · ')}
+              </dd>
+            </div>
+          </dl>
+        ) : null}
+        <button
+          className="btn"
+          disabled={!borrowerOrder || sign.isPending}
+          onClick={() => sign.mutate({side: 'lender', terms: storedLoan!.terms})}
+        >
+          {signing === 'lender' ? 'Waiting for signature…' : 'Sign the mirror'}
+        </button>
+        <p className="hint">
+          Nothing to fill in. <code>executeLoan</code> needs both sides to describe the same
+          repayment item for item, with duration the only slack — so the lender mirrors the
+          borrower or the match reverts.
+        </p>
+      </Step>
+      <Step
+        index={6}
+        title="Your order book"
+        state={state(false, Boolean(borrowerOrder && lenderOrder))}
+        summary="two signatures, nothing on chain yet"
+      >
+        <p className="hint">Next.</p>
+      </Step>
       <Step index={7} title="The loan" state="locked" summary="interest ticking, repay when you like" />
       <Step index={8} title="Two orders you never signed" state="locked" summary="minted by Pinkwhale" />
     </main>
