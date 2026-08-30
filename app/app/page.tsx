@@ -42,9 +42,28 @@ export default function Playground() {
   const hasPunks = borrower.punks.length > 0;
   const hasUsdc = lender.usdc > 0n;
 
-  /** Every step is derived from chain state, so a refresh lands where you left off. */
-  const state = (done: boolean, unlocked: boolean): StepState =>
-    done ? 'done' : unlocked ? 'active' : 'locked';
+  /**
+   * Whether each step is finished, in order. Derived from the chain and from what
+   * is signed, so a refresh lands where you left off rather than at the start.
+   */
+  const finished = [
+    connected,
+    hasPunks,
+    Boolean(borrowerOrder),
+    hasUsdc,
+    Boolean(lenderOrder),
+    false,
+    false,
+    false
+  ];
+
+  /**
+   * A step opens when everything before it is done. Deriving it from the sequence
+   * rather than writing a condition per step means a gate cannot be left behind
+   * when the step above it starts working.
+   */
+  const stateOf = (step: number): StepState =>
+    finished[step - 1] ? 'done' : finished.slice(0, step - 1).every(Boolean) ? 'active' : 'locked';
 
   return (
     <main>
@@ -56,7 +75,7 @@ export default function Playground() {
       <Step
         index={1}
         title="Connect"
-        state={state(connected, true)}
+        state={stateOf(1)}
         summary={
           connected ? (
             <>
@@ -80,7 +99,7 @@ export default function Playground() {
         index={2}
         title="Mint collateral"
         persona="borrower"
-        state={state(hasPunks, connected)}
+        state={stateOf(2)}
         summary={
           hasPunks ? (
             <span className="punks-inline">
@@ -107,7 +126,7 @@ export default function Playground() {
         index={3}
         title="Sign your borrow request"
         persona="borrower"
-        state={state(Boolean(borrowerOrder), hasPunks)}
+        state={stateOf(3)}
         summary={
           borrowerOrder
             ? `${borrowerOrder.parameters.offer.length} pledged · ${storedLoan!.terms.repaymentUsdc} USDC back`
@@ -133,7 +152,7 @@ export default function Playground() {
         index={4}
         title="Mint USDC"
         persona="lender"
-        state={state(hasUsdc, false)}
+        state={stateOf(4)}
         summary={hasUsdc ? `${formatUnits(lender.usdc, USDC_DECIMALS)} USDC` : 'something to lend'}
       >
         <button className="btn" onClick={() => faucet.mutate('lender')} disabled={faucet.isPending}>
@@ -145,7 +164,7 @@ export default function Playground() {
         index={5}
         title="Sign the matching lender offer"
         persona="lender"
-        state={state(Boolean(lenderOrder), Boolean(borrowerOrder) && hasUsdc)}
+        state={stateOf(5)}
         summary={
           lenderOrder ? 'mirrored and signed' : 'derived from step 3, not retyped'
         }
@@ -187,13 +206,13 @@ export default function Playground() {
       <Step
         index={6}
         title="Your order book"
-        state={state(false, Boolean(borrowerOrder && lenderOrder))}
+        state={stateOf(6)}
         summary="two signatures, nothing on chain yet"
       >
         <p className="hint">Next.</p>
       </Step>
-      <Step index={7} title="The loan" state="locked" summary="interest ticking, repay when you like" />
-      <Step index={8} title="Two orders you never signed" state="locked" summary="minted by Pinkwhale" />
+      <Step index={7} title="The loan" state={stateOf(7)} summary="interest ticking, repay when you like" />
+      <Step index={8} title="Two orders you never signed" state={stateOf(8)} summary="minted by Pinkwhale" />
     </main>
   );
 }
