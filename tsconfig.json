@@ -29,10 +29,11 @@
     "docs/**/*.tsx"
   ],
   "exclude": [
-    "node_modules",
-    "out",
+    "app",
     "cache",
+    "docs/dist",
     "lib",
-    "docs/dist"
+    "node_modules",
+    "out"
   ]
 }

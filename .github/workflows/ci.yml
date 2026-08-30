@@ -58,3 +58,6 @@ jobs:
 
       - name: Build docs
         run: pnpm docs:build
+
+      - name: Build playground
+        run: pnpm --filter @pinkwhale/app build
