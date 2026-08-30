@@ -1,31 +1,45 @@
 import {createPublicClient, http} from 'viem';
-import {baseSepolia} from 'viem/chains';
 
-import {pinkwhale, punks, usdc} from './deployment';
+import {chain, CHAIN_ID} from './chain';
+import {
+  cryptoPunksAbi,
+  cryptoPunksAddress,
+  pinkwhaleAbi,
+  pinkwhaleAddress,
+  usdcAbi,
+  usdcAddress
+} from './generated';
 
 /**
  * Server-side reads talk to CDP directly; only the browser goes through
- * `/api/rpc`, and only because the URL carries a token.
+ * `/api/rpc`, and only because that URL carries a token.
  */
-const serverClient = createPublicClient({
-  chain: baseSepolia,
-  transport: http(process.env.BASE_SEPOLIA_RPC_URL)
-});
+const serverClient = createPublicClient({chain, transport: http(process.env.BASE_SEPOLIA_RPC_URL)});
 
+/**
+ * Spread rather than a helper: viem infers each return type from the ABI's literal
+ * type, and anything that widens `abi` on the way through loses that.
+ */
 export const readDeployment = async () => {
-  const [seaportAddress, usdcSymbol, usdcDecimals, punkName, collectionSize] = await Promise.all([
-    serverClient.readContract({...pinkwhale, functionName: 'seaport'}),
-    serverClient.readContract({...usdc, functionName: 'symbol'}),
-    serverClient.readContract({...usdc, functionName: 'decimals'}),
-    serverClient.readContract({...punks, functionName: 'name'}),
-    serverClient.readContract({...punks, functionName: 'collectionSize'})
+  const [seaport, usdcSymbol, usdcDecimals, punkName, collectionSize] = await Promise.all([
+    serverClient.readContract({
+      abi: pinkwhaleAbi,
+      address: pinkwhaleAddress[CHAIN_ID],
+      functionName: 'seaport'
+    }),
+    serverClient.readContract({abi: usdcAbi, address: usdcAddress[CHAIN_ID], functionName: 'symbol'}),
+    serverClient.readContract({abi: usdcAbi, address: usdcAddress[CHAIN_ID], functionName: 'decimals'}),
+    serverClient.readContract({
+      abi: cryptoPunksAbi,
+      address: cryptoPunksAddress[CHAIN_ID],
+      functionName: 'name'
+    }),
+    serverClient.readContract({
+      abi: cryptoPunksAbi,
+      address: cryptoPunksAddress[CHAIN_ID],
+      functionName: 'collectionSize'
+    })
   ]);
 
-  return {
-    seaport: seaportAddress as string,
-    usdcSymbol: usdcSymbol as string,
-    usdcDecimals: usdcDecimals as number,
-    punkName: punkName as string,
-    collectionSize: collectionSize as bigint
-  };
+  return {seaport, usdcSymbol, usdcDecimals, punkName, collectionSize};
 };

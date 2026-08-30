@@ -1,5 +1,6 @@
 import {Punk} from '../components/Punk';
-import {pinkwhale, punks, seaport, usdc, CHAIN_ID} from '../lib/deployment';
+import {CHAIN_ID} from '../lib/chain';
+import {cryptoPunksAddress, pinkwhaleAddress, seaport16Address, usdcAddress} from '../lib/generated';
 import {readDeployment} from '../lib/reads';
 
 /**
@@ -25,13 +26,13 @@ export default async function Home() {
         <h2>Deployed contracts</h2>
         <div className="row">
           <span className="k">Pinkwhale</span>
-          <span className="v">{pinkwhale.address}</span>
+          <span className="v">{pinkwhaleAddress[CHAIN_ID]}</span>
         </div>
         <div className="row">
           <span className="k">points at Seaport</span>
           <span className="v">
             {live.seaport}{' '}
-            {live.seaport?.toLowerCase() === seaport.address.toLowerCase() ? (
+            {live.seaport.toLowerCase() === seaport16Address[CHAIN_ID].toLowerCase() ? (
               <span className="ok">✓ canonical</span>
             ) : (
               <span className="bad">✗ unexpected</span>
@@ -41,13 +42,13 @@ export default async function Home() {
         <div className="row">
           <span className="k">USDC</span>
           <span className="v">
-            {usdc.address} · {live.usdcSymbol} · {String(live.usdcDecimals)}dp
+            {usdcAddress[CHAIN_ID]} · {live.usdcSymbol} · {String(live.usdcDecimals)}dp
           </span>
         </div>
         <div className="row">
           <span className="k">CryptoPunks</span>
           <span className="v">
-            {punks.address} · {live.punkName} · {String(live.collectionSize)}
+            {cryptoPunksAddress[CHAIN_ID]} · {live.punkName} · {String(live.collectionSize)}
           </span>
         </div>
       </div>
