@@ -7,22 +7,24 @@ import {formatUnits} from 'viem';
 import {Pill} from './Pill';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
+import {explorerUrl} from '../lib/txLog';
 
 /**
- * Where each loan has got to, and the two orders that can end it.
+ * One card per loan: what is in escrow, what is owed, and the one thing left to
+ * do about it.
  *
- * Both buttons are always shown, because the pair of them is the point: a loan
- * has exactly two futures, each an order Pinkwhale minted and locked to one
- * address, and only the clock decides which one is fillable. Hiding the one you
- * cannot use would hide half the design.
+ * A loan has exactly two futures, but only ever one of them is open, so the card
+ * offers one button rather than a disabled pair. The orders themselves are a
+ * click away, which is where the pair does need showing — that is the point at
+ * which "why can I not press the other one" has an answer.
  */
-const owedAt = (now: bigint, loan: Loan) => {
-  if (now <= loan.opensAt || loan.closesAt <= loan.opensAt) return loan.owed.start;
-  if (now >= loan.closesAt) return loan.owed.end;
+const owedAt = (at: bigint, loan: Loan) => {
+  if (at <= loan.opensAt || loan.closesAt <= loan.opensAt) return loan.owed.start;
+  if (at >= loan.closesAt) return loan.owed.end;
 
   return (
     loan.owed.start +
-    ((loan.owed.end - loan.owed.start) * (now - loan.opensAt)) / (loan.closesAt - loan.opensAt)
+    ((loan.owed.end - loan.owed.start) * (at - loan.opensAt)) / (loan.closesAt - loan.opensAt)
   );
 };
 
@@ -35,77 +37,172 @@ const countdown = (seconds: bigint) => {
 
 const clock = (at: bigint) => new Date(Number(at) * 1000).toLocaleTimeString();
 
-type Which = 'repayment' | 'default';
+const usdc = (amount: bigint) => formatUnits(amount, USDC_DECIMALS);
 
-const OrderDetail = ({loan, which, now}: {loan: Loan; which: Which; now: bigint}) => {
+const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
+
+const Orders = ({loan, now}: {loan: Loan; now: bigint}) => {
   const expired = now > loan.closesAt;
 
-  const collateral = (
-    <span className="pills">
-      {loan.punks.map((id) => (
-        <Pill key={id} punk={id}>
-          #{id}
-        </Pill>
-      ))}
-    </span>
-  );
-
-  const repayment = {
-    title: 'repayment order',
-    wants: (
-      <span className="pills">
-        <Pill token="usdc">{formatUnits(loan.owed.start, USDC_DECIMALS)}</Pill>
-        <span className="muted">→</span>
-        <Pill token="usdc">{formatUnits(loan.owed.end, USDC_DECIMALS)} USDC</Pill>
-        <span className="muted">rising by the second</span>
-      </span>
-    ),
-    who: 'only the borrower',
-    window: `open until ${clock(loan.closesAt)}`,
-    state: loan.repaid ? 'filled' : expired ? 'expired' : 'live'
-  };
-
-  const fallback = {
-    title: 'default order',
-    wants: <span className="muted">nothing at all — it costs the lender only gas</span>,
-    who: 'only the lender',
-    // It never closes: an unclaimed default stays claimable forever.
-    window: `opens ${clock(loan.closesAt + 1n)}, never closes`,
-    state: loan.claimed ? 'filled' : expired ? 'live' : 'not live yet'
-  };
-
-  const order = which === 'repayment' ? repayment : fallback;
+  const rows = [
+    {
+      title: 'repayment order',
+      state: loan.repaid ? 'filled' : expired ? 'expired' : 'live',
+      wants: (
+        <>
+          <Pill token="usdc">{usdc(loan.owed.start)}</Pill> rising to{' '}
+          <Pill token="usdc">{usdc(loan.owed.end)} USDC</Pill>
+        </>
+      ),
+      who: 'only the borrower',
+      window: `open until ${clock(loan.closesAt)}`
+    },
+    {
+      title: 'default order',
+      state: loan.claimed ? 'filled' : expired ? 'live' : 'not live yet',
+      wants: <span className="muted">nothing at all — it costs the lender only gas</span>,
+      who: 'only the lender',
+      // It never closes: an unclaimed default stays claimable forever.
+      window: `opens ${clock(loan.closesAt + 1n)}, never closes`
+    }
+  ];
 
   return (
-    <div className="detail">
-      <div className="detail-head">
-        <strong>{order.title}</strong>
-        <span className={`status status--${order.state.replace(/ /g, '-')}`}>{order.state}</span>
-      </div>
-      <dl className="detail-facts">
-        <div>
-          <dt>offers</dt>
-          <dd>{collateral}</dd>
+    <div className="orders">
+      {rows.map((order) => (
+        <div key={order.title} className="order">
+          <div className="order-head">
+            <strong>{order.title}</strong>
+            <span className={`status status--${order.state.replace(/ /g, '-')}`}>{order.state}</span>
+          </div>
+          <dl className="order-facts">
+            <div>
+              <dt>offers</dt>
+              <dd>
+                <span className="pills">
+                  {loan.punks.map((id) => (
+                    <Pill key={id} punk={id}>
+                      #{id}
+                    </Pill>
+                  ))}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>wants</dt>
+              <dd>{order.wants}</dd>
+            </div>
+            <div>
+              <dt>who may fill</dt>
+              <dd>{order.who}</dd>
+            </div>
+            <div>
+              <dt>window</dt>
+              <dd>{order.window}</dd>
+            </div>
+          </dl>
         </div>
-        <div>
-          <dt>wants</dt>
-          <dd>{order.wants}</dd>
-        </div>
-        <div>
-          <dt>who may fill</dt>
-          <dd>{order.who}</dd>
-        </div>
-        <div>
-          <dt>window</dt>
-          <dd>{order.window}</dd>
-        </div>
-      </dl>
+      ))}
       <p className="hint">
-        Pinkwhale minted this when the loan opened and left it on Seaport. It is locked to one
-        address by its <code>zoneHash</code>, so the other side pressing this gets turned away
-        before anything moves.
+        Pinkwhale minted both of these when the loan opened and left them on Seaport. Each is locked
+        to one address by its <code>zoneHash</code>, so the wrong side is turned away before
+        anything moves — and the clock alone decides which is open.
       </p>
     </div>
+  );
+};
+
+const LoanCard = ({
+  loan,
+  now,
+  onRepay,
+  onClaim,
+  busy
+}: {
+  loan: Loan;
+  now: bigint;
+  onRepay: () => void;
+  onClaim: () => void;
+  busy: boolean;
+}) => {
+  const [showOrders, setShowOrders] = useState(false);
+
+  const expired = now > loan.closesAt;
+  const status = loan.repaid ? 'repaid' : loan.claimed ? 'claimed' : expired ? 'defaulted' : 'live';
+
+  // What it settled at: the curve evaluated when the fill landed, not the total
+  // agreed. A claim pays nothing, so the figure there is the debt left unpaid.
+  const amount = loan.repaid
+    ? owedAt(loan.resolvedAt ?? loan.closesAt, loan)
+    : loan.claimed
+      ? loan.owed.end
+      : owedAt(now, loan);
+
+  return (
+    <li className={`loan-card loan-card--${status}`}>
+      <div className="loan-card-head">
+        <span className="loan-id">order {shortId(loan.loanId)}</span>
+        <span className={`status status--${status}`}>{status}</span>
+      </div>
+
+      <div className="loan-figures">
+        <div>
+          <dt>Collateral</dt>
+          <dd className="pills">
+            {loan.punks.map((id) => (
+              <Pill key={id} punk={id}>
+                #{id}
+              </Pill>
+            ))}
+          </dd>
+        </div>
+        <div>
+          <dt>{loan.claimed ? 'Unpaid' : 'Owed'}</dt>
+          <dd>
+            <Pill token="usdc">
+              {/* One child, so the pill's gap sits between icon and text rather
+                  than also opening up between the figure and its unit. */}
+              <span className="amount">
+                <NumberFlow
+                  value={Number(usdc(amount))}
+                  format={{maximumFractionDigits: 0}}
+                  animated={!loan.settled}
+                />{' '}
+                USDC
+              </span>
+            </Pill>
+          </dd>
+        </div>
+      </div>
+
+      {loan.settled ? (
+        <a
+          className="btn btn--wide btn--quiet"
+          href={loan.resolutionHash ? explorerUrl(loan.resolutionHash) : undefined}
+          target="_blank"
+          rel="noreferrer"
+        >
+          View {loan.repaid ? 'repay' : 'claim'} tx ↗
+        </a>
+      ) : expired ? (
+        <button className="btn btn--wide" disabled={busy} onClick={onClaim}>
+          Claim collateral
+        </button>
+      ) : (
+        <button className="btn btn--wide" disabled={busy} onClick={onRepay}>
+          Repay within {countdown(loan.closesAt - now)}
+        </button>
+      )}
+
+      <button className="orders-toggle" onClick={() => setShowOrders((open) => !open)}>
+        <span className="info" aria-hidden="true">
+          i
+        </span>
+        {showOrders ? 'Hide' : 'See'} Pinkwhale orders
+      </button>
+
+      {showOrders ? <Orders loan={loan} now={now} /> : null}
+    </li>
   );
 };
 
@@ -122,83 +219,22 @@ export const LoanList = ({
   onClaim: (loan: Loan) => void;
   busy: boolean;
 }) => {
-  const [open, setOpen] = useState<string | null>(null);
-
   if (loans.length === 0) {
     return <p className="hint">No loans yet. Create a pair of orders and match them.</p>;
   }
 
   return (
     <ul className="loans">
-      {[...loans].reverse().map((loan) => {
-        const expired = now > loan.closesAt;
-        const key = (which: Which) => `${loan.loanId}:${which}`;
-
-        const toggle = (which: Which) =>
-          setOpen((current) => (current === key(which) ? null : key(which)));
-
-        return (
-          <li key={loan.loanId} className="loan-item">
-            <div className="loan-line">
-              <span className="pills">
-                {loan.punks.map((id) => (
-                  <Pill key={id} punk={id}>
-                    #{id}
-                  </Pill>
-                ))}
-              </span>
-
-              <span className="loan-owed">
-                {loan.repaid ? (
-                  <span className="muted">repaid in full</span>
-                ) : loan.claimed ? (
-                  <span className="muted">nothing — collateral taken</span>
-                ) : (
-                  <>
-                    <Pill token="usdc">
-                      <NumberFlow
-                        value={Number(formatUnits(owedAt(now, loan), USDC_DECIMALS))}
-                        format={{maximumFractionDigits: 0}}
-                      />{' '}
-                      USDC
-                    </Pill>
-                    <span className={`owed-note${expired ? ' owed-note--shut' : ''}`}>
-                      {expired ? 'window shut' : `${countdown(loan.closesAt - now)} left to repay`}
-                    </span>
-                  </>
-                )}
-              </span>
-            </div>
-
-            <div className="loan-actions">
-              {(
-                [
-                  ['repayment', 'Repay', () => onRepay(loan), !loan.settled && !expired],
-                  ['default', 'Claim collateral', () => onClaim(loan), !loan.settled && expired]
-                ] as const
-              ).map(([which, label, act, enabled]) => (
-                <span key={which} className="action">
-                  <button className="btn btn--small" disabled={busy || !enabled} onClick={act}>
-                    {label}
-                  </button>
-                  <button
-                    className="info"
-                    aria-expanded={open === key(which)}
-                    aria-label={`About the ${which} order`}
-                    onClick={() => toggle(which)}
-                  >
-                    i
-                  </button>
-                </span>
-              ))}
-            </div>
-
-            {open?.startsWith(loan.loanId) ? (
-              <OrderDetail loan={loan} which={open.endsWith('repayment') ? 'repayment' : 'default'} now={now} />
-            ) : null}
-          </li>
-        );
-      })}
+      {[...loans].reverse().map((loan) => (
+        <LoanCard
+          key={loan.loanId}
+          loan={loan}
+          now={now}
+          busy={busy}
+          onRepay={() => onRepay(loan)}
+          onClaim={() => onClaim(loan)}
+        />
+      ))}
     </ul>
   );
 };

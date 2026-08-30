@@ -7,6 +7,7 @@ import {Pill} from './Pill';
 import {PunkStack} from './PunkStack';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Holdings} from '../lib/holdings';
+import {PERSONA_HUE} from '../lib/personas';
 import {explorerUrl} from '../lib/txLog';
 
 const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -30,7 +31,7 @@ export const WalletCard = ({
     <div className="wallet-head">
       <span className="wallet-who">
         {/* Seeded on the address, so the same wallet always wears the same face. */}
-        <Blobatar name={address} size={26} />
+        <Blobatar name={address} size={38} hue={PERSONA_HUE[persona]} />
         <span className="wallet-role">{persona}</span>
       </span>
       <a

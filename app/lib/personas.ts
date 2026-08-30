@@ -32,3 +32,14 @@ export const usePersonas = (): {personas: Personas; creating: boolean} => {
     creating: false
   };
 };
+
+/**
+ * The accent each role wears, and the hue its blobatar is tinted to.
+ *
+ * Derived from the same two colours the article uses, so a persona looks like
+ * itself in the stripe down its card and in the face at the top of it.
+ */
+export const PERSONA_HUE: Record<Persona, number> = {
+  borrower: 36,
+  lender: 185
+};
