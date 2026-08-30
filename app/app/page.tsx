@@ -2,13 +2,12 @@
 
 import {AuthButton} from '@coinbase/cdp-react';
 import {useIsSignedIn} from '@coinbase/cdp-hooks';
-import {useState} from 'react';
 import {formatUnits} from 'viem';
 
 import {Punk} from '../components/Punk';
 import {Step, type StepState} from '../components/Step';
 import {USDC_DECIMALS} from '../lib/chain';
-import {fundPersona, useHoldings} from '../lib/holdings';
+import {useFaucet, useHoldings} from '../lib/holdings';
 import {usePersonas} from '../lib/personas';
 
 const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -16,20 +15,11 @@ const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)
 export default function Playground() {
   const {isSignedIn} = useIsSignedIn();
   const {personas, creating} = usePersonas();
-  const {lender, borrower, refresh} = useHoldings(personas);
-  const [busy, setBusy] = useState<string | null>(null);
+  const lender = useHoldings(personas?.lender);
+  const borrower = useHoldings(personas?.borrower);
+  const faucet = useFaucet(personas);
 
-  const fund = async (persona: 'lender' | 'borrower') => {
-    if (!personas) return;
-
-    setBusy(persona);
-    try {
-      await fundPersona(personas[persona], persona);
-      await refresh();
-    } finally {
-      setBusy(null);
-    }
-  };
+  const minting = faucet.isPending ? faucet.variables : null;
 
   const connected = Boolean(isSignedIn && personas);
   const hasPunks = borrower.punks.length > 0;
@@ -77,10 +67,10 @@ export default function Playground() {
         summary={
           hasPunks ? (
             <span className="punks-inline">
-              {borrower.punks.map((id) => (
+              {borrower.punks.map((id: number) => (
                 <Punk key={id} id={id} scale={1} />
               ))}
-              {borrower.punks.map((id) => `#${id}`).join(' · ')}
+              {borrower.punks.map((id: number) => `#${id}`).join(' · ')}
             </span>
           ) : (
             'two punks, picked on chain'
@@ -91,8 +81,8 @@ export default function Playground() {
           <code>mintRandom</code> seeds off the previous block hash, so which punks you get is
           decided when the transaction lands. Two of them, so the bundle in step 3 is a real choice.
         </p>
-        <button className="btn" onClick={() => fund('borrower')} disabled={busy !== null}>
-          {busy === 'borrower' ? 'Minting…' : 'Mint two punks'}
+        <button className="btn" onClick={() => faucet.mutate('borrower')} disabled={faucet.isPending}>
+          {minting === 'borrower' ? 'Minting…' : 'Mint two punks'}
         </button>
       </Step>
 
@@ -113,8 +103,8 @@ export default function Playground() {
         state={state(hasUsdc, false)}
         summary={hasUsdc ? `${formatUnits(lender.usdc, USDC_DECIMALS)} USDC` : 'something to lend'}
       >
-        <button className="btn" onClick={() => fund('lender')} disabled={busy !== null}>
-          {busy === 'lender' ? 'Minting…' : 'Mint 10,000 USDC'}
+        <button className="btn" onClick={() => faucet.mutate('lender')} disabled={faucet.isPending}>
+          {minting === 'lender' ? 'Minting…' : 'Mint 10,000 USDC'}
         </button>
       </Step>
 

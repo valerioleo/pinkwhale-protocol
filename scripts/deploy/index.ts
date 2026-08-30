@@ -9,9 +9,9 @@
  * only sends a transaction when a contract's deploy identity moved, because the
  * deployoor config asks for `on-change`.
  */
-import {chain, deployMocks, getAdminWallet, network} from '../clients.js';
-import {deployPinkwhale} from './pinkwhale.js';
-import {deployMockTokens} from './tokens.js';
+import {chain, deployMocks, getAdminWallet, network} from '../clients';
+import {deployPinkwhale} from './pinkwhale';
+import {deployMockTokens} from './tokens';
 
 const main = async () => {
   const admin = await getAdminWallet();

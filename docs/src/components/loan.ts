@@ -19,8 +19,8 @@ import {
   getZoneHash,
   type ConsiderationItem,
   type OfferItem
-} from '../../../scripts/lib/orders.js';
-import type {TokenKind} from './icons.js';
+} from '../../../scripts/lib/orders';
+import type {TokenKind} from './icons';
 
 export {ItemType, OrderType, getBorrowerTermsHash, getLenderTermsHash, getZoneHash};
 export type {ConsiderationItem, OfferItem};

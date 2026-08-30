@@ -15,7 +15,7 @@ import {writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {screenshot} from './lib/headless.ts';
+import {screenshot} from './lib/headless';
 
 /** 16 and 32 are what tabs and taskbars actually use; 48 covers Windows lists. */
 const SIZES = [16, 32, 48];

@@ -8,7 +8,7 @@
  */
 import {createPublicClient, createWalletClient, http, parseEther, parseUnits, type Address} from 'viem';
 
-import {chain, CHAIN_ID, USDC_DECIMALS} from '../chain';
+import {chain, USDC_DECIMALS} from '../chain';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from '../generated';
 
 /** Enough to sign a 7702 delegation on a chain where gas is free anyway. */
@@ -54,7 +54,7 @@ const adminWallet = async () => {
  */
 const ownedPunks = async (owner: Address): Promise<number[]> => {
   const client = createPublicClient({chain, transport: transport()});
-  const config = {abi: cryptoPunksAbi, address: cryptoPunksAddress[CHAIN_ID]} as const;
+  const config = {abi: cryptoPunksAbi, address: cryptoPunksAddress[chain.id]} as const;
 
   const balance = await client.readContract({...config, functionName: 'balanceOf', args: [owner]});
 
@@ -76,7 +76,7 @@ const hasBeenFunded = async (address: Address, persona: Persona) => {
     const client = createPublicClient({chain, transport: transport()});
     const balance = await client.readContract({
       abi: usdcAbi,
-      address: usdcAddress[CHAIN_ID],
+      address: usdcAddress[chain.id],
       functionName: 'balanceOf',
       args: [address]
     });
@@ -115,7 +115,7 @@ export const fundPersona = async (address: Address, persona: Persona) => {
     const mint = await wallet.writeContract({
       ...from,
       abi: usdcAbi,
-      address: usdcAddress[CHAIN_ID],
+      address: usdcAddress[chain.id],
       functionName: 'mint',
       args: [address, LENDER_USDC]
     });
@@ -135,7 +135,7 @@ export const fundPersona = async (address: Address, persona: Persona) => {
       const hash = await wallet.writeContract({
         ...from,
         abi: cryptoPunksAbi,
-        address: cryptoPunksAddress[CHAIN_ID],
+        address: cryptoPunksAddress[chain.id],
         functionName: 'mintRandom',
         args: [address]
       });

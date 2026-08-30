@@ -2,7 +2,7 @@
 
 import './pinkwhale.css';
 
-import {TokenIcon, type TokenKind} from './icons.js';
+import {TokenIcon, type TokenKind} from './icons';
 
 /**
  * An inline token chip for use in prose, so "offers the ape back" can show the

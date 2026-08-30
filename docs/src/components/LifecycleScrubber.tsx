@@ -4,8 +4,8 @@ import './pinkwhale.css';
 
 import {useState} from 'react';
 
-import {TokenIcon} from './icons.js';
-import {DURATION, EXPIRY, INTEREST, PRINCIPAL, T0, TOKEN_ID} from './loan.js';
+import {TokenIcon} from './icons';
+import {DURATION, EXPIRY, INTEREST, PRINCIPAL, T0, TOKEN_ID} from './loan';
 
 type Outcome = {ok: boolean; message: string};
 

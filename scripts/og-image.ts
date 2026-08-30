@@ -20,7 +20,7 @@ import {writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {screenshot} from './lib/headless.ts';
+import {screenshot} from './lib/headless';
 
 const WIDTH = 1200;
 const HEIGHT = 630;

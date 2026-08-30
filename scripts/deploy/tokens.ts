@@ -9,9 +9,9 @@
  */
 import type {Address} from 'viem';
 
-import {getOrDeployERC20Token, getOrDeployERC721Token} from '../../deployers/index.js';
-import {COLLECTION_SIZE} from '../assets/punks.js';
-import {getDeployClients} from '../clients.js';
+import {getOrDeployERC20Token, getOrDeployERC721Token} from '../../deployers/index';
+import {COLLECTION_SIZE} from '../assets/punks';
+import {getDeployClients} from '../clients';
 
 /**
  * CryptoPunks predates ERC721 and has no `tokenURI` at all: its art is one

@@ -9,10 +9,10 @@ import {
   getOrDeployConduitController16,
   getOrDeploySeaport16,
   register
-} from '../../deployers/index.js';
+} from '../../deployers/index';
 // The same ABI Foundry compiled and the tests ran against, not hand-copied JSON.
-import {seaport16Artifact} from '../../deployers/types/Seaport16.js';
-import {getAdminWallet, getDeployClients, network, publicClient} from '../clients.js';
+import {seaport16Artifact} from '../../deployers/types/Seaport16';
+import {getAdminWallet, getDeployClients, network, publicClient} from '../clients';
 
 export const CANONICAL_SEAPORT: Address = '0x0000000000000068F116a894984e2DB1123eB395';
 

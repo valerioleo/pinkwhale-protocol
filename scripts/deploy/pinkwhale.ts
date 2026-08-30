@@ -1,6 +1,6 @@
-import {getOrDeployPinkwhale} from '../../deployers/index.js';
-import {getDeployClients} from '../clients.js';
-import {resolveSeaport} from './seaport.js';
+import {getOrDeployPinkwhale} from '../../deployers/index';
+import {getDeployClients} from '../clients';
+import {resolveSeaport} from './seaport';
 
 /** Pinkwhale, pointed at whichever Seaport this chain has. */
 export const deployPinkwhale = async () => {

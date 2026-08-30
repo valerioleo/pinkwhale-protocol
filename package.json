@@ -8,7 +8,6 @@
     "build": "forge build",
     "test": "forge test",
     "test:e2e": "tsx test/e2e/loanLifecycle.ts",
-    "verify:punks": "tsx scripts/assets/verifyPunks.ts",
     "generate": "deployoor generate",
     "anvil": "anvil --code-size-limit 40000",
     "deploy:anvil": "tsx scripts/deploy/index.ts --network anvil",

@@ -20,10 +20,10 @@ import {
   localWallet,
   publicClient,
   type WalletWithAccount
-} from '../../scripts/clients.js';
-import {deployPinkwhale} from '../../scripts/deploy/pinkwhale.js';
-import {getSeaportContract} from '../../scripts/deploy/seaport.js';
-import {deployCollection, deployCurrency} from '../../scripts/deploy/tokens.js';
+} from '../../scripts/clients';
+import {deployPinkwhale} from '../../scripts/deploy/pinkwhale';
+import {getSeaportContract} from '../../scripts/deploy/seaport';
+import {deployCollection, deployCurrency} from '../../scripts/deploy/tokens';
 import {
   ItemType,
   OrderType,
@@ -36,7 +36,7 @@ import {
   type ConsiderationItem,
   type OfferItem,
   type OrderParameters
-} from '../../scripts/lib/orders.js';
+} from '../../scripts/lib/orders';
 
 // anvil's default mnemonic, accounts 1 to 3.
 const LENDER_KEY = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';

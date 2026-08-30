@@ -4,9 +4,9 @@ import './pinkwhale.css';
 
 import {useMemo, useState} from 'react';
 
-import {TokenIcon} from './icons.js';
-import {ORDERS, ORDER_KINDS, type Item, type OrderKind} from './loan.js';
-import {RichText} from './RichText.js';
+import {TokenIcon} from './icons';
+import {ORDERS, ORDER_KINDS, type Item, type OrderKind} from './loan';
+import {RichText} from './RichText';
 
 type Selection = {note: string; title: string} | null;
 

@@ -1,15 +1,23 @@
 /**
- * Which chain the playground runs against, and the bits of it worth naming.
+ * Which chain the playground runs against.
  *
- * Addresses and ABIs are not here on purpose: they come from `lib/generated.ts`,
- * which `@deployoor/wagmi` writes out of the deployment records. Everything is
- * keyed by chain id, so pointing the app at anvil instead is a one-line change.
+ * Addresses and ABIs are deliberately not here: they come from `lib/generated.ts`,
+ * which `@deployoor/wagmi` writes out of the deployment records, keyed by chain id.
  */
+import {createPublicClient, http} from 'viem';
 import {baseSepolia} from 'viem/chains';
 
 export const chain = baseSepolia;
 
-export const CHAIN_ID = baseSepolia.id;
-
 /** USDC is six decimals here, like the token it stands in for. */
 export const USDC_DECIMALS = 6;
+
+/**
+ * The CDP node, straight from the browser. The key in that URL is a *client* key:
+ * CDP issues it for exactly this, and restricts it by the domain allowlist rather
+ * than by keeping it secret. Proxying it would buy nothing.
+ */
+export const publicClient = createPublicClient({
+  chain,
+  transport: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL)
+});
