@@ -14,11 +14,18 @@ import {getOrDeployERC20Token, getOrDeployERC721Token} from '../../deployers/ind
 import {getDeployClients} from '../clients.js';
 
 /**
- * Where `tokenURI` points. The playground serves `/api/nft/<collection>/<id>`,
- * which proxies the real collection's metadata, so a minted id resolves to that
- * collection's own art rather than to a placeholder.
+ * The real collections' metadata directory CIDs, read off mainnet with `tokenURI`.
+ * The mocks use them verbatim, so `tokenURI(6734)` here returns exactly what Bored
+ * Ape Yacht Club returns there.
+ *
+ * That is the point: the contracts commit to content, not to a host. Whatever
+ * resolves `ipfs://` today can be replaced tomorrow without touching a deployment,
+ * because a CID is not an address anyone has to keep alive at a particular URL.
  */
-export const metadataBase = process.env.METADATA_BASE_URL ?? 'http://localhost:3000/api/nft';
+const METADATA_CID = {
+  BoredApeYachtClub: 'QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq',
+  PudgyPenguins: 'bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna'
+} as const;
 
 /** name, symbol, decimals. Six for USDC, matching the token it stands in for. */
 const CURRENCIES = {
@@ -26,11 +33,11 @@ const CURRENCIES = {
   ApeCoin: ['ApeCoin', 'APE', 18]
 } as const satisfies Record<string, readonly [string, string, number]>;
 
-/** name, symbol, metadata slug, collection size. Sizes match the real collections. */
+/** name, symbol, collection size. Sizes match the real collections. */
 const COLLECTIONS = {
-  BoredApeYachtClub: ['Bored Ape Yacht Club', 'BAYC', 'apes', 10_000n],
-  PudgyPenguins: ['Pudgy Penguins', 'PPG', 'penguins', 8_888n]
-} as const satisfies Record<string, readonly [string, string, string, bigint]>;
+  BoredApeYachtClub: ['Bored Ape Yacht Club', 'BAYC', 10_000n],
+  PudgyPenguins: ['Pudgy Penguins', 'PPG', 8_888n]
+} as const satisfies Record<string, readonly [string, string, bigint]>;
 
 export type CurrencyName = keyof typeof CURRENCIES;
 export type CollectionName = keyof typeof COLLECTIONS;
@@ -48,12 +55,12 @@ export const deployCurrency = async (name: CurrencyName, owner: Address) => {
 };
 
 export const deployCollection = async (name: CollectionName) => {
-  const [tokenName, symbol, slug, size] = COLLECTIONS[name];
+  const [tokenName, symbol, size] = COLLECTIONS[name];
 
   const {contract} = await getOrDeployERC721Token({
     ...(await getDeployClients()),
     deploymentName: name,
-    args: [tokenName, symbol, `${metadataBase}/${slug}/`, size]
+    args: [tokenName, symbol, `ipfs://${METADATA_CID[name]}/`, size]
   });
 
   return contract;

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "contractName": "ERC721Token",
   "deploymentName": "BoredApeYachtClub",
-  "address": "0xb922bf35cc54be5ce5569a4f5afd1790db8a3404",
+  "address": "0x4398437c57a32d3db4bcf90f5695610b4c67da6d",
   "chainId": 84532,
   "networkName": "84532-base-sepolia",
   "abi": [
@@ -460,18 +460,18 @@
   "constructorArgs": [
     "Bored Ape Yacht Club",
     "BAYC",
-    "https://pinkwhale.valeriohq.com/api/nft/apes/",
+    "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
     "10000"
   ],
-  "transactionHash": "0x364c7a1020fab27beea71fc6393e63e27a13e35d55f02e023e49350b22f9ca22",
+  "transactionHash": "0xbbe5be6fc85451f86c2b3727458045818ade5e5b443dafc18e43b7862fab39cb",
   "deployer": "0x6612bCB5034F9fc03Ec4397F107cB69E4b3Bb100",
-  "deployedAt": 1788071226765,
+  "deployedAt": 1788104868357,
   "compiler": {
     "version": "0.8.28+commit.7893614a",
     "settings": {}
   },
   "codeHash": "0x770b2cbfc5300f94b2e76ccb5b95b7be5946525bc3548481267413dc31d7535f",
-  "identityHash": "0xecfe0bbca8e19aaeb432c92ec922660818a7a4d0288871796d36d31737200997",
+  "identityHash": "0x22f398938490778f54cf4a11dd4d8def11fc735c0741d97d3a483310d0d31e57",
   "sourcesHash": "0x918dbadc2ca3aa62eebf435dd97ebc4f30005e2072299eea8b1911e724c40ab4",
   "history": [
     {
@@ -484,6 +484,38 @@
         "kind": "fresh"
       },
       "summary": "first deployment"
+    },
+    {
+      "at": 1788104868357,
+      "address": "0x4398437c57a32d3db4bcf90f5695610b4c67da6d",
+      "transactionHash": "0xbbe5be6fc85451f86c2b3727458045818ade5e5b443dafc18e43b7862fab39cb",
+      "deployer": "0x6612bCB5034F9fc03Ec4397F107cB69E4b3Bb100",
+      "identityHash": "0x22f398938490778f54cf4a11dd4d8def11fc735c0741d97d3a483310d0d31e57",
+      "reason": {
+        "kind": "changed",
+        "changes": [
+          {
+            "field": "args",
+            "from": [
+              "Bored Ape Yacht Club",
+              "BAYC",
+              "https://pinkwhale.valeriohq.com/api/nft/apes/",
+              "10000"
+            ],
+            "to": [
+              "Bored Ape Yacht Club",
+              "BAYC",
+              "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
+              "10000"
+            ],
+            "changedIndices": [
+              2
+            ]
+          }
+        ]
+      },
+      "summary": "constructor args changed from [\"Bored Ape Yacht Club\", \"BAYC\", \"https://pinkwhale.valeriohq.com/api/nft/apes/\", \"10000\"] to [\"Bored Ape Yacht Club\", \"BAYC\", \"ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/\", 10000] (arg 3 `baseTokenURI`)",
+      "supersededAddress": "0xb922bf35cc54be5ce5569a4f5afd1790db8a3404"
     }
   ],
   "kind": "standard"

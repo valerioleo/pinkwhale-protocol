@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "contractName": "ERC721Token",
   "deploymentName": "PudgyPenguins",
-  "address": "0xb2e4425f6da0ce94a8416d6913bad4e07e1a92b4",
+  "address": "0xcc6dd1d6f46b474bd83dc653bda5c545c5dc9d6d",
   "chainId": 84532,
   "networkName": "84532-base-sepolia",
   "abi": [
@@ -460,18 +460,18 @@
   "constructorArgs": [
     "Pudgy Penguins",
     "PPG",
-    "https://pinkwhale.valeriohq.com/api/nft/penguins/",
+    "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/",
     "8888"
   ],
-  "transactionHash": "0x3916de4a3ec1f1762c604b8d93a385cd8319ddb2681bed91da95176f47afc277",
+  "transactionHash": "0x043e575dd64ccd2cc95c0dea8975f62b40a129cf004392b1eaf9c79b622d51dc",
   "deployer": "0x6612bCB5034F9fc03Ec4397F107cB69E4b3Bb100",
-  "deployedAt": 1788071228508,
+  "deployedAt": 1788104869410,
   "compiler": {
     "version": "0.8.28+commit.7893614a",
     "settings": {}
   },
   "codeHash": "0x770b2cbfc5300f94b2e76ccb5b95b7be5946525bc3548481267413dc31d7535f",
-  "identityHash": "0xd4630585e74dde1733b2f279ec25b84cfa2ca5a99271a3d391b0eed5fd6fcb5a",
+  "identityHash": "0xa60735543d1cd95353712793601e61f4a44d8b651cc3e9282be3b9fe5121f0b5",
   "sourcesHash": "0x918dbadc2ca3aa62eebf435dd97ebc4f30005e2072299eea8b1911e724c40ab4",
   "history": [
     {
@@ -484,6 +484,38 @@
         "kind": "fresh"
       },
       "summary": "first deployment"
+    },
+    {
+      "at": 1788104869410,
+      "address": "0xcc6dd1d6f46b474bd83dc653bda5c545c5dc9d6d",
+      "transactionHash": "0x043e575dd64ccd2cc95c0dea8975f62b40a129cf004392b1eaf9c79b622d51dc",
+      "deployer": "0x6612bCB5034F9fc03Ec4397F107cB69E4b3Bb100",
+      "identityHash": "0xa60735543d1cd95353712793601e61f4a44d8b651cc3e9282be3b9fe5121f0b5",
+      "reason": {
+        "kind": "changed",
+        "changes": [
+          {
+            "field": "args",
+            "from": [
+              "Pudgy Penguins",
+              "PPG",
+              "https://pinkwhale.valeriohq.com/api/nft/penguins/",
+              "8888"
+            ],
+            "to": [
+              "Pudgy Penguins",
+              "PPG",
+              "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/",
+              "8888"
+            ],
+            "changedIndices": [
+              2
+            ]
+          }
+        ]
+      },
+      "summary": "constructor args changed from [\"Pudgy Penguins\", \"PPG\", \"https://pinkwhale.valeriohq.com/api/nft/penguins/\", \"8888\"] to [\"Pudgy Penguins\", \"PPG\", \"ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/\", 8888] (arg 3 `baseTokenURI`)",
+      "supersededAddress": "0xb2e4425f6da0ce94a8416d6913bad4e07e1a92b4"
     }
   ],
   "kind": "standard"
