@@ -66,7 +66,7 @@ const main = async () => {
   const seaport = await getSeaportContract();
   const {contract: pinkwhale} = await deployPinkwhale();
   const currency = await deployCurrency('USDC', admin.account.address);
-  const collection = await deployCollection('BoredApeYachtClub');
+  const collection = await deployCollection('CryptoPunks');
 
   step('Fund and approve');
   await send(currency.write.mint([lenderAddress, PRINCIPAL], as(admin)));
