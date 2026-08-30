@@ -2,16 +2,7 @@
 
 import type {ReactNode} from 'react';
 
-import {punkCell, GRID_COLUMNS, PUNK_SIZE} from '../lib/punks';
-
-/**
- * The icon is a fixed pixel size, not an em: the sheet's cells are 24px, so the
- * offsets have to be scaled by the same factor as the artwork or the punk shows
- * up cropped and off by a fraction of a neighbour.
- */
-const ICON = 20;
-
-const SCALE = ICON / PUNK_SIZE;
+import {ICON_SIZE, punkIconStyle} from '../lib/punks';
 
 /**
  * The inline token chip from the article, so an amount in the playground looks
@@ -31,17 +22,9 @@ export const Pill = ({
 }) => (
   <span className="pill">
     {punk === undefined ? (
-      <img className="pill-icon" src="/usdc.png" alt="" width={20} height={20} />
+      <img className="pill-icon" src="/usdc.png" alt="" width={ICON_SIZE} height={ICON_SIZE} />
     ) : (
-      <span
-        className="pill-icon pill-icon--punk"
-        style={{
-          width: ICON,
-          height: ICON,
-          backgroundPosition: `-${punkCell(punk).x * SCALE}px -${punkCell(punk).y * SCALE}px`,
-          backgroundSize: `${GRID_COLUMNS * PUNK_SIZE * SCALE}px`
-        }}
-      />
+      <span className="pill-icon pill-icon--punk" style={punkIconStyle(punk)} />
     )}
     {children}
   </span>

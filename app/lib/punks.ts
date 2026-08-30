@@ -14,3 +14,24 @@ export const punkCell = (id: number) => ({
   x: (id % GRID_COLUMNS) * PUNK_SIZE,
   y: Math.floor(id / GRID_COLUMNS) * PUNK_SIZE
 });
+
+/**
+ * A punk as a background, at whatever pixel size the caller needs.
+ *
+ * The sheet's cells are 24px, so the offsets have to be scaled by the same factor
+ * as the artwork — otherwise the punk shows up cropped and off by a fraction of a
+ * neighbour. Shared so a punk is the same size wherever it appears.
+ */
+export const ICON_SIZE = 22;
+
+export const punkIconStyle = (id: number, size = ICON_SIZE) => {
+  const scale = size / PUNK_SIZE;
+  const {x, y} = punkCell(id);
+
+  return {
+    width: size,
+    height: size,
+    backgroundPosition: `-${x * scale}px -${y * scale}px`,
+    backgroundSize: `${GRID_COLUMNS * PUNK_SIZE * scale}px`
+  };
+};

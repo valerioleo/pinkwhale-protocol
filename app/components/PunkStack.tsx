@@ -1,6 +1,6 @@
 'use client';
 
-import {Punk} from './Punk';
+import {punkIconStyle} from '../lib/punks';
 
 /**
  * Overlapping punks, the way a row of avatars usually reads: a count you can see
@@ -17,7 +17,7 @@ export const PunkStack = ({ids, max = 4}: {ids: number[]; max?: number}) => {
       <span className="stack-icons">
         {shown.map((id, index) => (
           <span key={id} className="stack-icon" style={{zIndex: shown.length - index}}>
-            <Punk id={id} scale={1} />
+            <span className="pill-icon pill-icon--punk" style={punkIconStyle(id)} />
           </span>
         ))}
         {rest > 0 ? <span className="stack-more">+{rest}</span> : null}
