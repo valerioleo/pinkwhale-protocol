@@ -10,11 +10,7 @@
  */
 import type {Address} from 'viem';
 
-import {
-  getOrDeployERC1155Token,
-  getOrDeployERC20Token,
-  getOrDeployERC721Token
-} from '../../deployers/index.js';
+import {getOrDeployERC20Token, getOrDeployERC721Token} from '../../deployers/index.js';
 import {getDeployClients} from '../clients.js';
 
 /**
@@ -63,16 +59,6 @@ export const deployCollection = async (name: CollectionName) => {
   return contract;
 };
 
-export const deployEditions = async () => {
-  const {contract} = await getOrDeployERC1155Token({
-    ...(await getDeployClients()),
-    deploymentName: 'Editions',
-    args: [`${metadataBase}/editions/`]
-  });
-
-  return contract;
-};
-
 /**
  * @dev Sequential, not `Promise.all`: these share one account, so concurrent
  *      deploys all read the same nonce and every one after the first is rejected.
@@ -82,13 +68,11 @@ export const deployMockTokens = async (owner: Address): Promise<[string, Address
   const apecoin = await deployCurrency('ApeCoin', owner);
   const apes = await deployCollection('BoredApeYachtClub');
   const penguins = await deployCollection('PudgyPenguins');
-  const editions = await deployEditions();
 
   return [
     ['USDC', usdc.address],
     ['ApeCoin', apecoin.address],
     ['BoredApeYachtClub', apes.address],
-    ['PudgyPenguins', penguins.address],
-    ['Editions', editions.address]
+    ['PudgyPenguins', penguins.address]
   ];
 };

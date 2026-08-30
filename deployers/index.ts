@@ -3,7 +3,6 @@ import { defineRegister, defineReset } from "deployoor";
 import config from "../deployoor.config";
 
 export { getOrDeployConduitController16 } from "./ConduitController16";
-export { getOrDeployERC1155Token } from "./ERC1155Token";
 export { getOrDeployERC20Token } from "./ERC20Token";
 export { getOrDeployERC721Token } from "./ERC721Token";
 export { getOrDeployPinkwhale } from "./Pinkwhale";
