@@ -59,12 +59,12 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .step--active { border-color: var(--ink); box-shadow: 0 1px 0 var(--line); }
 
 .step-marker {
-  flex: none; width: 26px; height: 26px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 13px; font-weight: 600;
+  flex: none; width: 22px; height: 22px; border-radius: 50%; margin-top: 1px;
+  display: grid; place-items: center; font-size: 12px; font-weight: 600;
   border: 1px solid var(--line); color: var(--pw-muted); background: var(--fill);
 }
 .step--done .step-marker { border-color: #9bbd9d; color: #4f8a52; }
-.step--active .step-marker { background: var(--ink); border-color: var(--ink); color: #fff; }
+.step--active .step-marker { background: var(--ink); border-color: var(--ink); }
 
 .step-body { flex: 1; min-width: 0; }
 .step-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
@@ -235,3 +235,5 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 
 .btn--small { padding: 5px 12px; font-size: 12.5px; }
 .book td:last-child { text-align: right; }
+
+.muted { color: var(--pw-muted); font-size: 13px; }

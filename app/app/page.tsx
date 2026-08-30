@@ -91,7 +91,6 @@ export default function Playground() {
       </header>
 
       <Step
-        index={1}
         title="Create two wallets"
         state={connected ? 'done' : 'active'}
         alwaysOpen
@@ -132,7 +131,6 @@ export default function Playground() {
       </Step>
 
       <Step
-        index={2}
         title={bothSigned ? 'Match the orders' : 'Create the orders'}
         state={stateOf(2)}
         alwaysOpen={connected}

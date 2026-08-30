@@ -6,11 +6,15 @@ import {Pill} from './Pill';
 import {USDC_DECIMALS} from '../lib/chain';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC} from '../lib/loan';
 
+const usdc = (amount: bigint) => formatUnits(amount, USDC_DECIMALS);
+
 /**
- * What the two orders will say, before either is signed.
+ * What each side is about to sign.
  *
- * They are the same deal read from opposite ends, which is exactly what
- * `executeLoan` checks: it matches them only if they agree item for item.
+ * The two are not mirror images, and the difference is the point: the borrower
+ * names the punk they are putting up, while the lender names none at all. A
+ * criteria item saying "any token in this collection" is what makes the lender's
+ * order a standing offer rather than a reply to one particular borrower.
  */
 export const OrderPreview = ({collateral}: {collateral: number[]}) => (
   <div className="preview">
@@ -18,14 +22,18 @@ export const OrderPreview = ({collateral}: {collateral: number[]}) => (
       <span className="preview-role">borrower signs</span>
       <p>
         I give{' '}
-        <span className="pills">
-          {collateral.map((id) => (
-            <Pill key={id} punk={id}>
-              #{id}
-            </Pill>
-          ))}
-        </span>{' '}
-        and want <Pill token="usdc">{formatUnits(PRINCIPAL, USDC_DECIMALS)} USDC</Pill>
+        {collateral.length > 0 ? (
+          <span className="pills">
+            {collateral.map((id) => (
+              <Pill key={id} punk={id}>
+                #{id}
+              </Pill>
+            ))}
+          </span>
+        ) : (
+          <Pill punk={0}>a CryptoPunk</Pill>
+        )}{' '}
+        and want <Pill token="usdc">{usdc(PRINCIPAL)} USDC</Pill>
       </p>
       <p className="preview-terms">
         paying back <Pill token="usdc">{REPAYMENT_USDC} USDC</Pill> within {DURATION_LABEL}
@@ -35,15 +43,8 @@ export const OrderPreview = ({collateral}: {collateral: number[]}) => (
     <div className="preview-side preview-side--lender">
       <span className="preview-role">lender signs</span>
       <p>
-        I give <Pill token="usdc">{formatUnits(PRINCIPAL, USDC_DECIMALS)} USDC</Pill> and want{' '}
-        <span className="pills">
-          {collateral.map((id) => (
-            <Pill key={id} punk={id}>
-              #{id}
-            </Pill>
-          ))}
-        </span>{' '}
-        held in escrow
+        I give <Pill token="usdc">{usdc(PRINCIPAL)} USDC</Pill> for{' '}
+        <Pill punk={collateral[0] ?? 0}>any CryptoPunk</Pill> held in escrow
       </p>
       <p className="preview-terms">
         repaid <Pill token="usdc">{REPAYMENT_USDC} USDC</Pill> within {DURATION_LABEL}

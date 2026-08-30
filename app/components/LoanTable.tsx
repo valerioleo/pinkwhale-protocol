@@ -1,5 +1,6 @@
 'use client';
 
+import NumberFlow from '@number-flow/react';
 import {formatUnits} from 'viem';
 
 import {Pill} from './Pill';
@@ -78,7 +79,22 @@ export const LoanTable = ({
                 <PunkStack ids={loan.punks} />
               </td>
               <td>
-                <Pill token="usdc">{formatUnits(owedAt(now, loan), USDC_DECIMALS)} USDC</Pill>
+                {loan.repaid ? (
+                  <span className="muted">paid in full</span>
+                ) : loan.claimed ? (
+                  /* Nothing was ever paid: the default order asks for nothing. */
+                  <span className="muted">nothing — collateral taken</span>
+                ) : (
+                  <Pill token="usdc">
+                    <NumberFlow
+                      value={Number(formatUnits(owedAt(now, loan), USDC_DECIMALS))}
+                      format={{maximumFractionDigits: 0}}
+                      // The number only means anything while it is still moving.
+                      animated={!loan.settled}
+                    />{' '}
+                    USDC
+                  </Pill>
+                )}
               </td>
               <td>
                 <span className={`status status--${tone}`}>{label}</span>

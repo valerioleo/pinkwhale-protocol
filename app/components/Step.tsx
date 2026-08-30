@@ -3,39 +3,36 @@
 import type {ReactNode} from 'react';
 
 /**
- * One rung of the stepper. Done steps collapse to a line you can reopen, the
- * active one is expanded, and later ones say why they are shut rather than just
- * being greyed out.
+ * A section of the flow.
+ *
+ * Not numbered: there are two of them and the order is obvious from the page, so
+ * a number was one more thing to keep in sync every time the shape changed — and
+ * it went wrong every time.
  */
 export type StepState = 'done' | 'active' | 'locked';
 
 export const Step = ({
-  index,
   title,
-  persona,
   state,
   summary,
-  /** Keeps a finished step expanded, for the ones worth looking at afterwards. */
+  /** Keeps a finished section expanded, for the ones worth looking at afterwards. */
   alwaysOpen = false,
   children
 }: {
-  index: number;
   title: string;
-  persona?: 'lender' | 'borrower';
   state: StepState;
   summary?: ReactNode;
   alwaysOpen?: boolean;
   children?: ReactNode;
 }) => (
   <section className={`step step--${state}`} aria-current={state === 'active' ? 'step' : undefined}>
-    <span className="step-marker">{state === 'done' ? '✓' : index}</span>
+    <span className="step-marker" aria-hidden="true">
+      {state === 'done' ? '✓' : ''}
+    </span>
 
     <div className="step-body">
       <div className="step-head">
-        <h2>
-          {index} · {title}
-          {persona ? <span className={`tag tag--${persona}`}>{persona}</span> : null}
-        </h2>
+        <h2>{title}</h2>
         {summary ? <span className="step-summary">{summary}</span> : null}
       </div>
 
