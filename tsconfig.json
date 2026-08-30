@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
@@ -15,6 +20,19 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["scripts/**/*.ts", "deployers/**/*.ts", "deployoor.config.ts", "docs/**/*.ts", "docs/**/*.tsx"],
-  "exclude": ["node_modules", "out", "cache", "lib", "docs/dist"]
+  "include": [
+    "scripts/**/*.ts",
+    "test/**/*.ts",
+    "deployers/**/*.ts",
+    "deployoor.config.ts",
+    "docs/**/*.ts",
+    "docs/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "out",
+    "cache",
+    "lib",
+    "docs/dist"
+  ]
 }
