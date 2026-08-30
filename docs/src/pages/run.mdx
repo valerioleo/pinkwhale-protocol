@@ -58,17 +58,25 @@ pnpm deploy:anvil
 
 Every address lands in `deployments/31337-anvil/<Contract>.json`: plain JSON with the address,
 the ABI as deployed, the constructor args, and the compiler settings. Running `deploy:anvil`
-again does nothing, because `getOrDeploy*` returns the recorded contract without sending a
-transaction.
+again only sends a transaction when a contract's deploy identity moved, since deployoor is
+configured `on-change`.
+
+The deployment lives in `scripts/deploy/`, one module per concern: `seaport.ts` registers the
+canonical instance or stands up a local one, `pinkwhale.ts` points the protocol at it, and
+`tokens.ts` holds the faucet inventory. Chains, transports and signing keys are resolved in
+`scripts/clients.ts` and nowhere else.
 
 ## A whole loan
 
 ```bash
-pnpm demo
+pnpm test:e2e
 ```
 
-This mints an NFT and some currency, signs both creation orders with anvil's default accounts,
-opens the loan from a third address, then repays it:
+The Solidity suites drive Pinkwhale through Foundry.
+[`test/e2e/loanLifecycle.ts`](https://github.com/valerioleo/pinkwhale-protocol/blob/main/test/e2e/loanLifecycle.ts)
+drives it through the viem path a frontend would take instead: it mints an NFT and some
+currency, signs both creation orders with anvil's default accounts, opens the loan from a third
+address, then repays it.
 
 ```
 >> executeLoan (submitted by a third party)
@@ -76,13 +84,16 @@ opens the loan from a third address, then repays it:
      defaultOrderHash  0x928c5bcf...696b5025
      expiry            2026-09-15T15:57:50.000Z
      collateral owner  0x9fE467...  (Pinkwhale)
-     borrower balance  110.00 mUSD
+     borrower balance  110.00 USDC
 
 >> Repay
      collateral owner  0x3C44Cd...  (borrower)
-     lender balance    110.00 mUSD
-     borrower balance  0.00 mUSD
+     lender balance    110.00 USDC
+     borrower balance  0.00 USDC
 ```
+
+It stands the contracts up with the same modules `pnpm deploy:*` uses, so there is one
+definition of what gets deployed and with which constructor args.
 
 The order building and EIP-712 signing live in
 [`scripts/lib/orders.ts`](https://github.com/valerioleo/pinkwhale-protocol/blob/main/scripts/lib/orders.ts).

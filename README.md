@@ -149,13 +149,14 @@ In another terminal:
 forge build
 pnpm generate                   # deployoor reads out/, writes typed deployers
 pnpm deploy:anvil
-pnpm demo                       # mint, sign, executeLoan, repay
+pnpm test:e2e                   # mint, sign, executeLoan, repay
 ```
 
-`pnpm demo` opens a loan from a third address and repays it, printing the real `loanId`, the
-default order hash, and balances at each step. The order building and EIP-712 signing live in
-[`scripts/lib/orders.ts`](scripts/lib/orders.ts), which is also what the article's widgets
-import.
+`pnpm test:e2e` opens a loan from a third address and repays it, printing the real `loanId`, the
+default order hash, and balances at each step. It drives the contracts through the viem path a
+frontend would take, standing them up with the same modules `deploy:*` uses. The order building
+and EIP-712 signing live in [`scripts/lib/orders.ts`](scripts/lib/orders.ts), which is also what
+the article's widgets import.
 
 ### The article
 
