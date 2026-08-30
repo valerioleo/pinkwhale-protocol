@@ -35,7 +35,7 @@ export default function Playground() {
   const clearOrders = useClearOrders();
   const sign = useSignLoanOrder(personas);
   const execute = useExecuteLoan(personas, storedLoan);
-  const {loans} = useLoans(personas?.borrower);
+  const {loans, loading: loansLoading} = useLoans(personas?.borrower);
   const resolve = useResolveLoan(personas);
 
 
@@ -115,7 +115,7 @@ export default function Playground() {
         )}
       </Section>
 
-      {connected && !liveLoan ? (
+      {connected && !loansLoading && !liveLoan ? (
         <Section
           title="Orders"
           aside={bothSigned ? 'signed, nothing on chain yet' : 'off chain · costs nothing'}

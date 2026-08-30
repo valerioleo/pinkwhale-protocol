@@ -16,7 +16,8 @@ export type Tx = {label: string; hash: `0x${string}`; step: string};
 
 const KEY = ['transactions'] as const;
 
-export const explorerUrl = (hash: string) => `${chain.blockExplorers.default.url}/tx/${hash}`;
+export const explorerUrl = (value: string, kind: 'tx' | 'address' = 'tx') =>
+  `${chain.blockExplorers.default.url}/${kind}/${value}`;
 
 export const useTransactions = (step?: string) => {
   const {data} = useQuery({queryKey: KEY, queryFn: async (): Promise<Tx[]> => [], staleTime: Infinity});

@@ -40,9 +40,26 @@ type Which = 'repayment' | 'default';
 const OrderDetail = ({loan, which, now}: {loan: Loan; which: Which; now: bigint}) => {
   const expired = now > loan.closesAt;
 
+  const collateral = (
+    <span className="pills">
+      {loan.punks.map((id) => (
+        <Pill key={id} punk={id}>
+          #{id}
+        </Pill>
+      ))}
+    </span>
+  );
+
   const repayment = {
     title: 'repayment order',
-    wants: `${formatUnits(loan.owed.start, USDC_DECIMALS)} → ${formatUnits(loan.owed.end, USDC_DECIMALS)} USDC, rising by the second`,
+    wants: (
+      <span className="pills">
+        <Pill token="usdc">{formatUnits(loan.owed.start, USDC_DECIMALS)}</Pill>
+        <span className="muted">→</span>
+        <Pill token="usdc">{formatUnits(loan.owed.end, USDC_DECIMALS)} USDC</Pill>
+        <span className="muted">rising by the second</span>
+      </span>
+    ),
     who: 'only the borrower',
     window: `open until ${clock(loan.closesAt)}`,
     state: loan.repaid ? 'filled' : expired ? 'expired' : 'live'
@@ -50,7 +67,7 @@ const OrderDetail = ({loan, which, now}: {loan: Loan; which: Which; now: bigint}
 
   const fallback = {
     title: 'default order',
-    wants: 'nothing at all — it costs the lender only gas',
+    wants: <span className="muted">nothing at all — it costs the lender only gas</span>,
     who: 'only the lender',
     // It never closes: an unclaimed default stays claimable forever.
     window: `opens ${clock(loan.closesAt + 1n)}, never closes`,
@@ -68,7 +85,7 @@ const OrderDetail = ({loan, which, now}: {loan: Loan; which: Which; now: bigint}
       <dl className="detail-facts">
         <div>
           <dt>offers</dt>
-          <dd>the collateral</dd>
+          <dd>{collateral}</dd>
         </div>
         <div>
           <dt>wants</dt>
