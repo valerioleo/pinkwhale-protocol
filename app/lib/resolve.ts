@@ -8,6 +8,7 @@ import {encodeResolutionExtraData, toAdvancedOrder} from '../../scripts/lib/orde
 import {chain, publicClient} from './chain';
 import {seaport16Abi, seaport16Address, usdcAbi, usdcAddress} from './generated';
 import {holdingsKey} from './holdings';
+import {useRecordTx} from './txLog';
 
 /**
  * How a loan ends.
@@ -25,6 +26,7 @@ export const useResolveLoan = (
 ) => {
   const {sendEvmTransaction} = useSendEvmTransaction();
   const queryClient = useQueryClient();
+  const record = useRecordTx();
 
   return useMutation({
     mutationFn: async (kind: 'repay' | 'claim') => {
@@ -49,13 +51,17 @@ export const useResolveLoan = (
         });
 
         if (allowance === 0n) {
-          await send(sendEvmTransaction, personas.borrower, usdcAddress[chain.id],
-            encodeFunctionData({
-              abi: usdcAbi,
-              functionName: 'approve',
-              args: [seaport16Address[chain.id], maxUint256]
-            })
-          );
+          record({
+            step: 'resolve',
+            label: 'borrower approves USDC',
+            hash: await send(sendEvmTransaction, personas.borrower, usdcAddress[chain.id],
+              encodeFunctionData({
+                abi: usdcAbi,
+                functionName: 'approve',
+                args: [seaport16Address[chain.id], maxUint256]
+              })
+            )
+          });
         }
       }
 
@@ -65,7 +71,11 @@ export const useResolveLoan = (
         args: [toAdvancedOrder(order as never, '0x', extraData), [], zeroHash, caller] as never
       });
 
-      return send(sendEvmTransaction, caller, seaport16Address[chain.id], data);
+      const hash = await send(sendEvmTransaction, caller, seaport16Address[chain.id], data);
+
+      record({step: 'resolve', label: repaying ? 'repay' : 'claim collateral', hash});
+
+      return hash;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: ['loan']});

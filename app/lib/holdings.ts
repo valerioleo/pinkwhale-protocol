@@ -4,6 +4,7 @@ import {useQuery, useQueryClient} from '@tanstack/react-query';
 import type {Address} from 'viem';
 
 import {chain, publicClient} from './chain';
+import {useRecordTx} from './txLog';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from './generated';
 import type {Persona, Personas} from './personas';
 
@@ -61,7 +62,7 @@ const fund = async (address: Address, persona: Persona) => {
 
   if (!response.ok) throw new Error((await response.json()).error ?? 'faucet failed');
 
-  return response.json() as Promise<{punks: number[]; usdc: string}>;
+  return response.json() as Promise<{punks: number[]; usdc: string; sent?: `0x${string}`[]}>;
 };
 
 /**
@@ -73,6 +74,7 @@ const fund = async (address: Address, persona: Persona) => {
  */
 export const useAutoFund = (personas: Personas) => {
   const queryClient = useQueryClient();
+  const record = useRecordTx();
 
   const ensure = (persona: Persona) => ({
     queryKey: ['funded', personas?.[persona]] as const,
@@ -81,6 +83,10 @@ export const useAutoFund = (personas: Personas) => {
     retry: 1,
     queryFn: async () => {
       const result = await fund(personas![persona], persona);
+
+      result.sent?.forEach((hash, index) =>
+        record({step: 'wallets', label: `${persona}: funding ${index + 1}`, hash})
+      );
 
       await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
 

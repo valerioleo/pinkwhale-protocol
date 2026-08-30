@@ -6,7 +6,9 @@ import {useEffect, useState} from 'react';
 
 import {LoanRow} from '../components/LoanRow';
 import {OrderBook} from '../components/OrderBook';
+import {OrderPreview} from '../components/OrderPreview';
 import {Step, type StepState} from '../components/Step';
+import {TxList} from '../components/TxList';
 import {WalletCard} from '../components/WalletCard';
 import {useExecuteLoan} from '../lib/execute';
 import {useAutoFund, useHoldings} from '../lib/holdings';
@@ -17,6 +19,7 @@ import {usePersonas} from '../lib/personas';
 import {useResolveLoan} from '../lib/resolve';
 import {useSignLoanOrder} from '../lib/signing';
 import {USDC_DECIMALS} from '../lib/chain';
+import {useTransactions} from '../lib/txLog';
 import {formatUnits} from 'viem';
 
 export default function Playground() {
@@ -54,12 +57,18 @@ export default function Playground() {
   /** The collateral on offer: whichever punk the borrower is holding. */
   const terms = termsFor(borrower.punks.slice(0, 1));
 
-  const finished = [connected, bothSigned, Boolean(loan), Boolean(loan?.settled)];
+  const finished = [bothSigned, Boolean(loan), Boolean(loan?.settled)];
 
-  const stateOf = (step: number): StepState =>
-    finished[step - 1] ? 'done' : finished.slice(0, step - 1).every(Boolean) ? 'active' : 'locked';
+  const stateOf = (step: number): StepState => {
+    // Nothing is open until there are wallets to act with.
+    if (!connected) return 'locked';
 
-  const signedAs = (side: 'lender' | 'borrower') => Boolean(orderFor(storedLoan, side));
+    return finished[step - 1] ? 'done' : finished.slice(0, step - 1).every(Boolean) ? 'active' : 'locked';
+  };
+
+  const walletTxs = useTransactions('wallets');
+  const executeTxs = useTransactions('execute');
+  const resolveTxs = useTransactions('resolve');
 
   return (
     <main>
@@ -78,13 +87,13 @@ export default function Playground() {
         ) : null}
       </header>
 
-      {/* Step 1 never collapses: the two wallets are the thing you keep checking. */}
-      <Step
-        index={1}
-        title="Your two wallets"
-        state={connected ? 'active' : 'active'}
-        summary={connected ? 'one email, two accounts' : 'sign in to begin'}
-      >
+      {/* Not a step: the two wallets are the ground everything else stands on. */}
+      <section className="panel panel--wallets">
+        <div className="panel-head">
+          <h2>Your two wallets</h2>
+          {connected ? <span className="panel-note">one email, two accounts</span> : null}
+        </div>
+
         {connected ? (
           <>
             <div className="wallets">
@@ -105,55 +114,39 @@ export default function Playground() {
               A loan needs two sides. Both are funded the moment they exist, so there is nothing to
               claim and no faucet to find.
             </p>
+            <TxList transactions={walletTxs} />
           </>
         ) : (
-          <>
+          <div className="signin">
             <p className="hint">
-              Signing in creates two wallets under one email and funds them both. The step you are
-              on says which one is acting.
+              Signing in creates two wallets under one email and funds them both.
             </p>
             <AuthButton />
             {creating ? <p className="hint">Creating the second wallet…</p> : null}
-          </>
+          </div>
         )}
-      </Step>
+      </section>
 
       <Step
-        index={2}
-        title="Sign both sides"
-        state={stateOf(2)}
-        summary={
-          <span className="seg seg--small">
-            {(['borrower', 'lender'] as const).map((side) => (
-              <button
-                key={side}
-                type="button"
-                className={viewAs === side ? 'on' : ''}
-                onClick={() => setViewAs(side)}
-              >
-                {side}
-                {signedAs(side) ? ' ✓' : ''}
-              </button>
-            ))}
-          </span>
-        }
+        index={1}
+        title="Create the orders"
+        state={stateOf(1)}
+        summary={bothSigned ? 'two signatures, nothing on chain' : 'off chain · costs nothing'}
       >
+        <OrderPreview collateral={terms.collateral} />
+
         <p className="hint">
-          Both orders describe the same deal from opposite ends, so <code>executeLoan</code> will
-          only match them if they agree item for item. Switch sides and sign each once. Neither
-          touches the chain, and neither costs anything.
+          One click signs both. They describe the same deal from opposite ends, and{' '}
+          <code>executeLoan</code> will only match them if they agree item for item — which is why
+          there is nothing here to fill in.
         </p>
 
         <button
           className="btn"
-          disabled={sign.isPending || signedAs(viewAs) || terms.collateral.length === 0}
-          onClick={() => sign.mutate({side: viewAs, terms})}
+          disabled={sign.isPending || bothSigned || terms.collateral.length === 0}
+          onClick={() => sign.mutate(terms)}
         >
-          {sign.isPending
-            ? 'Waiting for signature…'
-            : signedAs(viewAs)
-              ? `Signed as ${viewAs}`
-              : `Sign as ${viewAs}`}
+          {sign.isPending ? 'Waiting for signatures…' : bothSigned ? 'Both signed' : 'Create orders'}
         </button>
 
         {sign.isError ? <p className="hint hint--bad">{(sign.error as Error).message}</p> : null}
@@ -165,9 +158,9 @@ export default function Playground() {
       </Step>
 
       <Step
-        index={3}
+        index={2}
         title="Match them"
-        state={stateOf(3)}
+        state={stateOf(2)}
         summary={loan ? 'collateral in escrow' : 'one transaction, either side may send it'}
       >
         <p className="hint">
@@ -180,12 +173,13 @@ export default function Playground() {
         {execute.isError ? (
           <p className="hint hint--bad">{(execute.error as Error).message}</p>
         ) : null}
+        <TxList transactions={executeTxs} />
       </Step>
 
       <Step
-        index={4}
+        index={3}
         title="Repay, or don't"
-        state={stateOf(4)}
+        state={stateOf(3)}
         summary={
           loan?.settled ? (
             <span>{loan.repaid ? 'repaid' : 'defaulted, collateral claimed'}</span>
@@ -206,6 +200,7 @@ export default function Playground() {
             {resolve.isError ? (
               <p className="hint hint--bad">{(resolve.error as Error).message}</p>
             ) : null}
+            <TxList transactions={resolveTxs} />
           </>
         ) : (
           <p className="hint">Waiting for the loan…</p>

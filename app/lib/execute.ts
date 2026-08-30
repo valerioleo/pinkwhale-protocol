@@ -25,6 +25,7 @@ import {
   usdcAddress
 } from './generated';
 import {holdingsKey} from './holdings';
+import {useRecordTx} from './txLog';
 import {buildRepaymentTerms} from './loan';
 import {orderFor, type StoredLoan} from './orderStore';
 import type {Personas} from './personas';
@@ -105,6 +106,7 @@ const simulate = async (from: Address, data: Hex) => {
 export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
   const {sendEvmTransaction} = useSendEvmTransaction();
   const queryClient = useQueryClient();
+  const record = useRecordTx();
 
   return useMutation({
     mutationFn: async () => {
@@ -130,25 +132,33 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
       ]);
 
       if (!punksApproved) {
-        await sendFrom(
-          sendEvmTransaction,
-          personas.borrower,
-          punks.address,
-          encodeFunctionData({
-            abi: cryptoPunksAbi,
-            functionName: 'setApprovalForAll',
-            args: [SPENDER, true]
-          })
-        );
+        record({
+          step: 'execute',
+          label: 'borrower approves Seaport',
+          hash: await sendFrom(
+            sendEvmTransaction,
+            personas.borrower,
+            punks.address,
+            encodeFunctionData({
+              abi: cryptoPunksAbi,
+              functionName: 'setApprovalForAll',
+              args: [SPENDER, true]
+            })
+          )
+        });
       }
 
       if (usdcAllowance < lenderOrder.parameters.offer[0]!.startAmount) {
-        await sendFrom(
-          sendEvmTransaction,
-          personas.lender,
-          usdc.address,
-          encodeFunctionData({abi: usdcAbi, functionName: 'approve', args: [SPENDER, maxUint256]})
-        );
+        record({
+          step: 'execute',
+          label: 'lender approves Seaport',
+          hash: await sendFrom(
+            sendEvmTransaction,
+            personas.lender,
+            usdc.address,
+            encodeFunctionData({abi: usdcAbi, functionName: 'approve', args: [SPENDER, maxUint256]})
+          )
+        });
       }
 
       // The terms travel as plain calldata and only count because each order's
@@ -179,7 +189,11 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
       await simulate(personas.borrower, data);
 
       // Anyone may submit this; the borrower is simply whoever is standing here.
-      return sendFrom(sendEvmTransaction, personas.borrower, pinkwhaleAddress[chain.id], data);
+      const hash = await sendFrom(sendEvmTransaction, personas.borrower, pinkwhaleAddress[chain.id], data);
+
+      record({step: 'execute', label: 'executeLoan', hash});
+
+      return hash;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: holdingsKey(personas!.lender)});
