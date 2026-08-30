@@ -10,6 +10,9 @@
     "generate:wagmi": "wagmi generate"
   },
   "dependencies": {
+    "@coinbase/cdp-core": "^0.0.123",
+    "@coinbase/cdp-hooks": "^0.0.123",
+    "@coinbase/cdp-react": "^0.0.123",
     "@privy-io/node": "^0.8.0",
     "@tanstack/react-query": "^5.102.8",
     "next": "16.3.3",

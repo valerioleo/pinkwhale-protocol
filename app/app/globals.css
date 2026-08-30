@@ -51,3 +51,38 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 
 .ok { color: #4f8a52; }
 .bad { color: #b4483a; }
+
+/* ---- stepper ------------------------------------------------------------ */
+.step { display: flex; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; background: #fff; }
+.step--done { background: transparent; }
+.step--locked { border-style: dashed; opacity: .55; }
+.step--active { border-color: var(--ink); box-shadow: 0 1px 0 var(--line); }
+
+.step-marker {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--line); color: var(--pw-muted); background: var(--fill);
+}
+.step--done .step-marker { border-color: #9bbd9d; color: #4f8a52; }
+.step--active .step-marker { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+.step-body { flex: 1; min-width: 0; }
+.step-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.step-head h2 { font-size: 15px; margin: 0; font-weight: 600; text-transform: none; letter-spacing: 0; color: inherit; display: flex; align-items: center; gap: 8px; }
+.step-summary { font-size: 13px; color: var(--pw-muted); display: flex; align-items: center; gap: 8px; }
+.step-content { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--fill); border: 1px solid var(--line); font-weight: 500; }
+.tag--lender { border-left: 3px solid var(--pw-lender); }
+.tag--borrower { border-left: 3px solid var(--pw-borrower); }
+
+.hint { font-size: 13.5px; color: var(--pw-muted); margin: 0; max-width: 62ch; line-height: 1.5; }
+.hint code { background: var(--fill); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+
+.btn {
+  border: 1px solid var(--ink); background: var(--ink); color: #fff;
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+.btn:disabled { opacity: .5; cursor: default; }
+
+.punks-inline { display: inline-flex; align-items: center; gap: 6px; }
