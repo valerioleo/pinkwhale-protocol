@@ -1,12 +1,14 @@
 'use client';
 
-import NumberFlow from '@number-flow/react';
+import {Blobatar} from '@blobatar/react';
 import {useState} from 'react';
 import {formatUnits} from 'viem';
 
+import {Amount} from './Amount';
 import {Pill} from './Pill';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
+import {PERSONA_HUE, type Personas} from '../lib/personas';
 import {explorerUrl} from '../lib/txLog';
 
 /**
@@ -35,13 +37,21 @@ const countdown = (seconds: bigint) => {
   return minutes > 0 ? `${minutes}m ${total % 60}s` : `${total}s`;
 };
 
-const clock = (at: bigint) => new Date(Number(at) * 1000).toLocaleTimeString();
-
 const usdc = (amount: bigint) => formatUnits(amount, USDC_DECIMALS);
+
+/** Two places. Six is what USDC stores, not what anybody reads. */
+const money = (amount: bigint) => Number(usdc(amount)).toFixed(2);
 
 const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
 
-const Orders = ({loan, now}: {loan: Loan; now: bigint}) => {
+const Filler = ({persona, personas}: {persona: 'lender' | 'borrower'; personas: Personas}) => (
+  <span className="filler">
+    {personas ? <Blobatar name={personas[persona]} size={20} hue={PERSONA_HUE[persona]} /> : null}
+    only the {persona}
+  </span>
+);
+
+const Orders = ({loan, now, personas}: {loan: Loan; now: bigint; personas: Personas}) => {
   const expired = now > loan.closesAt;
 
   const rows = [
@@ -54,16 +64,18 @@ const Orders = ({loan, now}: {loan: Loan; now: bigint}) => {
           <Pill token="usdc">{usdc(loan.owed.end)} USDC</Pill>
         </>
       ),
-      who: 'only the borrower',
-      window: `open until ${clock(loan.closesAt)}`
+      who: <Filler persona="borrower" personas={personas} />,
+      // Said as time remaining rather than a wall clock: what matters is whether
+      // there is any left.
+      window: expired ? 'closed' : `open for another ${countdown(loan.closesAt - now)}`
     },
     {
       title: 'default order',
       state: loan.claimed ? 'filled' : expired ? 'live' : 'not live yet',
       wants: <span className="muted">nothing at all — it costs the lender only gas</span>,
-      who: 'only the lender',
+      who: <Filler persona="lender" personas={personas} />,
       // It never closes: an unclaimed default stays claimable forever.
-      window: `opens ${clock(loan.closesAt + 1n)}, never closes`
+      window: expired ? 'open, and never closes' : 'opens when the repayment order expires'
     }
   ];
 
@@ -115,12 +127,14 @@ const Orders = ({loan, now}: {loan: Loan; now: bigint}) => {
 const LoanCard = ({
   loan,
   now,
+  personas,
   onRepay,
   onClaim,
   busy
 }: {
   loan: Loan;
   now: bigint;
+  personas: Personas;
   onRepay: () => void;
   onClaim: () => void;
   busy: boolean;
@@ -146,31 +160,35 @@ const LoanCard = ({
       </div>
 
       <div className="loan-figures">
-        <div>
+        <div className="figure figure--owed">
+          <dt>{loan.claimed ? 'Unpaid' : 'Owed'}</dt>
+          <dd>
+            <Amount value={amount} animated={!loan.settled} />
+          </dd>
+          <dl className="breakdown">
+            <div>
+              <dt>Principal</dt>
+              <dd>
+                {money(loan.owed.start)} <span className="unit">USDC</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Interest</dt>
+              <dd>
+                {money(amount - loan.owed.start)} <span className="unit">USDC</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="figure">
           <dt>Collateral</dt>
           <dd className="pills">
             {loan.punks.map((id) => (
               <Pill key={id} punk={id}>
-                #{id}
+                CryptoPunk #{id}
               </Pill>
             ))}
-          </dd>
-        </div>
-        <div>
-          <dt>{loan.claimed ? 'Unpaid' : 'Owed'}</dt>
-          <dd>
-            <Pill token="usdc">
-              {/* One child, so the pill's gap sits between icon and text rather
-                  than also opening up between the figure and its unit. */}
-              <span className="amount">
-                <NumberFlow
-                  value={Number(usdc(amount))}
-                  format={{maximumFractionDigits: 0}}
-                  animated={!loan.settled}
-                />{' '}
-                USDC
-              </span>
-            </Pill>
           </dd>
         </div>
       </div>
@@ -201,7 +219,7 @@ const LoanCard = ({
         {showOrders ? 'Hide' : 'See'} Pinkwhale orders
       </button>
 
-      {showOrders ? <Orders loan={loan} now={now} /> : null}
+      {showOrders ? <Orders loan={loan} now={now} personas={personas} /> : null}
     </li>
   );
 };
@@ -209,12 +227,14 @@ const LoanCard = ({
 export const LoanList = ({
   loans,
   now,
+  personas,
   onRepay,
   onClaim,
   busy
 }: {
   loans: Loan[];
   now: bigint;
+  personas: Personas;
   onRepay: (loan: Loan) => void;
   onClaim: (loan: Loan) => void;
   busy: boolean;
@@ -230,6 +250,7 @@ export const LoanList = ({
           key={loan.loanId}
           loan={loan}
           now={now}
+          personas={personas}
           busy={busy}
           onRepay={() => onRepay(loan)}
           onClaim={() => onClaim(loan)}

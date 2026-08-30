@@ -172,6 +172,7 @@ export default function Playground() {
             <LoanList
               loans={loans}
               now={now}
+              personas={personas}
               busy={resolve.isPending}
               onRepay={(loan) => resolve.mutate({loan, kind: 'repay'})}
               onClaim={(loan) => resolve.mutate({loan, kind: 'claim'})}
