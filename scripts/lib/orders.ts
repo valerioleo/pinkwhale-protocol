@@ -122,8 +122,21 @@ export function encodeResolutionExtraData(upstreamOrderHash: Hex): Hex {
   return encodeAbiParameters(parseAbiParameters('bytes32'), [upstreamOrderHash]);
 }
 
-/** The EIP-712 types Seaport signs orders under. */
+/**
+ * The EIP-712 types Seaport signs orders under.
+ *
+ * `EIP712Domain` is spelled out even though viem infers it from the domain, because
+ * not every signer does: CDP's embedded wallet rejects a payload whose types omit
+ * it. Declaring it does not move the digest — the domain separator is built from
+ * these four fields either way — so both signers hash the same bytes.
+ */
 export const SEAPORT_ORDER_TYPES = {
+  EIP712Domain: [
+    {name: 'name', type: 'string'},
+    {name: 'version', type: 'string'},
+    {name: 'chainId', type: 'uint256'},
+    {name: 'verifyingContract', type: 'address'}
+  ],
   OrderComponents: [
     {name: 'offerer', type: 'address'},
     {name: 'zone', type: 'address'},
