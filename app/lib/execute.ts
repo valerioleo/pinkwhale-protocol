@@ -2,7 +2,7 @@
 
 import {useSendEvmTransaction} from '@coinbase/cdp-hooks';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {encodeFunctionData, maxUint256, type Address} from 'viem';
+import {decodeErrorResult, encodeFunctionData, maxUint256, type Address, type Hex} from 'viem';
 
 import {buildFulfillments, toAdvancedOrder} from '../../scripts/lib/orders';
 import {chain, publicClient} from './chain';
@@ -11,6 +11,7 @@ import {
   cryptoPunksAddress,
   pinkwhaleAbi,
   pinkwhaleAddress,
+  seaport16Abi,
   seaport16Address,
   usdcAbi,
   usdcAddress
@@ -43,6 +44,47 @@ const sendFrom = async (send: Send, account: Address, to: Address, data: `0x${st
   if (receipt.status !== 'success') throw new Error(`transaction reverted: ${transactionHash}`);
 
   return transactionHash;
+};
+
+/**
+ * Every typed revert either contract can produce.
+ *
+ * Pinkwhale's own errors say what went wrong — `LenderTermsMismatch`,
+ * `RecipientMustBePinkwhale` — and Seaport's cover the ones thrown down inside the
+ * match, where most signature and timing failures actually surface.
+ */
+const REVERT_ABI = [...pinkwhaleAbi, ...seaport16Abi].filter((entry) => entry.type === 'error');
+
+/**
+ * Run the call without sending it, and name whatever comes back.
+ *
+ * A failed send gives you a transaction hash and nothing else. This protocol's
+ * error surface is entirely typed, so decoding it is the difference between
+ * "reverted" and "the borrower asked for a longer term than the lender offered".
+ */
+const simulate = async (from: Address, data: Hex) => {
+  try {
+    await publicClient.call({account: from, to: pinkwhaleAddress[chain.id], data});
+  } catch (error) {
+    const raw = (error as {data?: {data?: Hex} | Hex}) ?? {};
+    const revertData =
+      typeof raw.data === 'string' ? raw.data : (raw.data as {data?: Hex} | undefined)?.data;
+
+    if (revertData && revertData !== '0x') {
+      try {
+        const {errorName, args} = decodeErrorResult({abi: REVERT_ABI, data: revertData});
+        const detail = args?.length ? `(${args.join(', ')})` : '';
+
+        throw new Error(`${errorName}${detail} — reverted before anything moved`);
+      } catch (decodeFailure) {
+        if (decodeFailure instanceof Error && decodeFailure.message.includes('reverted before')) {
+          throw decodeFailure;
+        }
+      }
+    }
+
+    throw error;
+  }
 };
 
 /**
@@ -121,6 +163,12 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
           )
         ] as never
       });
+
+      // Simulate before sending. A failed send gives back a hash and nothing else,
+      // and this protocol's whole error surface is typed — `LenderTermsMismatch`
+      // says something, `reverted` does not. Seaport's ABI joins Pinkwhale's so a
+      // revert thrown down inside the match decodes too.
+      await simulate(personas.borrower, data);
 
       // Anyone may submit this; the borrower is simply whoever is standing here.
       return sendFrom(sendEvmTransaction, personas.borrower, pinkwhaleAddress[chain.id], data);
