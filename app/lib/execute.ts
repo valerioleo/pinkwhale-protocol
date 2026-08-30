@@ -26,7 +26,7 @@ import {
 } from './generated';
 import {holdingsKey} from './holdings';
 import {useRecordTx} from './txLog';
-import {buildRepaymentTerms} from './loan';
+import {buildLoanOrders, buildRepaymentTerms} from './loan';
 import {orderFor, type StoredLoan} from './orderStore';
 import type {Personas} from './personas';
 
@@ -166,6 +166,14 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
       // signatures were made over, so they reproduce those hashes exactly.
       const {lenderTerms, borrowerTerms} = buildRepaymentTerms(loan.terms, personas);
 
+      // The lender's collateral item names no punk, so a resolver has to settle it
+      // onto the one the borrower actually offered.
+      const {criteriaResolvers} = buildLoanOrders(
+        loan.terms,
+        personas,
+        borrowerOrder.parameters.startTime
+      );
+
       const data = encodeFunctionData({
         abi: pinkwhaleAbi,
         functionName: 'executeLoan',
@@ -174,7 +182,7 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
           toAdvancedOrder(borrowerOrder.parameters, borrowerOrder.signature),
           lenderTerms,
           borrowerTerms,
-          [],
+          criteriaResolvers,
           buildFulfillments(
             lenderOrder.parameters.offer.length,
             borrowerOrder.parameters.offer.length
@@ -196,8 +204,14 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
       return hash;
     },
     onSuccess: () => {
+      // The two creation orders are spent. Dropping them is what lets the same
+      // visitor go round again without a "start over" button.
+      window.localStorage.removeItem('pinkwhale.orders');
+      queryClient.setQueryData(['storedLoan'], null);
+
       queryClient.invalidateQueries({queryKey: holdingsKey(personas!.lender)});
       queryClient.invalidateQueries({queryKey: holdingsKey(personas!.borrower)});
+      queryClient.invalidateQueries({queryKey: ['loans']});
     }
   });
 };

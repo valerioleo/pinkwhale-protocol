@@ -20,17 +20,20 @@ import {useRecordTx} from './txLog';
  * carries — which is why the wrong persona pressing the wrong button gets
  * `ZoneHashMismatch` rather than someone else's punk.
  */
-export const useResolveLoan = (
-  personas: {lender: Address; borrower: Address} | null,
-  loan: {loanId: `0x${string}`; repaymentOrder?: unknown; defaultOrder?: unknown} | null | undefined
-) => {
+type Resolvable = {
+  loanId: `0x${string}`;
+  repaymentOrder?: unknown;
+  defaultOrder?: unknown;
+};
+
+export const useResolveLoan = (personas: {lender: Address; borrower: Address} | null) => {
   const {sendEvmTransaction} = useSendEvmTransaction();
   const queryClient = useQueryClient();
   const record = useRecordTx();
 
   return useMutation({
-    mutationFn: async (kind: 'repay' | 'claim') => {
-      if (!personas || !loan) throw new Error('no loan');
+    mutationFn: async ({loan, kind}: {loan: Resolvable; kind: 'repay' | 'claim'}) => {
+      if (!personas) throw new Error('not connected');
 
       const repaying = kind === 'repay';
       const order = repaying ? loan.repaymentOrder : loan.defaultOrder;

@@ -24,6 +24,20 @@ export const ItemType = {
   ERC1155_WITH_CRITERIA: 5
 } as const;
 
+/** Which half of an order a criteria resolver is talking about. */
+export const Side = {
+  OFFER: 0,
+  CONSIDERATION: 1
+} as const;
+
+export type CriteriaResolver = {
+  orderIndex: bigint;
+  side: number;
+  index: bigint;
+  identifier: bigint;
+  criteriaProof: readonly `0x${string}`[];
+};
+
 export const OrderType = {
   FULL_OPEN: 0,
   PARTIAL_OPEN: 1,

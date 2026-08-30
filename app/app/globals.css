@@ -232,3 +232,6 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 
 .clock { font-size: 13px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
 .step--done .step-content { opacity: .92; }
+
+.btn--small { padding: 5px 12px; font-size: 12.5px; }
+.book td:last-child { text-align: right; }

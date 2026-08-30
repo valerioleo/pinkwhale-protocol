@@ -5,9 +5,11 @@ import {parseUnits, zeroHash, type Address} from 'viem';
 import {
   ItemType,
   OrderType,
+  Side,
   getBorrowerTermsHash,
   getLenderTermsHash,
   type ConsiderationItem,
+  type CriteriaResolver,
   type OfferItem,
   type OrderParameters
 } from '../../scripts/lib/orders';
@@ -112,8 +114,20 @@ export const buildLoanOrders = (
   const {lenderTerms, borrowerTerms, repayment} = buildRepaymentTerms(terms, personas);
 
   const collateralOffer = terms.collateral.map(punkItem);
+
+  /**
+   * The lender names no punk.
+   *
+   * `ERC721_WITH_CRITERIA` with a criteria of zero means "any token in this
+   * collection", so the offer is a standing one: it does not go stale when the
+   * borrower changes their mind about which punk to post, and the same order would
+   * fund whoever turned up first. The borrower still offers a concrete token, and
+   * a resolver settles the lender's side onto it at match time.
+   */
   const collateralToEscrow: ConsiderationItem[] = collateralOffer.map((item) => ({
     ...item,
+    itemType: ItemType.ERC721_WITH_CRITERIA,
+    identifierOrCriteria: 0n,
     recipient: pinkwhaleAddress[chain.id]
   }));
 
@@ -152,6 +166,21 @@ export const buildLoanOrders = (
     totalOriginalConsiderationItems: BigInt(collateralToEscrow.length)
   };
 
-  return {borrowerOrder, lenderOrder, lenderTerms, borrowerTerms, repayment};
+  /**
+   * One resolver per criteria item, naming the punk it settles onto. Only the
+   * lender's side needs one; a collection-wide criteria takes no merkle proof,
+   * which is what `criteria = 0` means.
+   *
+   * `executeLoan` passes [lenderOrder, borrowerOrder], so the lender is order 0.
+   */
+  const criteriaResolvers: CriteriaResolver[] = terms.collateral.map((id, index) => ({
+    orderIndex: 0n,
+    side: Side.CONSIDERATION,
+    index: BigInt(index),
+    identifier: BigInt(id),
+    criteriaProof: []
+  }));
+
+  return {borrowerOrder, lenderOrder, lenderTerms, borrowerTerms, repayment, criteriaResolvers};
 };
 

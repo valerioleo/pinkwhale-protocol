@@ -4,7 +4,6 @@ import {AuthButton} from '@coinbase/cdp-react';
 import {useIsSignedIn, useSignOut} from '@coinbase/cdp-hooks';
 import {useEffect, useState} from 'react';
 
-import {LoanRow} from '../components/LoanRow';
 import {LoanTable} from '../components/LoanTable';
 import {OrderPreview} from '../components/OrderPreview';
 import {Step, type StepState} from '../components/Step';
@@ -35,10 +34,9 @@ export default function Playground() {
   const clearOrders = useClearOrders();
   const sign = useSignLoanOrder(personas);
   const execute = useExecuteLoan(personas, storedLoan);
-  const {loans, latest: loan} = useLoans(personas?.borrower);
-  const resolve = useResolveLoan(personas, loan);
+  const {loans} = useLoans(personas?.borrower);
+  const resolve = useResolveLoan(personas);
 
-  const [viewAs, setViewAs] = useState<'lender' | 'borrower'>('borrower');
 
   // The clock decides who can do what, so it has to be running.
   const [now, setNow] = useState(() => BigInt(Math.floor(Date.now() / 1000)));
@@ -57,13 +55,18 @@ export default function Playground() {
   /** The collateral on offer: whichever punk the borrower is holding. */
   const terms = termsFor(borrower.punks.slice(0, 1));
 
-  const finished = [bothSigned, Boolean(loan), Boolean(loan?.settled)];
+  // Step two is done when a loan exists; the loans table takes it from there.
+  const finished = [connected, loans.length > 0];
 
   const stateOf = (step: number): StepState => {
     // Nothing is open until there are wallets to act with.
     if (!connected) return 'locked';
 
-    return finished[step - 1] ? 'done' : finished.slice(0, step - 1).every(Boolean) ? 'active' : 'locked';
+    return finished[step - 1]
+      ? 'done'
+      : finished.slice(0, step - 1).every(Boolean)
+        ? 'active'
+        : 'locked';
   };
 
   const walletTxs = useTransactions('wallets');
@@ -130,82 +133,52 @@ export default function Playground() {
 
       <Step
         index={2}
-        title="Create the orders"
-        state={stateOf(1)}
-        summary={bothSigned ? 'two signatures, nothing on chain' : 'off chain · costs nothing'}
+        title={bothSigned ? 'Match the orders' : 'Create the orders'}
+        state={stateOf(2)}
+        alwaysOpen={connected}
+        summary={bothSigned ? 'two signatures, nothing on chain yet' : 'off chain · costs nothing'}
       >
         <OrderPreview collateral={terms.collateral} />
 
-        <p className="hint">
-          One click signs both. They describe the same deal from opposite ends, and{' '}
-          <code>executeLoan</code> will only match them if they agree item for item — which is why
-          there is nothing here to fill in.
-        </p>
-
-        <button
-          className="btn"
-          disabled={sign.isPending || bothSigned || terms.collateral.length === 0}
-          onClick={() => sign.mutate(terms)}
-        >
-          {sign.isPending ? 'Waiting for signatures…' : bothSigned ? 'Both signed' : 'Create orders'}
-        </button>
+        {bothSigned ? (
+          <>
+            <p className="hint">
+              Both sides are signed and sitting in your browser. Anyone at all can put them
+              together — you, them, or a passing bot — and either the whole thing happens or none
+              of it does.
+            </p>
+            <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
+              {execute.isPending ? 'Matching…' : 'Match orders'}
+            </button>
+            <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
+              Discard and start again
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="hint">
+              One click signs both. The lender asks for <em>any</em> CryptoPunk rather than naming
+              one, so the offer would fund whoever turned up first; the borrower names the punk
+              they are putting up, and a resolver settles the two together at match time.
+            </p>
+            <button
+              className="btn"
+              disabled={sign.isPending || terms.collateral.length === 0}
+              onClick={() => sign.mutate(terms)}
+            >
+              {sign.isPending ? 'Waiting for signatures…' : 'Create orders'}
+            </button>
+            {terms.collateral.length === 0 ? (
+              <p className="hint">The borrower needs a punk to put up. Funding is on its way.</p>
+            ) : null}
+          </>
+        )}
 
         {sign.isError ? <p className="hint hint--bad">{(sign.error as Error).message}</p> : null}
-        {storedLoan ? (
-          <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
-            Start over
-          </button>
-        ) : null}
-      </Step>
-
-      <Step
-        index={3}
-        title="Match them"
-        state={stateOf(2)}
-        summary={loan ? 'collateral in escrow' : 'one transaction, either side may send it'}
-      >
-        <p className="hint">
-          Two signatures sitting in your browser. Anyone at all can put them together — you, them,
-          or a passing bot — and either the whole thing happens or none of it does.
-        </p>
-        <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
-          {execute.isPending ? 'Executing…' : 'Execute loan'}
-        </button>
         {execute.isError ? (
           <p className="hint hint--bad">{(execute.error as Error).message}</p>
         ) : null}
         <TxList transactions={executeTxs} />
-      </Step>
-
-      <Step
-        index={4}
-        title="Repay, or don't"
-        state={stateOf(3)}
-        summary={
-          loan?.settled ? (
-            <span>{loan.repaid ? 'repaid' : 'defaulted, collateral claimed'}</span>
-          ) : (
-            'the clock decides'
-          )
-        }
-      >
-        {loan ? (
-          <>
-            <LoanRow
-              loan={loan}
-              viewAs={viewAs}
-              busy={resolve.isPending}
-              onRepay={() => resolve.mutate('repay')}
-              onClaim={() => resolve.mutate('claim')}
-            />
-            {resolve.isError ? (
-              <p className="hint hint--bad">{(resolve.error as Error).message}</p>
-            ) : null}
-            <TxList transactions={resolveTxs} />
-          </>
-        ) : (
-          <p className="hint">Waiting for the loan…</p>
-        )}
       </Step>
 
       <section className="panel">
@@ -214,7 +187,19 @@ export default function Playground() {
           {connected ? <span className="panel-note">read from the chain, by borrower</span> : null}
         </div>
         {connected ? (
-          <LoanTable loans={loans} now={now} />
+          <>
+            <LoanTable
+              loans={loans}
+              now={now}
+              busy={resolve.isPending}
+              onRepay={(loan) => resolve.mutate({loan, kind: 'repay'})}
+              onClaim={(loan) => resolve.mutate({loan, kind: 'claim'})}
+            />
+            {resolve.isError ? (
+              <p className="hint hint--bad">{(resolve.error as Error).message}</p>
+            ) : null}
+            <TxList transactions={resolveTxs} />
+          </>
         ) : (
           <p className="hint">Sign in to see yours.</p>
         )}

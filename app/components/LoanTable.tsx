@@ -39,7 +39,19 @@ const state = (loan: Loan, now: bigint) => {
   return {label: 'live', tone: 'live'} as const;
 };
 
-export const LoanTable = ({loans, now}: {loans: Loan[]; now: bigint}) => {
+export const LoanTable = ({
+  loans,
+  now,
+  onRepay,
+  onClaim,
+  busy
+}: {
+  loans: Loan[];
+  now: bigint;
+  onRepay: (loan: Loan) => void;
+  onClaim: (loan: Loan) => void;
+  busy: boolean;
+}) => {
   if (loans.length === 0) {
     return <p className="hint">No loans yet. Open one above and it will appear here.</p>;
   }
@@ -52,6 +64,7 @@ export const LoanTable = ({loans, now}: {loans: Loan[]; now: bigint}) => {
           <th>owed</th>
           <th>state</th>
           <th>clock</th>
+          <th />
         </tr>
       </thead>
       <tbody>
@@ -76,6 +89,19 @@ export const LoanTable = ({loans, now}: {loans: Loan[]; now: bigint}) => {
                   : expired
                     ? 'lender may claim, free'
                     : `${countdown(loan.closesAt - now)} to repay`}
+              </td>
+              <td>
+                {/* One control, decided by the clock: the zone would refuse the
+                    other one anyway, so offering it would only be a trap. */}
+                {loan.settled ? null : expired ? (
+                  <button className="btn btn--small" disabled={busy} onClick={() => onClaim(loan)}>
+                    Claim collateral
+                  </button>
+                ) : (
+                  <button className="btn btn--small" disabled={busy} onClick={() => onRepay(loan)}>
+                    Repay
+                  </button>
+                )}
               </td>
             </tr>
           );
