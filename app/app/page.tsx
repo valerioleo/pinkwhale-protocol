@@ -61,8 +61,8 @@ export default function Playground() {
     hasUsdc,
     Boolean(lenderOrder),
     Boolean(loan),
-    Boolean(loan),
-    Boolean(loan)
+    Boolean(loan?.repaymentOrder),
+    Boolean(loan?.settled)
   ];
 
   /**
@@ -274,49 +274,8 @@ export default function Playground() {
       </Step>
       <Step
         index={7}
-        title="The loan"
-        state={loan ? 'active' : stateOf(7)}
-        summary={
-          <span className="seg seg--small">
-            {(['lender', 'borrower'] as const).map((side) => (
-              <button
-                key={side}
-                type="button"
-                className={viewAs === side ? 'on' : ''}
-                onClick={() => setViewAs(side)}
-              >
-                {side}
-              </button>
-            ))}
-          </span>
-        }
-      >
-        {loan ? (
-          <>
-            <LoanRow
-              loan={loan}
-              viewAs={viewAs}
-              busy={resolve.isPending}
-              onRepay={() => resolve.mutate('repay')}
-              onClaim={() => resolve.mutate('claim')}
-            />
-            {resolve.isError ? (
-              <p className="hint hint--bad">{(resolve.error as Error).message}</p>
-            ) : null}
-            <p className="hint">
-              Same loan, two truths. Flip the switch and the button changes, because the two
-              orders below are each locked to one address.
-            </p>
-          </>
-        ) : (
-          <p className="hint">Waiting for the loan…</p>
-        )}
-      </Step>
-
-      <Step
-        index={8}
         title="Two orders you never signed"
-        state={loan ? 'active' : stateOf(8)}
+        state={stateOf(7)}
         summary="minted by Pinkwhale, in the same transaction"
       >
         <table className="book">
@@ -355,6 +314,52 @@ export default function Playground() {
           bridge.
         </p>
       </Step>
+
+      <Step
+        index={8}
+        title="The loan"
+        state={stateOf(8)}
+        summary={
+          loan?.settled ? (
+            <span>{loan.repaid ? 'repaid' : 'defaulted, collateral claimed'}</span>
+          ) : (
+          <span className="seg seg--small">
+            {(['lender', 'borrower'] as const).map((side) => (
+              <button
+                key={side}
+                type="button"
+                className={viewAs === side ? 'on' : ''}
+                onClick={() => setViewAs(side)}
+              >
+                {side}
+              </button>
+            ))}
+          </span>
+          )
+        }
+      >
+        {loan ? (
+          <>
+            <LoanRow
+              loan={loan}
+              viewAs={viewAs}
+              busy={resolve.isPending}
+              onRepay={() => resolve.mutate('repay')}
+              onClaim={() => resolve.mutate('claim')}
+            />
+            {resolve.isError ? (
+              <p className="hint hint--bad">{(resolve.error as Error).message}</p>
+            ) : null}
+            <p className="hint">
+              Same loan, two truths. Flip the switch and the button changes, because the two
+              orders below are each locked to one address.
+            </p>
+          </>
+        ) : (
+          <p className="hint">Waiting for the loan…</p>
+        )}
+      </Step>
+
     </main>
   );
 }

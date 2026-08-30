@@ -76,6 +76,27 @@ export const useLoan = (borrower?: Address) =>
       const repaymentOrder = validated[0]?.args.orderParameters;
       const defaultOrder = validated[1]?.args.orderParameters;
 
+      // How the loan ended, asked of Seaport rather than reassembled from events.
+      // `getOrderStatus` is its own record of what has been filled, and it is the
+      // same record the zone consults before letting a default claim through.
+      const [repayStatus, defaultStatus] = await Promise.all([
+        publicClient.readContract({
+          abi: seaport16Abi,
+          address: seaport16Address[chain.id],
+          functionName: 'getOrderStatus',
+          args: [loanId!]
+        }),
+        publicClient.readContract({
+          abi: seaport16Abi,
+          address: seaport16Address[chain.id],
+          functionName: 'getOrderStatus',
+          args: [defaultOrderHash!]
+        })
+      ]);
+
+      const repaid = repayStatus[2] > 0n;
+      const claimed = defaultStatus[2] > 0n;
+
       return {
         loanId: loanId!,
         expiry: expiry!,
@@ -84,6 +105,9 @@ export const useLoan = (borrower?: Address) =>
         punks: collateral!.map((item) => Number(item.identifier)),
         repaymentOrder,
         defaultOrder,
+        repaid,
+        claimed,
+        settled: repaid || claimed,
         // The window is on the order itself; there is nothing to reconstruct.
         opensAt: repaymentOrder?.startTime ?? 0n,
         closesAt: repaymentOrder?.endTime ?? 0n

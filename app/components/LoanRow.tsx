@@ -47,6 +47,9 @@ export const LoanRow = ({
     owed: {start: bigint; end: bigint};
     opensAt: bigint;
     closesAt: bigint;
+    repaid: boolean;
+    claimed: boolean;
+    settled: boolean;
   };
   viewAs: 'lender' | 'borrower';
   onRepay: () => void;
@@ -87,7 +90,13 @@ export const LoanRow = ({
         </div>
       </dl>
 
-      {viewAs === 'borrower' ? (
+      {loan.settled ? (
+        <p className="settled">
+          {loan.repaid
+            ? 'Repaid. The collateral went back to the borrower, and the default order can no longer answer the question the zone asks it.'
+            : 'Defaulted and claimed. The collateral went to the lender for nothing, which is the whole liquidation engine.'}
+        </p>
+      ) : viewAs === 'borrower' ? (
         <button className="btn" onClick={onRepay} disabled={busy || expired}>
           {expired ? 'Window shut' : `Repay ${formatUnits(due, USDC_DECIMALS)} USDC`}
         </button>
@@ -97,11 +106,13 @@ export const LoanRow = ({
         </button>
       )}
 
-      <p className="hint">
-        {viewAs === 'borrower'
-          ? 'Only this address can fulfil the repayment order — its zoneHash names you.'
-          : 'The default order asks for nothing at all, and only you can fill it. That is the entire liquidation engine.'}
-      </p>
+      {loan.settled ? null : (
+        <p className="hint">
+          {viewAs === 'borrower'
+            ? 'Only this address can fulfil the repayment order — its zoneHash names you.'
+            : 'The default order asks for nothing at all, and only you can fill it. That is the entire liquidation engine.'}
+        </p>
+      )}
     </div>
   );
 };
