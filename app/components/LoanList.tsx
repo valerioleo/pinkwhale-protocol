@@ -9,6 +9,7 @@ import {Pill} from './Pill';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
 import {PERSONA_HUE, type Personas} from '../lib/personas';
+import {punkIconStyle} from '../lib/punks';
 import {explorerUrl} from '../lib/txLog';
 
 /**
@@ -44,7 +45,11 @@ const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
 
 const Filler = ({persona, personas}: {persona: 'lender' | 'borrower'; personas: Personas}) => (
   <span className="filler">
-    {personas ? <Blobatar name={personas[persona]} size={20} hue={PERSONA_HUE[persona]} /> : null}
+    {personas ? (
+      <span className="avatar-disc avatar-disc--small">
+        <Blobatar name={personas[persona]} size={20} hue={PERSONA_HUE[persona]} />
+      </span>
+    ) : null}
     only the {persona}
   </span>
 );
@@ -167,11 +172,12 @@ const LoanCard = ({
 
         <div className="figure">
           <dt>Collateral</dt>
-          <dd className="pills">
+          <dd className="collateral">
             {loan.punks.map((id) => (
-              <Pill key={id} punk={id}>
-                CryptoPunk #{id}
-              </Pill>
+              <span key={id} className="collateral-item">
+                <span className="pill-icon pill-icon--punk collateral-art" style={punkIconStyle(id, 40)} />
+                #{id}
+              </span>
             ))}
           </dd>
         </div>

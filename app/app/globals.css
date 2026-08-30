@@ -108,6 +108,11 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
 .wallet-note { margin: 12px 0 0; font-family: var(--font-mono); font-size: 12px; color: var(--muted-foreground); }
 
 .ledger-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+
+/* A disc to sit the face in, so a blob reads as an avatar rather than a sticker. */
+.avatar-disc { display: inline-grid; place-items: center; border-radius: 50%;
+  background: var(--muted); padding: 7px; flex: none; }
+.avatar-disc--small { padding: 3px; }
 .ledger-titles { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .ledger-name { font-family: var(--font-sans); font-size: 32px; font-weight: 700;
   letter-spacing: -0.02em; text-transform: capitalize; line-height: 1.05; }
@@ -150,8 +155,11 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
 }
 
 .stack-icons { display: inline-flex; align-items: center; }
+/* White under the art and the surrounding surface as the ring, so a stack reads
+   as a row of coins rather than one shape with notches cut out of it. */
 .stack-icon { display: inline-flex; border-radius: 50%; margin-right: -5px;
-  background: var(--card); box-shadow: 0 0 0 2.5px var(--card); }
+  background: #fff; box-shadow: 0 0 0 2.5px var(--card); }
+.stack-icon .pill-icon--punk { background-color: #fff; }
 .stack-solo { box-shadow: 0 0 0 2.5px var(--card); }
 .stack-more { display: inline-grid; place-items: center; border-radius: 50%;
   background: var(--muted); box-shadow: 0 0 0 2.5px var(--card); margin-right: -5px;
@@ -226,3 +234,9 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
 .tx-label { color: var(--muted-foreground); min-width: 152px; }
 .txs a { color: var(--brand); text-decoration: none; font-family: var(--font-mono); font-size: 12px; }
 .txs a:hover { text-decoration: underline; }
+
+/* Collateral stands as tall as the figure it is posted against. */
+.collateral { display: flex; flex-direction: column; gap: 8px; }
+.collateral-item { display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-sans); font-size: 22px; font-weight: 700; }
+.collateral-art { border-radius: 50%; background-color: #fff; box-shadow: 0 0 0 2.5px var(--card); }

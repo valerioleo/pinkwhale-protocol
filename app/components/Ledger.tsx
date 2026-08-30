@@ -35,7 +35,7 @@ export const LedgerHead = ({
   under?: ReactNode;
 }) => (
   <div className="ledger-head">
-    {avatar}
+    <span className="avatar-disc">{avatar}</span>
     <span className="ledger-titles">
       <span className="ledger-name">{name}</span>
       {under ? <span className="ledger-under">{under}</span> : null}
