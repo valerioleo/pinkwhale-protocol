@@ -4,7 +4,7 @@ import {AuthButton} from '@coinbase/cdp-react';
 import {useIsSignedIn, useSignOut} from '@coinbase/cdp-hooks';
 import {useEffect, useState} from 'react';
 
-import {LoanTable} from '../components/LoanTable';
+import {LoanList} from '../components/LoanList';
 import {OrderPreview} from '../components/OrderPreview';
 import {Section} from '../components/Section';
 import {TxList} from '../components/TxList';
@@ -166,10 +166,10 @@ export default function Playground() {
         </Section>
       ) : null}
 
-      <Section title="Your loans" aside={connected ? 'read from the chain, by borrower' : undefined}>
+      <Section title="Loans">
         {connected ? (
           <>
-            <LoanTable
+            <LoanList
               loans={loans}
               now={now}
               busy={resolve.isPending}

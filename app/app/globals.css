@@ -169,17 +169,20 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 }
 .stack-icons { display: inline-flex; align-items: center; }
 .stack-icon {
-  display: inline-flex; border-radius: 50%; margin-right: -9px;
-  /* The ring is the pill's own colour, not the page's: these sit on a white card. */
-  box-shadow: 0 0 0 2px var(--stack-bg);
+  display: inline-flex; border-radius: 50%; margin-right: -5px;
+  /* White under the art, then the pill's own colour as the ring: some cells in
+     the sheet have transparent corners, and pink showing through them reads as a
+     hole rather than as a rounded avatar. */
+  background: #fff;
+  box-shadow: 0 0 0 2.5px var(--stack-bg);
 }
 .stack-icon .punk { border-radius: 50%; border: 0; display: block; }
 .stack-more {
   display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
-  background: #fff; box-shadow: 0 0 0 2px var(--stack-bg); font-size: 10px; color: var(--pw-muted);
-  font-family: ui-sans-serif, system-ui, sans-serif; margin-right: -9px;
+  background: #fff; box-shadow: 0 0 0 2.5px var(--stack-bg); font-size: 10px; color: var(--pw-muted);
+  font-family: ui-sans-serif, system-ui, sans-serif; margin-right: -5px;
 }
-.stack-label { font-size: 13px; margin-left: 17px; font-weight: 500; }
+.stack-label { font-size: 13px; margin-left: 13px; font-weight: 500; }
 .stack-empty { color: var(--pw-muted); font-size: 13px; }
 
 /* ---- order status ---------------------------------------------------------- */
@@ -247,3 +250,27 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .owed-note { font-size: 11.5px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
 .owed-note--shut { color: #b4483a; }
 .book td { vertical-align: middle; }
+
+/* ---- loans list -------------------------------------------------------------- */
+.loans { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.loan-item { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: #fff; }
+.loan-line { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.loan-owed { display: inline-flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.loan-actions { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+.action { display: inline-flex; align-items: center; gap: 6px; }
+
+.info {
+  width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line);
+  background: #fff; color: var(--pw-muted); font-size: 11px; font-style: italic;
+  font-family: Georgia, serif; cursor: pointer; line-height: 1; padding: 0;
+}
+.info[aria-expanded='true'] { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.detail { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--fill); border: 1px solid var(--line); }
+.detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+.detail-facts { display: flex; flex-wrap: wrap; gap: 8px 26px; margin: 0 0 10px; }
+.detail-facts div { display: flex; flex-direction: column; gap: 2px; }
+.detail-facts dt { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--pw-muted); }
+.detail-facts dd { margin: 0; font-size: 13px; }
+.detail .hint { margin: 0; font-size: 12.5px; }
+.status--not-live-yet { border-color: #d8d5cd; }
