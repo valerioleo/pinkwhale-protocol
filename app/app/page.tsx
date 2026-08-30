@@ -85,7 +85,7 @@ export default function Playground() {
         {connected ? (
           <>
             <div className="wallets">
-              {(['lender', 'borrower'] as const).map((persona) => (
+              {(['borrower', 'lender'] as const).map((persona) => (
                 <WalletCard
                   key={persona}
                   persona={persona}

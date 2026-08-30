@@ -10,6 +10,10 @@
   --ink: #2f2f33;
   --line: #e2e0d9;
   --fill: #f6f5f1;
+
+  /* Opaque, so an avatar ring cut out of it hides what is behind rather than
+     letting the next punk bleed through. */
+  --stack-bg: color-mix(in srgb, var(--pw-brand) 12%, #fff);
 }
 
 * { box-sizing: border-box; }
@@ -158,17 +162,24 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .wallet-balances dd { margin: 0; font-size: 15px; font-family: ui-monospace, Menlo, monospace; }
 .wallet-note { margin: 10px 0 0; font-size: 12px; color: var(--pw-muted); }
 
-/* ---- stacked punks --------------------------------------------------------- */
-.stack { display: inline-flex; align-items: center; gap: 8px; }
+/* ---- stacked punks ---------------------------------------------------------- */
+.stack {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--stack-bg); border-radius: 999px; padding: 3px 11px 3px 4px;
+}
 .stack-icons { display: inline-flex; align-items: center; }
-.stack-icon { display: inline-flex; margin-right: -10px; border-radius: 50%; box-shadow: 0 0 0 2px var(--bg); }
+.stack-icon {
+  display: inline-flex; border-radius: 50%; margin-right: -9px;
+  /* The ring is the pill's own colour, not the page's: these sit on a white card. */
+  box-shadow: 0 0 0 2px var(--stack-bg);
+}
 .stack-icon .punk { border-radius: 50%; border: 0; display: block; }
 .stack-more {
   display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
-  background: var(--fill); box-shadow: 0 0 0 2px var(--bg); font-size: 10px; color: var(--pw-muted);
-  font-family: ui-sans-serif, system-ui, sans-serif; margin-right: -10px;
+  background: #fff; box-shadow: 0 0 0 2px var(--stack-bg); font-size: 10px; color: var(--pw-muted);
+  font-family: ui-sans-serif, system-ui, sans-serif; margin-right: -9px;
 }
-.stack-label { font-size: 13px; margin-left: 12px; }
+.stack-label { font-size: 13px; margin-left: 17px; font-weight: 500; }
 .stack-empty { color: var(--pw-muted); font-size: 13px; }
 
 /* ---- order status ---------------------------------------------------------- */
@@ -231,3 +242,8 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .preview--signed .preview-side { background: #fbfefb; border-color: #cfe4d0; }
 .preview-role b { color: #4f8a52; }
 .wallet-foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+
+.owed-cell { display: inline-flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.owed-note { font-size: 11.5px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
+.owed-note--shut { color: #b4483a; }
+.book td { vertical-align: middle; }

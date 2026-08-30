@@ -8,11 +8,14 @@ import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
 
 /**
- * Where each loan has got to, and how long is left to do something about it.
+ * Where each loan has got to.
  *
  * Only matched loans appear: an order nobody has settled is not a loan, and a
- * table of unfilled intentions reads like somebody else's order book rather than
- * anything the visitor did.
+ * table of unfilled intentions reads like somebody else's order book.
+ *
+ * There is no separate state column because the amount already says it. A number
+ * climbing with a countdown under it is a live loan; the same number stopped with
+ * "window shut" is a default; and a settled loan has no amount to show at all.
  */
 const owedAt = (now: bigint, loan: Loan) => {
   if (now <= loan.opensAt || loan.closesAt <= loan.opensAt) return loan.owed.start;
@@ -31,12 +34,28 @@ const countdown = (seconds: bigint) => {
   return minutes > 0 ? `${minutes}m ${total % 60}s` : `${total}s`;
 };
 
-const state = (loan: Loan, now: bigint) => {
-  if (loan.repaid) return {label: 'repaid', tone: 'settled'} as const;
-  if (loan.claimed) return {label: 'collateral claimed', tone: 'settled'} as const;
-  if (now > loan.closesAt) return {label: 'defaulted', tone: 'expired'} as const;
+const Owed = ({loan, now}: {loan: Loan; now: bigint}) => {
+  if (loan.repaid) return <span className="muted">repaid in full</span>;
 
-  return {label: 'live', tone: 'live'} as const;
+  // Nothing was ever paid: the default order asks for nothing at all.
+  if (loan.claimed) return <span className="muted">nothing — collateral taken</span>;
+
+  const expired = now > loan.closesAt;
+
+  return (
+    <span className="owed-cell">
+      <Pill token="usdc">
+        <NumberFlow
+          value={Number(formatUnits(owedAt(now, loan), USDC_DECIMALS))}
+          format={{maximumFractionDigits: 0}}
+        />{' '}
+        USDC
+      </Pill>
+      <span className={`owed-note${expired ? ' owed-note--shut' : ''}`}>
+        {expired ? 'window shut · lender may claim, free' : `${countdown(loan.closesAt - now)} left to repay`}
+      </span>
+    </span>
+  );
 };
 
 export const LoanTable = ({
@@ -53,7 +72,7 @@ export const LoanTable = ({
   busy: boolean;
 }) => {
   if (loans.length === 0) {
-    return <p className="hint">No loans yet. Open one above and it will appear here.</p>;
+    return <p className="hint">No loans yet. Create a pair of orders and match them.</p>;
   }
 
   return (
@@ -62,14 +81,11 @@ export const LoanTable = ({
         <tr>
           <th>collateral</th>
           <th>owed</th>
-          <th>state</th>
-          <th>clock</th>
           <th />
         </tr>
       </thead>
       <tbody>
         {[...loans].reverse().map((loan) => {
-          const {label, tone} = state(loan, now);
           const expired = now > loan.closesAt;
 
           return (
@@ -84,32 +100,7 @@ export const LoanTable = ({
                 </span>
               </td>
               <td>
-                {loan.repaid ? (
-                  <span className="muted">paid in full</span>
-                ) : loan.claimed ? (
-                  /* Nothing was ever paid: the default order asks for nothing. */
-                  <span className="muted">nothing — collateral taken</span>
-                ) : (
-                  <Pill token="usdc">
-                    <NumberFlow
-                      value={Number(formatUnits(owedAt(now, loan), USDC_DECIMALS))}
-                      format={{maximumFractionDigits: 0}}
-                      // The number only means anything while it is still moving.
-                      animated={!loan.settled}
-                    />{' '}
-                    USDC
-                  </Pill>
-                )}
-              </td>
-              <td>
-                <span className={`status status--${tone}`}>{label}</span>
-              </td>
-              <td className="clock">
-                {loan.settled
-                  ? '—'
-                  : expired
-                    ? 'lender may claim, free'
-                    : `${countdown(loan.closesAt - now)} to repay`}
+                <Owed loan={loan} now={now} />
               </td>
               <td>
                 {/* One control, decided by the clock: the zone would refuse the
