@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Written and re-added by `next dev` on every run, so tracking them means a dirty
+# tree forever. They describe this Next version to coding agents; docs/ is the
+# vocs site and has nothing to do with them.
+AGENTS.md
+CLAUDE.md

@@ -1,10 +1,10 @@
 'use client';
 
 import {useQuery} from '@tanstack/react-query';
-import {parseAbiItem, type Address} from 'viem';
+import {parseEventLogs, parseAbiItem, type Address} from 'viem';
 
 import {chain, publicClient} from './chain';
-import {pinkwhaleAddress} from './generated';
+import {pinkwhaleAddress, seaport16Abi, seaport16Address} from './generated';
 import PinkwhaleRecord from '../../deployments/84532-base-sepolia/Pinkwhale.json';
 
 /**
@@ -57,12 +57,36 @@ export const useLoan = (borrower?: Address) =>
 
       const {loanId, expiry, repayment, collateral, defaultOrderHash} = latest.args;
 
+      // Pinkwhale minted two orders in this same transaction and Seaport announced
+      // both with their full parameters, which is exactly the struct
+      // `fulfillAdvancedOrder` wants back. So repaying and claiming need nothing
+      // cached anywhere: the chain kept the orders for us.
+      const receipt = await publicClient.getTransactionReceipt({hash: latest.transactionHash});
+      const validated = parseEventLogs({
+        abi: seaport16Abi,
+        eventName: 'OrderValidated',
+        logs: receipt.logs
+      }).filter((log) => log.address.toLowerCase() === seaport16Address[chain.id].toLowerCase());
+
+      const owed = repayment!.reduce(
+        (total, item) => ({start: total.start + item.startAmount, end: total.end + item.endAmount}),
+        {start: 0n, end: 0n}
+      );
+
+      const repaymentOrder = validated[0]?.args.orderParameters;
+      const defaultOrder = validated[1]?.args.orderParameters;
+
       return {
         loanId: loanId!,
         expiry: expiry!,
         defaultOrderHash: defaultOrderHash!,
-        owed: repayment!.reduce((total, item) => total + item.endAmount, 0n),
-        punks: collateral!.map((item) => Number(item.identifier))
+        owed,
+        punks: collateral!.map((item) => Number(item.identifier)),
+        repaymentOrder,
+        defaultOrder,
+        // The window is on the order itself; there is nothing to reconstruct.
+        opensAt: repaymentOrder?.startTime ?? 0n,
+        closesAt: repaymentOrder?.endTime ?? 0n
       };
     }
   });

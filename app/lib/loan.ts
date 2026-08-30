@@ -49,12 +49,21 @@ const punkItem = (id: number): OfferItem => ({
   endAmount: 1n
 });
 
-const usdcItem = (amount: bigint): OfferItem => ({
+const usdcItem = (amount: bigint): OfferItem => risingUsdcItem(amount, amount);
+
+/**
+ * Seaport interpolates every item linearly from `startAmount` to `endAmount`
+ * across its order's window, which is the whole of Pinkwhale's interest
+ * mechanism: the repayment starts at the principal and reaches the agreed total
+ * at expiry, so what is owed genuinely rises by the second. Equal amounts would
+ * be a flat fee instead — correct, but not what the slider is describing.
+ */
+const risingUsdcItem = (from: bigint, to: bigint): OfferItem => ({
   itemType: ItemType.ERC20,
   token: usdcAddress[chain.id],
   identifierOrCriteria: 0n,
-  startAmount: amount,
-  endAmount: amount
+  startAmount: from,
+  endAmount: to
 });
 
 /**
@@ -79,15 +88,14 @@ export const buildRepaymentTerms = (
 ) => {
   const repayment = parseUnits(String(terms.repaymentUsdc), USDC_DECIMALS);
 
+  const owed = risingUsdcItem(PRINCIPAL, repayment);
+
   return {
     lenderTerms: {
-      consideration: [{...usdcItem(repayment), recipient: personas.lender}] as ConsiderationItem[],
+      consideration: [{...owed, recipient: personas.lender}] as ConsiderationItem[],
       duration: terms.durationSeconds
     },
-    borrowerTerms: {
-      offer: [usdcItem(repayment)],
-      duration: terms.durationSeconds
-    },
+    borrowerTerms: {offer: [owed], duration: terms.durationSeconds},
     repayment
   };
 };

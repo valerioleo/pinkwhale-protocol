@@ -131,3 +131,14 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .book tr.row--borrower td:first-child { border-left: 3px solid var(--pw-borrower); }
 
 .seg--small button { padding: 3px 10px; font-size: 12px; }
+
+/* ---- live loan ----------------------------------------------------------- */
+.loan { border: 1px solid var(--line); border-radius: 10px; padding: 14px; width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.loan--lender { border-left: 3px solid var(--pw-lender); }
+.loan--borrower { border-left: 3px solid var(--pw-borrower); }
+.loan-facts { display: flex; gap: 28px; margin: 0; flex-wrap: wrap; }
+.loan-facts div { display: flex; flex-direction: column; gap: 3px; }
+.loan-facts dt { font-size: 11px; color: var(--pw-muted); text-transform: uppercase; letter-spacing: .05em; }
+.loan-facts dd { margin: 0; font-size: 14px; font-family: ui-monospace, Menlo, monospace; display: flex; align-items: center; gap: 6px; }
+.loan-facts .owed { font-size: 17px; }
+.book tr.row--minted td:first-child { border-left: 3px solid var(--pw-brand); }

@@ -11,7 +11,9 @@ import {USDC_DECIMALS} from '../lib/chain';
 import {useFaucet, useHoldings} from '../lib/holdings';
 import {DURATIONS, PRINCIPAL, type LoanTerms} from '../lib/loan';
 import {useExecuteLoan} from '../lib/execute';
+import {LoanRow} from '../components/LoanRow';
 import {useLoan} from '../lib/loans';
+import {useResolveLoan} from '../lib/resolve';
 import {orderFor, useStoredLoan} from '../lib/orderStore';
 import {usePersonas} from '../lib/personas';
 import {useSignLoanOrder} from '../lib/signing';
@@ -29,6 +31,7 @@ export default function Playground() {
   const sign = useSignLoanOrder(personas);
   const execute = useExecuteLoan(personas, storedLoan);
   const {data: loan} = useLoan(personas?.borrower);
+  const resolve = useResolveLoan(personas, loan);
   const [viewAs, setViewAs] = useState<'lender' | 'borrower'>('lender');
 
   const [terms, setTerms] = useState<LoanTerms>({
@@ -58,8 +61,8 @@ export default function Playground() {
     hasUsdc,
     Boolean(lenderOrder),
     Boolean(loan),
-    false,
-    false
+    Boolean(loan),
+    Boolean(loan)
   ];
 
   /**
@@ -269,8 +272,89 @@ export default function Playground() {
           <p className="hint hint--bad">{(execute.error as Error).message}</p>
         ) : null}
       </Step>
-      <Step index={7} title="The loan" state={stateOf(7)} summary="interest ticking, repay when you like" />
-      <Step index={8} title="Two orders you never signed" state={stateOf(8)} summary="minted by Pinkwhale" />
+      <Step
+        index={7}
+        title="The loan"
+        state={loan ? 'active' : stateOf(7)}
+        summary={
+          <span className="seg seg--small">
+            {(['lender', 'borrower'] as const).map((side) => (
+              <button
+                key={side}
+                type="button"
+                className={viewAs === side ? 'on' : ''}
+                onClick={() => setViewAs(side)}
+              >
+                {side}
+              </button>
+            ))}
+          </span>
+        }
+      >
+        {loan ? (
+          <>
+            <LoanRow
+              loan={loan}
+              viewAs={viewAs}
+              busy={resolve.isPending}
+              onRepay={() => resolve.mutate('repay')}
+              onClaim={() => resolve.mutate('claim')}
+            />
+            {resolve.isError ? (
+              <p className="hint hint--bad">{(resolve.error as Error).message}</p>
+            ) : null}
+            <p className="hint">
+              Same loan, two truths. Flip the switch and the button changes, because the two
+              orders below are each locked to one address.
+            </p>
+          </>
+        ) : (
+          <p className="hint">Waiting for the loan…</p>
+        )}
+      </Step>
+
+      <Step
+        index={8}
+        title="Two orders you never signed"
+        state={loan ? 'active' : stateOf(8)}
+        summary="minted by Pinkwhale, in the same transaction"
+      >
+        <table className="book">
+          <thead>
+            <tr>
+              <th>order</th>
+              <th>offers</th>
+              <th>wants</th>
+              <th>who may fill</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="row--minted">
+              <td>repayment</td>
+              <td>the collateral</td>
+              <td>
+                {formatUnits(loan?.owed.start ?? 0n, USDC_DECIMALS)} →{' '}
+                {formatUnits(loan?.owed.end ?? 0n, USDC_DECIMALS)} USDC
+              </td>
+              <td>only the borrower</td>
+            </tr>
+            <tr className="row--minted">
+              <td>default</td>
+              <td>the collateral</td>
+              <td>
+                <strong>nothing</strong>
+              </td>
+              <td>only the lender</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="hint">
+          You signed two orders; these are two more, minted by Pinkwhale and left on Seaport. The
+          ones you signed live in your browser. These live on chain, read back out of Seaport&apos;s
+          own <code>OrderValidated</code> logs — which is the whole split a real marketplace has to
+          bridge.
+        </p>
+      </Step>
     </main>
   );
 }
