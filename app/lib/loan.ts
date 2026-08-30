@@ -65,12 +65,39 @@ const usdcItem = (amount: bigint): OfferItem => ({
  * duration the only slack. The lender mirrors the borrower or the match reverts,
  * so the mirror is derived here rather than entered twice.
  */
+/**
+ * The repayment, expressed from each side, and nothing else.
+ *
+ * Time is deliberately not an input: these are what each `zoneHash` commits to,
+ * so `executeLoan` must be handed exactly the same structs the signatures were
+ * made over. Keeping them independent of when you ask means a later caller cannot
+ * reproduce them wrongly by guessing a timestamp.
+ */
+export const buildRepaymentTerms = (
+  terms: LoanTerms,
+  personas: {lender: Address; borrower: Address}
+) => {
+  const repayment = parseUnits(String(terms.repaymentUsdc), USDC_DECIMALS);
+
+  return {
+    lenderTerms: {
+      consideration: [{...usdcItem(repayment), recipient: personas.lender}] as ConsiderationItem[],
+      duration: terms.durationSeconds
+    },
+    borrowerTerms: {
+      offer: [usdcItem(repayment)],
+      duration: terms.durationSeconds
+    },
+    repayment
+  };
+};
+
 export const buildLoanOrders = (
   terms: LoanTerms,
   personas: {lender: Address; borrower: Address},
   now: bigint
 ) => {
-  const repayment = parseUnits(String(terms.repaymentUsdc), USDC_DECIMALS);
+  const {lenderTerms, borrowerTerms, repayment} = buildRepaymentTerms(terms, personas);
 
   const collateralOffer = terms.collateral.map(punkItem);
   const collateralToEscrow: ConsiderationItem[] = collateralOffer.map((item) => ({
@@ -82,17 +109,6 @@ export const buildLoanOrders = (
   const principalToBorrower: ConsiderationItem[] = [
     {...principalOffer[0]!, recipient: personas.borrower}
   ];
-
-  // The repayment, expressed from each side. Same items, and the lender names
-  // themselves as the one who gets paid.
-  const lenderTerms = {
-    consideration: [{...usdcItem(repayment), recipient: personas.lender}] as ConsiderationItem[],
-    duration: terms.durationSeconds
-  };
-  const borrowerTerms = {
-    offer: [usdcItem(repayment)],
-    duration: terms.durationSeconds
-  };
 
   const common = {
     zone: pinkwhaleAddress[chain.id],

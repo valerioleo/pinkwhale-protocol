@@ -10,6 +10,7 @@ import {TermsForm} from '../components/TermsForm';
 import {USDC_DECIMALS} from '../lib/chain';
 import {useFaucet, useHoldings} from '../lib/holdings';
 import {DURATIONS, PRINCIPAL, type LoanTerms} from '../lib/loan';
+import {useExecuteLoan} from '../lib/execute';
 import {orderFor, useStoredLoan} from '../lib/orderStore';
 import {usePersonas} from '../lib/personas';
 import {useSignLoanOrder} from '../lib/signing';
@@ -25,6 +26,8 @@ export default function Playground() {
   const faucet = useFaucet(personas);
   const storedLoan = useStoredLoan();
   const sign = useSignLoanOrder(personas);
+  const execute = useExecuteLoan(personas, storedLoan);
+  const [viewAs, setViewAs] = useState<'lender' | 'borrower'>('lender');
 
   const [terms, setTerms] = useState<LoanTerms>({
     collateral: [],
@@ -207,9 +210,62 @@ export default function Playground() {
         index={6}
         title="Your order book"
         state={stateOf(6)}
-        summary="two signatures, nothing on chain yet"
+        summary={
+          <span className="seg seg--small">
+            {(['lender', 'borrower'] as const).map((side) => (
+              <button
+                key={side}
+                type="button"
+                className={viewAs === side ? 'on' : ''}
+                onClick={() => setViewAs(side)}
+              >
+                {side}
+              </button>
+            ))}
+          </span>
+        }
       >
-        <p className="hint">Next.</p>
+        <table className="book">
+          <thead>
+            <tr>
+              <th>order</th>
+              <th>gives</th>
+              <th>gets</th>
+              <th>state</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="row--lender">
+              <td>{viewAs === 'lender' ? 'my offer' : 'their offer'}</td>
+              <td>{formatUnits(PRINCIPAL, USDC_DECIMALS)} USDC</td>
+              <td>punks → escrow</td>
+              <td>signed</td>
+            </tr>
+            <tr className="row--borrower">
+              <td>{viewAs === 'borrower' ? 'my request' : 'their request'}</td>
+              <td className="punks-inline">
+                {storedLoan?.terms.collateral.map((id: number) => (
+                  <Punk key={id} id={id} scale={1} />
+                ))}
+              </td>
+              <td>{formatUnits(PRINCIPAL, USDC_DECIMALS)} USDC</td>
+              <td>signed</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p className="hint">
+          Flipping the switch relabels the columns and nothing else, because nothing else can:
+          the pair is symmetric and either side may settle it. Both signatures are sitting in
+          your browser — Seaport has nowhere to keep an order either.
+        </p>
+
+        <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
+          {execute.isPending ? 'Executing…' : 'Execute loan'}
+        </button>
+        {execute.isError ? (
+          <p className="hint hint--bad">{(execute.error as Error).message}</p>
+        ) : null}
       </Step>
       <Step index={7} title="The loan" state={stateOf(7)} summary="interest ticking, repay when you like" />
       <Step index={8} title="Two orders you never signed" state={stateOf(8)} summary="minted by Pinkwhale" />
