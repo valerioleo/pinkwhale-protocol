@@ -34,16 +34,16 @@ export const usePersonas = (): {personas: Personas; creating: boolean} => {
 };
 
 /**
- * The hue each role's blobatar is tinted to.
+ * The hue each role's blobatar is tinted to, taken from the two grounds
+ * valeriohq is built on: rust for the warm one, teal for the dark one.
  *
- * These are OKLCh angles, not the HSL ones the same two colours give — blobatar
- * builds its palette in OKLCh, and feeding it an HSL angle lands somewhere else
- * entirely, which is why the borrower came out pink against an amber accent.
+ * These are OKLCh angles, which is what blobatar builds its palette in — an HSL
+ * angle for the same colour lands somewhere else entirely.
  *
- *   #e0a144 -> oklch(0.753 0.131 74)
- *   #35b9c4 -> oklch(0.722 0.110 203)
+ *   #9a4a22 rust -> oklch h 45
+ *   #022331 teal -> oklch h 231
  */
 export const PERSONA_HUE: Record<Persona, number> = {
-  borrower: 74,
-  lender: 203
+  borrower: 45,
+  lender: 231
 };
