@@ -15,22 +15,19 @@ import {chain, USDC_DECIMALS} from './chain';
 import {cryptoPunksAddress, pinkwhaleAddress, usdcAddress} from './generated';
 
 /**
- * The knobs a visitor gets.
+ * One loan, on fixed terms.
  *
- * Principal is fixed and the rest are bounded, so no combination can produce an
- * order that reverts for a reason the demo is not trying to teach. The one thing
- * worth playing with is repayment: slide it to the principal for a flat fee, or
- * above it for interest that accrues by the second.
+ * There is nothing to configure because configuring it was never the interesting
+ * part: what the demo is showing is that four ordinary Seaport orders make a loan,
+ * and a form full of sliders puts a chore in front of that.
  */
-export const PRINCIPAL = parseUnits('100', USDC_DECIMALS);
+export const PRINCIPAL = parseUnits('1000', USDC_DECIMALS);
 
-export const REPAYMENT_RANGE = {min: 100, max: 120, step: 1} as const;
+export const REPAYMENT_USDC = 1100;
 
-export const DURATIONS = [
-  {label: '5 minutes', seconds: 5n * 60n},
-  {label: '1 hour', seconds: 60n * 60n},
-  {label: '1 day', seconds: 24n * 60n * 60n}
-] as const;
+export const DURATION_SECONDS = 5n * 60n;
+
+export const DURATION_LABEL = '5 minutes';
 
 /** How long the two creation orders stay signable before they go stale. */
 const CREATION_WINDOW = 30n * 60n;
@@ -40,6 +37,13 @@ export type LoanTerms = {
   repaymentUsdc: number;
   durationSeconds: bigint;
 };
+
+/** The terms, given whichever punk the borrower is putting up. */
+export const termsFor = (collateral: number[]): LoanTerms => ({
+  collateral,
+  repaymentUsdc: REPAYMENT_USDC,
+  durationSeconds: DURATION_SECONDS
+});
 
 const punkItem = (id: number): OfferItem => ({
   itemType: ItemType.ERC721,
@@ -151,11 +155,3 @@ export const buildLoanOrders = (
   return {borrowerOrder, lenderOrder, lenderTerms, borrowerTerms, repayment};
 };
 
-/** Simple interest over the term, for display only. */
-export const apr = (terms: LoanTerms) => {
-  const principal = Number(PRINCIPAL) / 10 ** USDC_DECIMALS;
-  const growth = (terms.repaymentUsdc - principal) / principal;
-  const year = 365 * 24 * 60 * 60;
-
-  return growth * (year / Number(terms.durationSeconds)) * 100;
-};

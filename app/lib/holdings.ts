@@ -1,6 +1,6 @@
 'use client';
 
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 import type {Address} from 'viem';
 
 import {chain, publicClient} from './chain';
@@ -52,27 +52,46 @@ export const useHoldings = (address?: Address) => {
   return data ?? EMPTY;
 };
 
+const fund = async (address: Address, persona: Persona) => {
+  const response = await fetch('/api/faucet', {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({address, persona})
+  });
+
+  if (!response.ok) throw new Error((await response.json()).error ?? 'faucet failed');
+
+  return response.json() as Promise<{punks: number[]; usdc: string}>;
+};
+
 /**
- * Ask the server to mint. It is idempotent against on-chain balances, so pressing
- * twice costs nothing, and the holdings query is invalidated rather than refetched
- * by hand.
+ * Funding is not something a visitor should have to ask for.
+ *
+ * Modelled as a query rather than a button because the endpoint is idempotent
+ * against on-chain balances: asking twice is a read, so "make sure this address
+ * has something" behaves exactly like any other piece of state to fetch.
  */
-export const useFaucet = (personas: Personas) => {
+export const useAutoFund = (personas: Personas) => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (persona: Persona) => {
-      const response = await fetch('/api/faucet', {
-        method: 'POST',
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify({address: personas![persona], persona})
-      });
+  const ensure = (persona: Persona) => ({
+    queryKey: ['funded', personas?.[persona]] as const,
+    enabled: Boolean(personas),
+    staleTime: Infinity,
+    retry: 1,
+    queryFn: async () => {
+      const result = await fund(personas![persona], persona);
 
-      if (!response.ok) throw new Error((await response.json()).error ?? 'faucet failed');
+      await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
 
-      return response.json() as Promise<{punks: number[]; usdc: string}>;
-    },
-    onSuccess: (_result, persona) =>
-      queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])})
+      return result;
+    }
   });
+
+  // Two plain calls rather than a loop: hooks are positional, and a helper that
+  // calls one is a helper waiting to be called conditionally.
+  const lender = useQuery(ensure('lender'));
+  const borrower = useQuery(ensure('borrower'));
+
+  return {funding: lender.isFetching || borrower.isFetching, error: lender.error ?? borrower.error};
 };
