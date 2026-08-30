@@ -71,6 +71,9 @@ importers:
 
   app:
     dependencies:
+      '@privy-io/node':
+        specifier: ^0.8.0
+        version: 0.8.0(viem@2.55.16(typescript@5.9.3)(zod@4.4.3))
       '@tanstack/react-query':
         specifier: ^5.102.8
         version: 5.102.8(react@19.2.8)
