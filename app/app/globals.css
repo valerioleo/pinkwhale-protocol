@@ -149,32 +149,47 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .panel h2 { font-size: 12px; margin: 0 0 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--pw-muted); font-weight: 600; }
 .panel .hint { margin-top: 12px; }
 
-/* ---- wallets --------------------------------------------------------------- */
-.wallets { display: flex; gap: 12px; flex-wrap: wrap; width: 100%; }
-.wallet { flex: 1 1 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
-.wallet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.wallet-role { font-size: 19px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
-.wallet-address { font-size: 12px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
-.wallet-balances { display: flex; gap: 22px; margin: 0; flex-wrap: wrap; }
-.wallet-balances div { display: flex; flex-direction: column; gap: 3px; }
-.wallet-balances dt { font-size: 10.5px; color: var(--pw-muted); text-transform: uppercase; letter-spacing: .05em; }
-.wallet-balances dd { margin: 0; display: flex; align-items: center; }
-.wallet-note { margin: 10px 0 0; font-size: 12px; color: var(--pw-muted); }
+/* ---- ledgers ---------------------------------------------------------------- */
+.ledger-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.ledger-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ledger-name { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; text-transform: capitalize; line-height: 1.05; }
+.ledger-under { font-size: 13px; font-family: ui-monospace, Menlo, monospace; color: var(--pw-muted); }
+.ledger-under a { color: inherit; text-decoration: none; }
+.ledger-under a:hover { color: var(--pw-brand); }
+
+.ledger-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 0; }
+.ledger-label { font-size: 20px; font-weight: 700; }
+.ledger-value { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; }
+
+.ledger-note { display: flex; justify-content: space-between; gap: 16px;
+  border-left: 3px solid var(--line); padding: 2px 0 2px 9px; margin-left: 1px;
+  font-size: 13.5px; font-weight: 600; color: var(--pw-muted); }
+
+.ledger-caption { display: block; font-size: 13px; font-family: ui-monospace, Menlo, monospace;
+  color: var(--pw-muted); margin: 14px 0 2px; }
+.ledger-caption:first-child { margin-top: 0; }
+
+.count-and-stack { display: inline-flex; align-items: center; gap: 10px; }
+.stack-solo { border-radius: 50%; box-shadow: 0 0 0 2px #fff; }
+
+.wallet { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: #fff; }
+.wallet-note { margin: 12px 0 0; font-size: 12px; color: var(--pw-muted); }
+.wallets { display: flex; flex-direction: column; gap: 12px; }
 
 /* ---- stacked punks ---------------------------------------------------------- */
 .stack-icons { display: inline-flex; align-items: center; }
 .stack-icon {
   display: inline-flex; border-radius: 50%; margin-right: -5px;
-  /* White under the art, then the pill's own colour as the ring: some cells in
-     the sheet have transparent corners, and pink showing through them reads as a
-     hole rather than as a rounded avatar. */
+  /* White under the art and white around it: cells in the sheet have transparent
+     corners, and a stack is a ledger value on a white card rather than the
+     contents of a tinted pill. */
   background: #fff;
-  box-shadow: 0 0 0 2.5px var(--stack-bg);
+  box-shadow: 0 0 0 2.5px #fff;
 }
 .stack-icon .punk { border-radius: 50%; border: 0; display: block; }
 .stack-more {
   display: inline-grid; place-items: center; border-radius: 50%;
-  background: #fff; box-shadow: 0 0 0 2.5px var(--stack-bg); font-size: 10px; color: var(--pw-muted);
+  background: var(--fill); box-shadow: 0 0 0 2.5px #fff; font-size: 10px; color: var(--pw-muted);
   font-family: ui-sans-serif, system-ui, sans-serif; margin-right: -5px;
   width: 22px; height: 22px;
 }
@@ -221,19 +236,15 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .txs a { color: var(--pw-brand); text-decoration: none; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
 .txs a:hover { text-decoration: underline; }
 
-/* ---- order preview ---------------------------------------------------------- */
-.preview { display: flex; gap: 12px; flex-wrap: wrap; width: 100%; }
-.preview-side { flex: 1 1 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
-.preview-side--lender { border-left: 3px solid var(--pw-lender); }
-.preview-side--borrower { border-left: 3px solid var(--pw-borrower); }
-.preview-role { display: flex; align-items: center; gap: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--pw-muted); font-weight: 700; }
-.preview-side p { margin: 8px 0 0; font-size: 14px; line-height: 1.9; }
-.preview-terms { color: var(--pw-muted); font-size: 13px !important; }
+/* ---- order preview ----------------------------------------------------------- */
+.preview { display: flex; flex-direction: column; gap: 12px; }
+.side { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: #fff; }
+.preview--signed .side { background: #fbfefb; border-color: #cfe4d0; }
+.signed { color: #4f8a52; font-weight: 700; font-family: ui-sans-serif, system-ui, sans-serif; }
 
 .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .panel-head h2 { margin: 0; }
 .panel-note { font-size: 12.5px; color: var(--pw-muted); }
-.panel--wallets { margin-top: 0; margin-bottom: 22px; }
 .signin { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 
 .clock { font-size: 13px; color: var(--pw-muted); font-family: ui-monospace, Menlo, monospace; }
@@ -279,8 +290,8 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .figure > dd { margin: 0; }
 
 .amount-big { display: inline-flex; align-items: baseline; gap: 3px; line-height: 1; }
-.amount-big > :first-child { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
-.amount-fraction { font-size: 26px; font-weight: 700; color: #b9b7b0; }
+.amount-big > :first-child { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.amount-fraction { font-size: 22px; font-weight: 700; color: #b9b7b0; }
 .amount-unit { font-size: 17px; font-weight: 700; margin-left: 5px; }
 
 .breakdown { margin: 6px 0 0; display: flex; flex-direction: column; gap: 3px;
@@ -317,3 +328,6 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 .amount { display: inline-flex; align-items: baseline; gap: 4px; }
 
 .filler { display: inline-flex; align-items: center; gap: 7px; }
+
+.loan-card .amount-big > :first-child { font-size: 34px; }
+.loan-card .amount-fraction { font-size: 26px; }

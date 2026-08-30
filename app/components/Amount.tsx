@@ -11,16 +11,24 @@ import {USDC_DECIMALS} from '../lib/chain';
  * actually is — worth showing, but not worth reading. The whole part animates and
  * the fraction trails behind it in grey.
  */
-export const Amount = ({value, animated = true}: {value: bigint; animated?: boolean}) => {
-  const unit = 10n ** BigInt(USDC_DECIMALS);
-  const whole = value / unit;
-  const fraction = ((value % unit) * 100n) / unit;
+export const Amount = ({
+  value,
+  animated = true,
+  unit = true
+}: {
+  value: bigint;
+  animated?: boolean;
+  unit?: boolean;
+}) => {
+  const scale = 10n ** BigInt(USDC_DECIMALS);
+  const whole = value / scale;
+  const fraction = ((value % scale) * 100n) / scale;
 
   return (
     <span className="amount-big">
       <NumberFlow value={Number(whole)} format={{maximumFractionDigits: 0}} animated={animated} />
       <span className="amount-fraction">.{String(fraction).padStart(2, '0')}</span>
-      <span className="amount-unit">USDC</span>
+      {unit ? <span className="amount-unit">USDC</span> : null}
     </span>
   );
 };
