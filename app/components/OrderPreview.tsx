@@ -16,10 +16,12 @@ const usdc = (amount: bigint) => formatUnits(amount, USDC_DECIMALS);
  * criteria item saying "any token in this collection" is what makes the lender's
  * order a standing offer rather than a reply to one particular borrower.
  */
-export const OrderPreview = ({collateral}: {collateral: number[]}) => (
-  <div className="preview">
+export const OrderPreview = ({collateral, signed = false}: {collateral: number[]; signed?: boolean}) => (
+  <div className={`preview${signed ? ' preview--signed' : ''}`}>
     <div className="preview-side preview-side--borrower">
-      <span className="preview-role">borrower signs</span>
+      <span className="preview-role">
+        borrower {signed ? <b>signed ✓</b> : 'signs'}
+      </span>
       <p>
         I give{' '}
         {collateral.length > 0 ? (
@@ -41,7 +43,9 @@ export const OrderPreview = ({collateral}: {collateral: number[]}) => (
     </div>
 
     <div className="preview-side preview-side--lender">
-      <span className="preview-role">lender signs</span>
+      <span className="preview-role">
+        lender {signed ? <b>signed ✓</b> : 'signs'}
+      </span>
       <p>
         I give <Pill token="usdc">{usdc(PRINCIPAL)} USDC</Pill> for{' '}
         <Pill punk={collateral[0] ?? 0}>any CryptoPunk</Pill> held in escrow

@@ -6,11 +6,11 @@ import {useEffect, useState} from 'react';
 
 import {LoanTable} from '../components/LoanTable';
 import {OrderPreview} from '../components/OrderPreview';
-import {Step, type StepState} from '../components/Step';
+import {Section} from '../components/Section';
 import {TxList} from '../components/TxList';
 import {WalletCard} from '../components/WalletCard';
 import {useExecuteLoan} from '../lib/execute';
-import {useAutoFund, useHoldings} from '../lib/holdings';
+import {useAutoFund, useHoldings, useTopUp} from '../lib/holdings';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC, termsFor} from '../lib/loan';
 import {useLoans} from '../lib/loans';
 import {orderFor, useClearOrders, useStoredLoan} from '../lib/orderStore';
@@ -29,6 +29,7 @@ export default function Playground() {
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
   const {funding} = useAutoFund(personas);
+  const topUp = useTopUp(personas);
 
   const storedLoan = useStoredLoan();
   const clearOrders = useClearOrders();
@@ -55,19 +56,9 @@ export default function Playground() {
   /** The collateral on offer: whichever punk the borrower is holding. */
   const terms = termsFor(borrower.punks.slice(0, 1));
 
-  // Step two is done when a loan exists; the loans table takes it from there.
-  const finished = [connected, loans.length > 0];
+  /** While one is running there is nothing to create, and nothing to match. */
+  const liveLoan = loans.some((entry) => !entry.settled);
 
-  const stateOf = (step: number): StepState => {
-    // Nothing is open until there are wallets to act with.
-    if (!connected) return 'locked';
-
-    return finished[step - 1]
-      ? 'done'
-      : finished.slice(0, step - 1).every(Boolean)
-        ? 'active'
-        : 'locked';
-  };
 
   const walletTxs = useTransactions('wallets');
   const executeTxs = useTransactions('execute');
@@ -90,30 +81,24 @@ export default function Playground() {
         ) : null}
       </header>
 
-      <Step
-        title="Create two wallets"
-        state={connected ? 'done' : 'active'}
-        alwaysOpen
-        summary={connected ? 'funded and ready' : 'one email, two accounts'}
-      >
+      <Section title="Wallets" aside={connected ? 'one email, two accounts' : undefined}>
         {connected ? (
           <>
             <div className="wallets">
-              <WalletCard
-                persona="lender"
-                address={personas!.lender}
-                holdings={lender}
-                funding={funding}
-              />
-              <WalletCard
-                persona="borrower"
-                address={personas!.borrower}
-                holdings={borrower}
-                funding={funding}
-              />
+              {(['lender', 'borrower'] as const).map((persona) => (
+                <WalletCard
+                  key={persona}
+                  persona={persona}
+                  address={personas![persona]}
+                  holdings={persona === 'lender' ? lender : borrower}
+                  funding={funding}
+                  toppingUp={topUp.isPending && topUp.variables === persona}
+                  onTopUp={() => topUp.mutate(persona)}
+                />
+              ))}
             </div>
             <p className="hint">
-              One for the lender, one for the borrower, under a single email. Both are funded the
+              One to lend with, one to borrow with, under a single email. Both are funded the
               moment they exist — assets and gas — so there is no faucet to find.
             </p>
             <TxList transactions={walletTxs} />
@@ -128,62 +113,60 @@ export default function Playground() {
             {creating ? <p className="hint">Creating the second wallet…</p> : null}
           </div>
         )}
-      </Step>
+      </Section>
 
-      <Step
-        title={bothSigned ? 'Match the orders' : 'Create the orders'}
-        state={stateOf(2)}
-        alwaysOpen={connected}
-        summary={bothSigned ? 'two signatures, nothing on chain yet' : 'off chain · costs nothing'}
-      >
-        <OrderPreview collateral={terms.collateral} />
+      {connected && !liveLoan ? (
+        <Section
+          title="Orders"
+          aside={bothSigned ? 'signed, nothing on chain yet' : 'off chain · costs nothing'}
+        >
+          <OrderPreview collateral={terms.collateral} signed={bothSigned} />
 
-        {bothSigned ? (
-          <>
-            <p className="hint">
-              Both sides are signed and sitting in your browser. Anyone at all can put them
-              together — you, them, or a passing bot — and either the whole thing happens or none
-              of it does.
-            </p>
-            <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
-              {execute.isPending ? 'Matching…' : 'Match orders'}
-            </button>
-            <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
-              Discard and start again
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="hint">
-              One click signs both. The lender asks for <em>any</em> CryptoPunk rather than naming
-              one, so the offer would fund whoever turned up first; the borrower names the punk
-              they are putting up, and a resolver settles the two together at match time.
-            </p>
-            <button
-              className="btn"
-              disabled={sign.isPending || terms.collateral.length === 0}
-              onClick={() => sign.mutate(terms)}
-            >
-              {sign.isPending ? 'Waiting for signatures…' : 'Create orders'}
-            </button>
-            {terms.collateral.length === 0 ? (
-              <p className="hint">The borrower needs a punk to put up. Funding is on its way.</p>
-            ) : null}
-          </>
-        )}
+          {bothSigned ? (
+            <>
+              <p className="hint">
+                Both sides are signed and sitting in your browser. Anyone at all can put them
+                together — you, them, or a passing bot — and either the whole thing happens or none
+                of it does.
+              </p>
+              <div className="row-actions">
+                <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
+                  {execute.isPending ? 'Matching…' : 'Match orders'}
+                </button>
+                <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
+                  Discard
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="hint">
+                One click signs both. The lender asks for <em>any</em> CryptoPunk rather than naming
+                one, so the offer would fund whoever turned up first; the borrower names the punk
+                they are putting up, and a resolver settles the two together at match time.
+              </p>
+              <button
+                className="btn"
+                disabled={sign.isPending || terms.collateral.length === 0}
+                onClick={() => sign.mutate(terms)}
+              >
+                {sign.isPending ? 'Waiting for signatures…' : 'Create orders'}
+              </button>
+              {terms.collateral.length === 0 ? (
+                <p className="hint">The borrower needs a punk to put up. Mint one above.</p>
+              ) : null}
+            </>
+          )}
 
-        {sign.isError ? <p className="hint hint--bad">{(sign.error as Error).message}</p> : null}
-        {execute.isError ? (
-          <p className="hint hint--bad">{(execute.error as Error).message}</p>
-        ) : null}
-        <TxList transactions={executeTxs} />
-      </Step>
+          {sign.isError ? <p className="hint hint--bad">{(sign.error as Error).message}</p> : null}
+          {execute.isError ? (
+            <p className="hint hint--bad">{(execute.error as Error).message}</p>
+          ) : null}
+          <TxList transactions={executeTxs} />
+        </Section>
+      ) : null}
 
-      <section className="panel">
-        <div className="panel-head">
-          <h2>Your loans</h2>
-          {connected ? <span className="panel-note">read from the chain, by borrower</span> : null}
-        </div>
+      <Section title="Your loans" aside={connected ? 'read from the chain, by borrower' : undefined}>
         {connected ? (
           <>
             <LoanTable
@@ -201,7 +184,7 @@ export default function Playground() {
         ) : (
           <p className="hint">Sign in to see yours.</p>
         )}
-      </section>
+      </Section>
 
     </main>
   );

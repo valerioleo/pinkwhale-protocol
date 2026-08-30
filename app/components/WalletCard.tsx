@@ -12,12 +12,16 @@ export const WalletCard = ({
   persona,
   address,
   holdings,
-  funding
+  funding,
+  onTopUp,
+  toppingUp
 }: {
   persona: 'lender' | 'borrower';
   address: string;
   holdings: Holdings;
   funding: boolean;
+  onTopUp: () => void;
+  toppingUp: boolean;
 }) => (
   <div className={`wallet wallet--${persona}`}>
     <div className="wallet-head">
@@ -31,13 +35,20 @@ export const WalletCard = ({
         <dd>{formatUnits(holdings.usdc, USDC_DECIMALS)}</dd>
       </div>
       <div>
-        <dt>collateral</dt>
+        {/* Not "collateral": the lender's punks are ones they claimed, and calling
+            them collateral would describe the borrower's side of a loan. */}
+        <dt>CryptoPunks</dt>
         <dd>
           <PunkStack ids={holdings.punks} />
         </dd>
       </div>
     </dl>
 
-    {funding ? <p className="wallet-note">funding…</p> : null}
+    <div className="wallet-foot">
+      <button className="btn btn--small btn--quiet" onClick={onTopUp} disabled={funding || toppingUp}>
+        {toppingUp ? 'Minting…' : 'Mint more'}
+      </button>
+      {funding ? <span className="wallet-note">funding…</span> : null}
+    </div>
   </div>
 );

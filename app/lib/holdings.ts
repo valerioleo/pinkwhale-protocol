@@ -1,6 +1,6 @@
 'use client';
 
-import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import type {Address} from 'viem';
 
 import {chain, publicClient} from './chain';
@@ -53,11 +53,11 @@ export const useHoldings = (address?: Address) => {
   return data ?? EMPTY;
 };
 
-const fund = async (address: Address, persona: Persona) => {
+const fund = async (address: Address, persona: Persona, force = false) => {
   const response = await fetch('/api/faucet', {
     method: 'POST',
     headers: {'content-type': 'application/json'},
-    body: JSON.stringify({address, persona})
+    body: JSON.stringify({address, persona, force})
   });
 
   if (!response.ok) throw new Error((await response.json()).error ?? 'faucet failed');
@@ -100,4 +100,24 @@ export const useAutoFund = (personas: Personas) => {
   const borrower = useQuery(ensure('borrower'));
 
   return {funding: lender.isFetching || borrower.isFetching, error: lender.error ?? borrower.error};
+};
+
+/** Top up on request. Same endpoint, asked a different question. */
+export const useTopUp = (personas: Personas) => {
+  const queryClient = useQueryClient();
+  const record = useRecordTx();
+
+  return useMutation({
+    mutationFn: async (persona: Persona) => {
+      const result = await fund(personas![persona], persona, true);
+
+      result.sent?.forEach((hash, index) =>
+        record({step: 'wallets', label: `${persona}: top up ${index + 1}`, hash})
+      );
+
+      return result;
+    },
+    onSuccess: (_result, persona) =>
+      queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])})
+  });
 };

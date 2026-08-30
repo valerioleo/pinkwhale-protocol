@@ -94,12 +94,14 @@ const hasBeenFunded = async (address: Address, persona: Persona) => {
  *      account, so concurrent sends read the same nonce and all but the first are
  *      rejected — the same trap the deploy script hit.
  */
-export const fundPersona = async (address: Address, persona: Persona) => {
+export const fundPersona = async (address: Address, persona: Persona, force = false) => {
   const publicClient = createPublicClient({chain, transport: transport()});
 
   // Idempotent on purpose. Without this every click mints again, and since the
   // mints are paid for by one shared wallet, a held-down button is a drain.
-  const alreadyFunded = await hasBeenFunded(address, persona);
+  // `force` is the visitor asking for more, which is a different question from
+  // 'has this address been set up', and only the second one is automatic.
+  const alreadyFunded = force ? null : await hasBeenFunded(address, persona);
 
   if (alreadyFunded) return {sent: [], ...alreadyFunded};
 

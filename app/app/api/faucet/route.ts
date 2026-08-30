@@ -12,7 +12,11 @@ import {fundPersona, type Persona} from '../../../lib/server/faucet';
  */
 
 export const POST = async (request: Request) => {
-  const {address, persona} = (await request.json()) as {address?: string; persona?: Persona};
+  const {address, persona, force} = (await request.json()) as {
+    address?: string;
+    persona?: Persona;
+    force?: boolean;
+  };
 
   if (!address || !isAddress(address)) {
     return Response.json({error: 'address must be a 20-byte hex address'}, {status: 400});
@@ -23,7 +27,7 @@ export const POST = async (request: Request) => {
   }
 
   try {
-    return Response.json(await fundPersona(address as Address, persona));
+    return Response.json(await fundPersona(address as Address, persona, force === true));
   } catch (error) {
     console.error('faucet failed', error);
     return Response.json({error: (error as Error).message}, {status: 500});

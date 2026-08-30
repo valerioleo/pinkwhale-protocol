@@ -4,7 +4,6 @@ import NumberFlow from '@number-flow/react';
 import {formatUnits} from 'viem';
 
 import {Pill} from './Pill';
-import {PunkStack} from './PunkStack';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
 
@@ -76,7 +75,13 @@ export const LoanTable = ({
           return (
             <tr key={loan.loanId}>
               <td>
-                <PunkStack ids={loan.punks} />
+                <span className="pills">
+                  {loan.punks.map((id) => (
+                    <Pill key={id} punk={id}>
+                      #{id}
+                    </Pill>
+                  ))}
+                </span>
               </td>
               <td>
                 {loan.repaid ? (
