@@ -11,6 +11,7 @@ import {USDC_DECIMALS} from '../lib/chain';
 import {useFaucet, useHoldings} from '../lib/holdings';
 import {DURATIONS, PRINCIPAL, type LoanTerms} from '../lib/loan';
 import {useExecuteLoan} from '../lib/execute';
+import {useLoan} from '../lib/loans';
 import {orderFor, useStoredLoan} from '../lib/orderStore';
 import {usePersonas} from '../lib/personas';
 import {useSignLoanOrder} from '../lib/signing';
@@ -27,6 +28,7 @@ export default function Playground() {
   const storedLoan = useStoredLoan();
   const sign = useSignLoanOrder(personas);
   const execute = useExecuteLoan(personas, storedLoan);
+  const {data: loan} = useLoan(personas?.borrower);
   const [viewAs, setViewAs] = useState<'lender' | 'borrower'>('lender');
 
   const [terms, setTerms] = useState<LoanTerms>({
@@ -55,7 +57,7 @@ export default function Playground() {
     Boolean(borrowerOrder),
     hasUsdc,
     Boolean(lenderOrder),
-    false,
+    Boolean(loan),
     false,
     false
   ];

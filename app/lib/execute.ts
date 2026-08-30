@@ -2,7 +2,15 @@
 
 import {useSendEvmTransaction} from '@coinbase/cdp-hooks';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {decodeErrorResult, encodeFunctionData, maxUint256, type Address, type Hex} from 'viem';
+import {
+  BaseError,
+  RawContractError,
+  decodeErrorResult,
+  encodeFunctionData,
+  maxUint256,
+  type Address,
+  type Hex
+} from 'viem';
 
 import {buildFulfillments, toAdvancedOrder} from '../../scripts/lib/orders';
 import {chain, publicClient} from './chain';
@@ -66,21 +74,21 @@ const simulate = async (from: Address, data: Hex) => {
   try {
     await publicClient.call({account: from, to: pinkwhaleAddress[chain.id], data});
   } catch (error) {
-    const raw = (error as {data?: {data?: Hex} | Hex}) ?? {};
-    const revertData =
-      typeof raw.data === 'string' ? raw.data : (raw.data as {data?: Hex} | undefined)?.data;
+    // viem buries the revert payload down the cause chain, which is why reading
+    // `error.data` found nothing and every failure read as "unknown reason" even
+    // when the node had returned a perfectly good selector.
+    const raw = (error as BaseError).walk?.((e) => e instanceof RawContractError) as
+      | RawContractError
+      | undefined;
+
+    const payload = raw?.data;
+    const revertData = typeof payload === 'string' ? payload : payload?.data;
 
     if (revertData && revertData !== '0x') {
-      try {
-        const {errorName, args} = decodeErrorResult({abi: REVERT_ABI, data: revertData});
-        const detail = args?.length ? `(${args.join(', ')})` : '';
+      const {errorName, args} = decodeErrorResult({abi: REVERT_ABI, data: revertData});
+      const detail = args?.length ? ` (${args.join(', ')})` : '';
 
-        throw new Error(`${errorName}${detail} — reverted before anything moved`);
-      } catch (decodeFailure) {
-        if (decodeFailure instanceof Error && decodeFailure.message.includes('reverted before')) {
-          throw decodeFailure;
-        }
-      }
+      throw new Error(`${errorName}${detail}`);
     }
 
     throw error;
