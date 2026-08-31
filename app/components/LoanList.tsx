@@ -137,9 +137,8 @@ const Orders = ({loan, now, personas}: {loan: Loan; now: bigint; personas: Perso
       />
 
       <p className="hint">
-        Pinkwhale minted both of these when the loan opened and left them on Seaport. Each is locked
-        to one address by its <code>zoneHash</code>, so the wrong side is turned away before
-        anything moves.
+        Pinkwhale created these orders on-chain when the loan was executed. Each is locked to one
+        address by its <code>zoneHash</code>, so only the authorised party can fulfil it.
       </p>
     </div>
   );

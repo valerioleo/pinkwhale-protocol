@@ -109,16 +109,13 @@ export default function Playground() {
                 />
               ))}
             </div>
-            <p className="hint">
-              One to lend with, one to borrow with, under a single email. Both are funded the
-              moment they exist — assets and gas — so there is no faucet to find.
-            </p>
+            <p className="hint">These are real Base Sepolia accounts.</p>
           </>
         ) : (
           <div className="signin">
             <p className="hint">
-              Signing in creates two actors on Base Sepolia, one to lend with and one to borrow
-              with, and funds them both automatically.
+              Signing in creates two pre-funded actors on Base Sepolia, one to lend with and one
+              to borrow with.
             </p>
             <AuthButton />
             {creating ? <p className="hint">Creating the second actor…</p> : null}
@@ -127,18 +124,14 @@ export default function Playground() {
       </Section>
 
       {connected && !loansLoading && !liveLoan ? (
-        <Section
-          title="Orders"
-          aside={bothSigned ? 'signed, nothing on chain yet' : 'off chain · costs nothing'}
-        >
+        <Section title="Orders">
           <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
 
           {bothSigned ? (
             <>
               <p className="hint">
-                Both sides are signed and sitting in your browser. Anyone at all can put them
-                together — you, them, or a passing bot — and either the whole thing happens or none
-                of it does.
+                Both orders are signed and sitting in your browser. Since they are two valid
+                Seaport orders, anyone at all can execute them now.
               </p>
               <div className="row-actions">
                 <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
@@ -152,11 +145,17 @@ export default function Playground() {
           ) : (
             <>
               <p className="hint">
-                On a real marketplace these two would never be written together. Each side would
-                sign alone and leave its order in a book, and a loan would happen when someone
-                found a counterpart already sitting there — the lender asks for <em>any</em>{' '}
-                CryptoPunk precisely so the offer can wait for whoever turns up. There is no book
-                here, so the playground signs both at once and plays both parts.
+                These are two canonical Seaport orders. The only particular part about them is
+                the <code>zoneHash</code> specified as the Pinkwhale address, to guarantee they
+                can be used only to create loans via Pinkwhale.
+              </p>
+              <p className="hint">
+                These orders are created here together for convenience, but they would normally
+                be signed independently on a marketplace orderbook, waiting to be matched.
+              </p>
+              <p className="hint">
+                In this example, we simulate a lender who accepts any CryptoPunk as collateral
+                for a loan, and a borrower accepting that order.
               </p>
               <button
                 className="btn"
