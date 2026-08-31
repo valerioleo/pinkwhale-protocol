@@ -9,7 +9,7 @@ import type {Holdings} from '../lib/holdings';
 import {PERSONA_HUE} from '../lib/personas';
 import {explorerUrl} from '../lib/txLog';
 
-const short = (address: string) => `${address.slice(0, 10)}…${address.slice(-4)}`;
+const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
 /** What one persona is and what it holds, as a two-line statement. */
 export const WalletCard = ({
@@ -25,7 +25,7 @@ export const WalletCard = ({
 }) => (
   <div className="wallet">
     <LedgerHead
-      avatar={<Blobatar name={address} size={76} hue={PERSONA_HUE[persona]} />}
+      avatar={<Blobatar name={address} size={48} hue={PERSONA_HUE[persona]} />}
       name={persona}
       under={
         <a href={explorerUrl(address, 'address')} target="_blank" rel="noreferrer">
@@ -38,12 +38,12 @@ export const WalletCard = ({
       <Amount value={holdings.usdc} animated={false} unit={false} />
     </LedgerRow>
 
-    <LedgerRow label="CryptoPunks">
+    <LedgerRow label="Punks">
       <span className="count-and-stack">
         {/* Past five the exact figure stops being the point, and five faces is
             already more than anyone counts. */}
         {holdings.punks.length > 5 ? '5+' : holdings.punks.length}
-        <PunkStack ids={holdings.punks} size={34} />
+        <PunkStack ids={holdings.punks} size={28} />
       </span>
     </LedgerRow>
 
