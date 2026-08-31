@@ -8,9 +8,9 @@ import {LoanList} from '../components/LoanList';
 import {OrderPreview} from '../components/OrderPreview';
 import {Section} from '../components/Section';
 import {TxList} from '../components/TxList';
-import {WalletCard} from '../components/WalletCard';
+import {ActorCard} from '../components/ActorCard';
 import {useExecuteLoan} from '../lib/execute';
-import {useAutoFund, useFundWallets, useHoldings} from '../lib/holdings';
+import {useAutoFund, useFundActors, useHoldings} from '../lib/holdings';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC, termsFor} from '../lib/loan';
 import {useLoans} from '../lib/loans';
 import {orderFor, useClearOrders, useStoredLoan} from '../lib/orderStore';
@@ -29,7 +29,7 @@ export default function Playground() {
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
   const {funding} = useAutoFund(personas);
-  const fundWallets = useFundWallets(personas, {lender, borrower});
+  const fundActors = useFundActors(personas, {lender, borrower});
 
   const storedLoan = useStoredLoan();
   const clearOrders = useClearOrders();
@@ -60,7 +60,6 @@ export default function Playground() {
   const liveLoan = loans.some((entry) => !entry.settled);
 
 
-  const walletTxs = useTransactions('wallets');
   const executeTxs = useTransactions('execute');
   const resolveTxs = useTransactions('resolve');
 
@@ -82,29 +81,31 @@ export default function Playground() {
       </header>
 
       <Section
-        title="Wallets"
+        title="Actors"
         aside={
-          connected && (fundWallets.short.length > 0 || fundWallets.isPending) ? (
+          // Not while the automatic pass is still running: offering to fund what is
+          // already being funded reads as the automatic pass having failed.
+          connected && !funding && fundActors.short.length > 0 ? (
             <button
               className="btn btn--small btn--quiet"
-              disabled={fundWallets.isPending}
-              onClick={() => fundWallets.mutate()}
+              disabled={fundActors.isPending}
+              onClick={() => fundActors.mutate()}
             >
-              {fundWallets.isPending ? 'Funding…' : 'Fund wallets'}
+              {fundActors.isPending ? 'Funding…' : 'Fund actors'}
             </button>
           ) : undefined
         }
       >
         {connected ? (
           <>
-            <div className="wallets">
+            <div className="actors">
               {(['borrower', 'lender'] as const).map((persona) => (
-                <WalletCard
+                <ActorCard
                   key={persona}
                   persona={persona}
                   address={personas![persona]}
                   holdings={persona === 'lender' ? lender : borrower}
-                  funding={funding || fundWallets.isPending}
+                  funding={funding || fundActors.isPending}
                 />
               ))}
             </div>
@@ -112,16 +113,15 @@ export default function Playground() {
               One to lend with, one to borrow with, under a single email. Both are funded the
               moment they exist — assets and gas — so there is no faucet to find.
             </p>
-            <TxList transactions={walletTxs} />
           </>
         ) : (
           <div className="signin">
             <p className="hint">
-              Signing in creates two wallets on Base Sepolia, one to lend with and one to borrow
+              Signing in creates two actors on Base Sepolia, one to lend with and one to borrow
               with, and funds them both automatically.
             </p>
             <AuthButton />
-            {creating ? <p className="hint">Creating the second wallet…</p> : null}
+            {creating ? <p className="hint">Creating the second actor…</p> : null}
           </div>
         )}
       </Section>

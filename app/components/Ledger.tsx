@@ -5,7 +5,7 @@ import type {ReactNode} from 'react';
 /**
  * A line of a ledger: what it is on the left, how much of it on the right.
  *
- * Shared by the wallets and the orders because they are the same statement read
+ * Shared by the actors and the orders because they are the same statement read
  * two ways — one says what an address holds, the other what it is willing to
  * trade — and a reader should not have to learn two layouts for that.
  */
