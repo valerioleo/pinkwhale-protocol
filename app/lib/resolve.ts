@@ -80,10 +80,14 @@ export const useResolveLoan = (personas: {lender: Address; borrower: Address} | 
 
       return hash;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['loan']});
-      queryClient.invalidateQueries({queryKey: holdingsKey(personas!.lender)});
-      queryClient.invalidateQueries({queryKey: holdingsKey(personas!.borrower)});
+    // Awaited: see the note in execute.ts. Without it the button re-enables for
+    // a beat before the refetch replaces it, which reads as the action failing.
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({queryKey: ['loans']}),
+        queryClient.invalidateQueries({queryKey: holdingsKey(personas!.lender)}),
+        queryClient.invalidateQueries({queryKey: holdingsKey(personas!.borrower)})
+      ]);
     }
   });
 };

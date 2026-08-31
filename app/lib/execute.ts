@@ -203,15 +203,21 @@ export const useExecuteLoan = (personas: Personas, loan: StoredLoan | null) => {
 
       return hash;
     },
-    onSuccess: () => {
+    // Awaited, not fired and forgotten. A mutation that settles before its
+    // queries refetch hands back a screen describing the world as it was a moment
+    // ago: the button comes back to life, then the truth arrives and takes it
+    // away again. Waiting here means `isPending` covers the whole round trip.
+    onSuccess: async () => {
       // The two creation orders are spent. Dropping them is what lets the same
       // visitor go round again without a "start over" button.
       window.localStorage.removeItem('pinkwhale.orders');
       queryClient.setQueryData(['storedLoan'], null);
 
-      queryClient.invalidateQueries({queryKey: holdingsKey(personas!.lender)});
-      queryClient.invalidateQueries({queryKey: holdingsKey(personas!.borrower)});
-      queryClient.invalidateQueries({queryKey: ['loans']});
+      await Promise.all([
+        queryClient.invalidateQueries({queryKey: holdingsKey(personas!.lender)}),
+        queryClient.invalidateQueries({queryKey: holdingsKey(personas!.borrower)}),
+        queryClient.invalidateQueries({queryKey: ['loans']})
+      ]);
     }
   });
 };
