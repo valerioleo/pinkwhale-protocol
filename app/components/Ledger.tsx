@@ -28,13 +28,16 @@ export const LedgerNote = ({label, children}: {label: ReactNode; children: React
 export const LedgerHead = ({
   avatar,
   name,
-  under
+  under,
+  compact = false
 }: {
   avatar: ReactNode;
   name: string;
   under?: ReactNode;
+  /** Smaller, and no room left beneath: for a head that labels a block. */
+  compact?: boolean;
 }) => (
-  <div className="ledger-head">
+  <div className={`ledger-head${compact ? ' ledger-head--compact' : ''}`}>
     <span className="avatar-disc">{avatar}</span>
     <span className="ledger-titles">
       <span className="ledger-name">{name}</span>

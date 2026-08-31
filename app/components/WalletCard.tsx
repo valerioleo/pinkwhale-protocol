@@ -40,7 +40,9 @@ export const WalletCard = ({
 
     <LedgerRow label="CryptoPunks">
       <span className="count-and-stack">
-        {holdings.punks.length}
+        {/* Past five the exact figure stops being the point, and five faces is
+            already more than anyone counts. */}
+        {holdings.punks.length > 5 ? '5+' : holdings.punks.length}
         <PunkStack ids={holdings.punks} size={34} />
       </span>
     </LedgerRow>

@@ -113,6 +113,8 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
 .avatar-disc { display: inline-grid; place-items: center; border-radius: 50%;
   background: var(--muted); padding: 7px; flex: none; }
 .avatar-disc--small { padding: 3px; }
+.ledger-head--compact { gap: 11px; margin-bottom: 4px; }
+.ledger-head--compact .ledger-name { font-size: 25px; }
 .ledger-titles { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .ledger-name { font-family: var(--font-sans); font-size: 32px; font-weight: 700;
   letter-spacing: -0.02em; text-transform: capitalize; line-height: 1.05; }
@@ -161,9 +163,6 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
   background: #fff; box-shadow: 0 0 0 2.5px var(--card); }
 .stack-icon .pill-icon--punk { background-color: #fff; }
 .stack-solo { box-shadow: 0 0 0 2.5px var(--card); }
-.stack-more { display: inline-grid; place-items: center; border-radius: 50%;
-  background: var(--muted); box-shadow: 0 0 0 2.5px var(--card); margin-right: -5px;
-  font-family: var(--font-sans); font-size: 10px; color: var(--muted-foreground); }
 .stack-empty { color: var(--muted-foreground); font-size: 14px; }
 
 /* ---- amounts -------------------------------------------------------------------- */
@@ -190,8 +189,8 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
 .figure { display: flex; flex-direction: column; gap: 9px; }
 .figure dt { font-family: var(--font-sans); font-size: 15px; font-weight: 700; }
 .figure dd { margin: 0; }
-.loan-card .amount-big > :first-child { font-size: 33px; }
-.loan-card .amount-fraction { font-size: 25px; }
+.loan-figures .amount-big > :first-child { font-size: 33px; }
+.loan-figures .amount-fraction { font-size: 25px; }
 
 .orders-toggle { display: inline-flex; align-items: center; gap: 8px; margin: 0 auto;
   background: none; border: 0; padding: 0; cursor: pointer;
@@ -203,17 +202,14 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
   border-radius: 50%; border: 1px solid currentColor; font-size: 10px; font-style: italic;
   font-family: var(--font-serif); line-height: 1; }
 
-.orders { display: flex; flex-direction: column; gap: 10px; }
-.order { border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 12px 14px; background: var(--background); }
-.order-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px;
-  font-family: var(--font-sans); font-size: 13.5px; }
-.order-facts { display: flex; flex-direction: column; gap: 9px; margin: 0 0 10px; }
-.order-facts div { display: flex; flex-direction: column; gap: 3px; }
-.order-facts dt { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
-  letter-spacing: 0.05em; color: var(--muted-foreground); }
-.order-facts dd { margin: 0; font-family: var(--font-sans); font-size: 13.5px;
-  display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.orders { display: flex; flex-direction: column; gap: 0; }
+.order { border-top: 1px solid var(--border); padding: 18px 0 20px; }
+.order:first-child { border-top: 0; padding-top: 14px; }
+.order .ledger-row { padding: 3px 0; }
+.order .ledger-label,
+.order .ledger-value { font-size: 17px; }
+.order-window { margin: 0; font-family: var(--font-sans); font-size: 17px; font-weight: 600;
+  text-wrap: balance; }
 .filler { display: inline-flex; align-items: center; gap: 7px; }
 
 /* ---- status --------------------------------------------------------------------- */

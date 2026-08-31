@@ -84,17 +84,13 @@ export default function Playground() {
       <Section
         title="Wallets"
         aside={
-          connected ? (
+          connected && (fundWallets.short.length > 0 || fundWallets.isPending) ? (
             <button
               className="btn btn--small btn--quiet"
-              disabled={fundWallets.isPending || fundWallets.short.length === 0}
+              disabled={fundWallets.isPending}
               onClick={() => fundWallets.mutate()}
             >
-              {fundWallets.isPending
-                ? 'Funding…'
-                : fundWallets.short.length === 0
-                  ? 'Both funded'
-                  : 'Fund wallets'}
+              {fundWallets.isPending ? 'Funding…' : 'Fund wallets'}
             </button>
           ) : undefined
         }

@@ -8,7 +8,7 @@ import {punkIconStyle} from '../lib/punks';
  */
 export const PunkStack = ({
   ids,
-  max = 4,
+  max = 5,
   size = 22
 }: {
   ids: number[];
@@ -18,8 +18,6 @@ export const PunkStack = ({
   if (ids.length === 0) return <span className="stack-empty">none</span>;
 
   const shown = ids.slice(0, max);
-  const rest = ids.length - shown.length;
-
   return (
     <span className="stack-icons">
       {shown.map((id, index) => (
@@ -27,11 +25,7 @@ export const PunkStack = ({
           <span className="pill-icon pill-icon--punk" style={punkIconStyle(id, size)} />
         </span>
       ))}
-      {rest > 0 ? (
-        <span className="stack-more" style={{width: size, height: size}}>
-          +{rest}
-        </span>
-      ) : null}
+
     </span>
   );
 };

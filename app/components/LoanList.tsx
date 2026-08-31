@@ -5,7 +5,7 @@ import {useState} from 'react';
 import {formatUnits} from 'viem';
 
 import {Amount} from './Amount';
-import {Pill} from './Pill';
+import {LedgerHead, LedgerNote, LedgerRow} from './Ledger';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
 import {PERSONA_HUE, type Personas} from '../lib/personas';
@@ -43,85 +43,103 @@ const usdc = (amount: bigint) => formatUnits(amount, USDC_DECIMALS);
 
 const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
 
-const Filler = ({persona, personas}: {persona: 'lender' | 'borrower'; personas: Personas}) => (
-  <span className="filler">
-    {personas ? (
-      <span className="avatar-disc avatar-disc--small">
-        <Blobatar name={personas[persona]} size={20} hue={PERSONA_HUE[persona]} />
+/**
+ * The two orders Pinkwhale minted, read from the point of view of whoever is
+ * allowed to fill them: what they pay, what they get, and how long they have.
+ *
+ * The default order is *cancelled* once the repayment order is filled, not merely
+ * closed. Its zoneHash commits to the repayment order, and the zone checks that
+ * order's status before letting a claim through — so a repaid loan makes the
+ * claim unfillable forever, whatever the clock says.
+ */
+const Order = ({
+  persona,
+  personas,
+  pays,
+  collateral,
+  window: validity
+}: {
+  persona: 'lender' | 'borrower';
+  personas: Personas;
+  pays: React.ReactNode;
+  collateral: number[];
+  window: string;
+}) => (
+  <div className="order">
+    <span className="ledger-caption">Who can fill</span>
+    <LedgerHead
+      avatar={
+        personas ? <Blobatar name={personas[persona]} size={30} hue={PERSONA_HUE[persona]} /> : null
+      }
+      name={persona}
+      compact
+    />
+
+    <span className="ledger-caption">Pays</span>
+    {pays}
+
+    <span className="ledger-caption">Gets</span>
+    <LedgerRow label="CryptoPunks">
+      <span className="count-and-stack">
+        #{collateral[0]}
+        <span
+          className="pill-icon pill-icon--punk stack-solo"
+          style={punkIconStyle(collateral[0] ?? 0, 28)}
+        />
       </span>
-    ) : null}
-    only the {persona}
-  </span>
+    </LedgerRow>
+
+    <span className="ledger-caption">Validity window</span>
+    <p className="order-window">{validity}</p>
+  </div>
 );
 
 const Orders = ({loan, now, personas}: {loan: Loan; now: bigint; personas: Personas}) => {
   const expired = now > loan.closesAt;
 
-  const rows = [
-    {
-      title: 'repayment order',
-      state: loan.repaid ? 'filled' : expired ? 'expired' : 'live',
-      wants: (
-        <>
-          <Pill token="usdc">{usdc(loan.owed.start)}</Pill> rising to{' '}
-          <Pill token="usdc">{usdc(loan.owed.end)} USDC</Pill>
-        </>
-      ),
-      who: <Filler persona="borrower" personas={personas} />,
-      // Said as time remaining rather than a wall clock: what matters is whether
-      // there is any left.
-      window: expired ? 'closed' : `open for another ${countdown(loan.closesAt - now)}`
-    },
-    {
-      title: 'default order',
-      state: loan.claimed ? 'filled' : expired ? 'live' : 'not live yet',
-      wants: <span className="muted">nothing at all — it costs the lender only gas</span>,
-      who: <Filler persona="lender" personas={personas} />,
-      // It never closes: an unclaimed default stays claimable forever.
-      window: expired ? 'open, and never closes' : 'opens when the repayment order expires'
-    }
-  ];
+  const repaymentWindow = loan.repaid
+    ? 'Filled — the loan was repaid'
+    : expired
+      ? 'Expired'
+      : `Expires in ${countdown(loan.closesAt - now)}`;
+
+  const defaultWindow = loan.claimed
+    ? 'Filled — the collateral was claimed'
+    : loan.repaid
+      ? 'Cancelled — the repayment order was filled first'
+      : expired
+        ? 'Open, never expires'
+        : 'Opens after the repayment order closes, and never expires';
 
   return (
     <div className="orders">
-      {rows.map((order) => (
-        <div key={order.title} className="order">
-          <div className="order-head">
-            <strong>{order.title}</strong>
-            <span className={`status status--${order.state.replace(/ /g, '-')}`}>{order.state}</span>
-          </div>
-          <dl className="order-facts">
-            <div>
-              <dt>offers</dt>
-              <dd>
-                <span className="pills">
-                  {loan.punks.map((id) => (
-                    <Pill key={id} punk={id}>
-                      #{id}
-                    </Pill>
-                  ))}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt>wants</dt>
-              <dd>{order.wants}</dd>
-            </div>
-            <div>
-              <dt>who may fill</dt>
-              <dd>{order.who}</dd>
-            </div>
-            <div>
-              <dt>window</dt>
-              <dd>{order.window}</dd>
-            </div>
-          </dl>
-        </div>
-      ))}
+      <Order
+        persona="borrower"
+        personas={personas}
+        collateral={loan.punks}
+        window={repaymentWindow}
+        pays={
+          <>
+            <LedgerRow label="USDC">
+              <Amount value={loan.owed.end} animated={false} unit={false} />
+            </LedgerRow>
+            <LedgerNote label="Rising by the second from">{usdc(loan.owed.start)} USDC</LedgerNote>
+          </>
+        }
+      />
+
+      <Order
+        persona="lender"
+        personas={personas}
+        collateral={loan.punks}
+        window={defaultWindow}
+        pays={<LedgerRow label="Nothing, just gas">{null}</LedgerRow>}
+      />
+
       <p className="hint">
         Pinkwhale minted both of these when the loan opened and left them on Seaport. Each is locked
         to one address by its <code>zoneHash</code>, so the wrong side is turned away before
-        anything moves — and the clock alone decides which is open.
+        anything moves.
       </p>
     </div>
   );
