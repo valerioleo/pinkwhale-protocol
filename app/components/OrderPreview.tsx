@@ -6,12 +6,26 @@ import {formatUnits} from 'viem';
 import {Amount} from './Amount';
 import {LedgerHead, LedgerNote, LedgerRow} from './Ledger';
 import {PunkStack} from './PunkStack';
-import {punkIconStyle} from '../lib/punks';
+import {COLLECTION_SIZE} from '../lib/punks';
 import {USDC_DECIMALS} from '../lib/chain';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC} from '../lib/loan';
 import {PERSONA_HUE, type Personas} from '../lib/personas';
 
 const interest = REPAYMENT_USDC - Number(formatUnits(PRINCIPAL, USDC_DECIMALS));
+
+const SHOWCASE = 5;
+
+/**
+ * Five arbitrary punks to stand behind the word "any".
+ *
+ * Drawn from the lender's own address rather than at random, so the row holds
+ * still between renders: what the picture is saying is that the identity is
+ * unspecified, and a row that reshuffles says something else entirely.
+ */
+const showcasePunks = (seed?: string) =>
+  Array.from({length: SHOWCASE}, (_, index) =>
+    Number(((BigInt(seed ?? '0x0') >> BigInt(index * 17)) % BigInt(COLLECTION_SIZE)))
+  );
 
 /**
  * What each side is about to sign, read as a statement of the deal.
@@ -89,10 +103,7 @@ export const OrderPreview = ({
       <LedgerRow label="CryptoPunks">
         <span className="count-and-stack">
           any
-          <span
-            className="pill-icon pill-icon--punk stack-solo"
-            style={punkIconStyle(collateral[0] ?? 0, 28)}
-          />
+          <PunkStack ids={showcasePunks(personas?.lender)} max={SHOWCASE} size={28} />
         </span>
       </LedgerRow>
     </Side>
