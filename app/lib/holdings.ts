@@ -1,10 +1,10 @@
 'use client';
 
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
-import {parseUnits, type Address} from 'viem';
+import {type Address} from 'viem';
 
-import {chain, publicClient, USDC_DECIMALS} from './chain';
-import {useRecordTx} from './txLog';
+import {chain, publicClient} from './chain';
+import {isShort} from './faucet';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from './generated';
 import type {Persona, Personas} from './personas';
 
@@ -74,7 +74,6 @@ const fund = async (address: Address, persona: Persona, force = false) => {
  */
 export const useAutoFund = (personas: Personas) => {
   const queryClient = useQueryClient();
-  const record = useRecordTx();
 
   const ensure = (persona: Persona) => ({
     queryKey: ['funded', personas?.[persona]] as const,
@@ -83,10 +82,6 @@ export const useAutoFund = (personas: Personas) => {
     retry: 1,
     queryFn: async () => {
       const result = await fund(personas![persona], persona);
-
-      result.sent?.forEach((hash, index) =>
-        record({step: 'wallets', label: `${persona}: funding ${index + 1}`, hash})
-      );
 
       await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
 
@@ -103,33 +98,20 @@ export const useAutoFund = (personas: Personas) => {
 };
 
 /**
- * Enough to open a loan and still have something left over. Below this a persona
- * cannot play its part, and above it more would only be clutter.
- */
-const ENOUGH_USDC = parseUnits('2000', USDC_DECIMALS);
-
-/** Whether this persona is short of anything it needs. */
-const needsFunding = (persona: Persona, holdings: Holdings) =>
-  persona === 'lender'
-    ? holdings.usdc < ENOUGH_USDC
-    : holdings.punks.length < 1 || holdings.usdc < ENOUGH_USDC;
-
-/**
  * Top up whichever side is short.
  *
- * Idempotent by measurement rather than by memory: it looks at what each wallet
+ * Idempotent by measurement rather than by memory: it looks at what each actor
  * holds and skips the ones that are already set. Pressing it repeatedly on a
  * funded pair costs nothing and sends nothing.
  */
-export const useFundWallets = (
+export const useFundActors = (
   personas: Personas,
   balances: {lender: Holdings; borrower: Holdings}
 ) => {
   const queryClient = useQueryClient();
-  const record = useRecordTx();
 
   const short = (['borrower', 'lender'] as const).filter((persona) =>
-    needsFunding(persona, balances[persona])
+    isShort(persona, balances[persona])
   );
 
   const mutation = useMutation({
@@ -137,11 +119,7 @@ export const useFundWallets = (
       // Sequential: both mints are signed by the same server wallet, so
       // concurrent sends read the same nonce and the second is rejected.
       for (const persona of short) {
-        const result = await fund(personas![persona], persona, true);
-
-        result.sent?.forEach((hash, index) =>
-          record({step: 'wallets', label: `${persona}: funding ${index + 1}`, hash})
-        );
+        await fund(personas![persona], persona, true);
 
         await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
       }

@@ -6,18 +6,14 @@
  * sponsors 7702 delegations on mainnet but not on testnets, so the first
  * transaction from a fresh persona has to be paid for the ordinary way.
  */
-import {createPublicClient, createWalletClient, http, parseEther, parseUnits, type Address} from 'viem';
+import {createPublicClient, createWalletClient, http, parseEther, type Address} from 'viem';
 
-import {chain, USDC_DECIMALS} from '../chain';
+import {chain} from '../chain';
+import {FAUCET_USDC, PUNKS_PER_BORROWER, isShort} from '../faucet';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from '../generated';
 
 /** Enough to sign a 7702 delegation on a chain where gas is free anyway. */
 const GAS_DRIP = parseEther('0.0002');
-
-const LENDER_USDC = parseUnits('10000', USDC_DECIMALS);
-
-/** Two, so the bundle in step 3 is a real choice rather than a single checkbox. */
-const PUNKS_PER_BORROWER = 2;
 
 export type Persona = 'lender' | 'borrower';
 
@@ -68,25 +64,23 @@ const ownedPunks = async (owner: Address): Promise<number[]> => {
 };
 
 /**
- * What this persona already holds, or null if it has nothing yet. Balances are the
+ * What this actor already holds, or null if it is still short. Balances are the
  * record: there is no database here, and the chain already knows.
  */
 const hasBeenFunded = async (address: Address, persona: Persona) => {
-  if (persona === 'lender') {
-    const client = createPublicClient({chain, transport: transport()});
-    const balance = await client.readContract({
+  const client = createPublicClient({chain, transport: transport()});
+
+  const [usdc, punks] = await Promise.all([
+    client.readContract({
       abi: usdcAbi,
       address: usdcAddress[chain.id],
       functionName: 'balanceOf',
       args: [address]
-    });
+    }),
+    persona === 'borrower' ? ownedPunks(address) : Promise.resolve([] as number[])
+  ]);
 
-    return balance > 0n ? {usdc: balance.toString(), punks: [] as number[]} : null;
-  }
-
-  const punks = await ownedPunks(address);
-
-  return punks.length > 0 ? {usdc: '0', punks} : null;
+  return isShort(persona, {usdc, punks}) ? null : {usdc: usdc.toString(), punks};
 };
 
 /**
@@ -113,20 +107,20 @@ export const fundPersona = async (address: Address, persona: Persona, force = fa
   sent.push(drip);
   await publicClient.waitForTransactionReceipt({hash: drip});
 
-  if (persona === 'lender') {
-    const mint = await wallet.writeContract({
-      ...from,
-      abi: usdcAbi,
-      address: usdcAddress[chain.id],
-      functionName: 'mint',
-      args: [address, LENDER_USDC]
-    });
+  // Both sides, not just the lender: the borrower receives the principal from the
+  // loan itself, which is short of the repayment by exactly the interest.
+  const mint = await wallet.writeContract({
+    ...from,
+    abi: usdcAbi,
+    address: usdcAddress[chain.id],
+    functionName: 'mint',
+    args: [address, FAUCET_USDC]
+  });
 
-    sent.push(mint);
-    await publicClient.waitForTransactionReceipt({hash: mint});
+  sent.push(mint);
+  await publicClient.waitForTransactionReceipt({hash: mint});
 
-    return {sent, usdc: LENDER_USDC.toString(), punks: [] as number[]};
-  }
+  if (persona === 'lender') return {sent, usdc: FAUCET_USDC.toString(), punks: [] as number[]};
 
   // `mintRandom` picks the id on chain, so which punk lands is only knowable from
   // the receipt: read it off the Transfer topic rather than guessing.
@@ -151,5 +145,5 @@ export const fundPersona = async (address: Address, persona: Persona, force = fa
     Promise.resolve([])
   );
 
-  return {sent, usdc: '0', punks};
+  return {sent, usdc: FAUCET_USDC.toString(), punks};
 };
