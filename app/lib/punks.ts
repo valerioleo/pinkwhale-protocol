@@ -22,7 +22,7 @@ export const punkCell = (id: number) => ({
  * as the artwork — otherwise the punk shows up cropped and off by a fraction of a
  * neighbour. Shared so a punk is the same size wherever it appears.
  */
-export const ICON_SIZE = 22;
+const ICON_SIZE = 22;
 
 export const punkIconStyle = (id: number, size = ICON_SIZE) => {
   const scale = size / PUNK_SIZE;

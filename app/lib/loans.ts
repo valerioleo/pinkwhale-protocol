@@ -4,7 +4,7 @@ import {useQuery} from '@tanstack/react-query';
 import {parseAbiItem, parseEventLogs, type Address, type Log} from 'viem';
 
 import {chain, publicClient} from './chain';
-import {pinkwhaleAbi, pinkwhaleAddress, seaport16Abi, seaport16Address} from './generated';
+import {pinkwhaleAddress, seaport16Abi, seaport16Address} from './generated';
 import PinkwhaleRecord from '../../deployments/84532-base-sepolia/Pinkwhale.json';
 
 /**
