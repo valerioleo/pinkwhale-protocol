@@ -125,23 +125,13 @@ export default function Playground() {
 
       {connected && !loansLoading && !liveLoan ? (
         <Section title="Orders">
-          <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
-
+          {/* Read, then look, then act: the explanation goes above the thing it
+              explains, and the button stays at the bottom where the reader ends up. */}
           {bothSigned ? (
-            <>
-              <p className="hint">
-                Both orders are signed and sitting in your browser. Since they are two valid
-                Seaport orders, anyone at all can execute them now.
-              </p>
-              <div className="row-actions">
-                <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
-                  {execute.isPending ? 'Matching…' : 'Match orders'}
-                </button>
-                <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
-                  Discard
-                </button>
-              </div>
-            </>
+            <p className="hint">
+              Both orders are signed and sitting in your browser. Since they are two valid
+              Seaport orders, anyone at all can execute them now.
+            </p>
           ) : (
             <>
               <p className="hint">
@@ -157,6 +147,22 @@ export default function Playground() {
                 In this example, we simulate a lender who accepts any CryptoPunk as collateral
                 for a loan, and a borrower accepting that order.
               </p>
+            </>
+          )}
+
+          <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
+
+          {bothSigned ? (
+            <div className="row-actions">
+              <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
+                {execute.isPending ? 'Matching…' : 'Match orders'}
+              </button>
+              <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
+                Discard
+              </button>
+            </div>
+          ) : (
+            <>
               <button
                 className="btn"
                 disabled={sign.isPending || terms.collateral.length === 0}

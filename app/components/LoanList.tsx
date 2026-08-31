@@ -113,6 +113,11 @@ const Orders = ({loan, now, personas}: {loan: Loan; now: bigint; personas: Perso
 
   return (
     <div className="orders">
+      <p className="hint">
+        Pinkwhale created these orders on-chain when the loan was executed. Each is locked to one
+        address by its <code>zoneHash</code>, so only the authorised party can fulfil it.
+      </p>
+
       <Order
         persona="borrower"
         personas={personas}
@@ -135,11 +140,6 @@ const Orders = ({loan, now, personas}: {loan: Loan; now: bigint; personas: Perso
         window={defaultWindow}
         pays={<LedgerRow label="Nothing, just gas">{null}</LedgerRow>}
       />
-
-      <p className="hint">
-        Pinkwhale created these orders on-chain when the loan was executed. Each is locked to one
-        address by its <code>zoneHash</code>, so only the authorised party can fulfil it.
-      </p>
     </div>
   );
 };
