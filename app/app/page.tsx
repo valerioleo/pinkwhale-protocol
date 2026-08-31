@@ -28,7 +28,7 @@ export default function Playground() {
 
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
-  const {funding} = useAutoFund(personas);
+  const {funding} = useAutoFund(personas, {lender, borrower});
   const fundActors = useFundActors(personas, {lender, borrower});
 
   const storedLoan = useStoredLoan();
@@ -85,7 +85,7 @@ export default function Playground() {
         aside={
           // Not while the automatic pass is still running: offering to fund what is
           // already being funded reads as the automatic pass having failed.
-          connected && !funding && fundActors.short.length > 0 ? (
+          connected && !funding.lender && !funding.borrower && fundActors.short.length > 0 ? (
             <button
               className="btn btn--small btn--quiet"
               disabled={fundActors.isPending}
@@ -105,7 +105,9 @@ export default function Playground() {
                   persona={persona}
                   address={personas![persona]}
                   holdings={persona === 'lender' ? lender : borrower}
-                  funding={funding || fundActors.isPending}
+                  funding={
+                    funding[persona] || (fundActors.isPending && fundActors.short.includes(persona))
+                  }
                 />
               ))}
             </div>
@@ -164,11 +166,11 @@ export default function Playground() {
           ) : (
             <>
               <button
-                className="btn"
+                className="btn btn--wide"
                 disabled={sign.isPending || terms.collateral.length === 0}
                 onClick={() => sign.mutate(terms)}
               >
-                {sign.isPending ? 'Waiting for signatures…' : 'Create orders'}
+                {sign.isPending ? 'Waiting for signatures…' : 'Sign orders'}
               </button>
               {terms.collateral.length === 0 ? (
                 <p className="hint">The borrower needs a punk to put up. Mint one above.</p>
@@ -187,6 +189,15 @@ export default function Playground() {
       <Section title="Loans">
         {connected ? (
           <>
+            <p className="hint">
+              Matching the two orders moves the CryptoPunk into Pinkwhale&rsquo;s custody and the
+              USDC to the borrower. In the same transaction Pinkwhale creates two more Seaport
+              orders: one the borrower can fill to repay and take the collateral back, one the
+              lender can fill once the deadline has passed.
+            </p>
+            <p className="hint">
+              Only one of the two can ever be filled, and the clock decides which.
+            </p>
             <LoanList
               loans={loans}
               now={now}

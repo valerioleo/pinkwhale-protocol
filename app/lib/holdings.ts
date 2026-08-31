@@ -43,14 +43,22 @@ const readHoldings = async (address: Address): Promise<Holdings> => {
 
 export const holdingsKey = (address?: Address) => ['holdings', address] as const;
 
-export const useHoldings = (address?: Address) => {
+/**
+ * `loaded` is not a spinner flag. Before the first read every balance looks like
+ * zero, and zero is precisely the state that asks for funding — so anything
+ * deciding whether an actor is short has to know the difference between empty and
+ * not-yet-known.
+ */
+export type Balance = Holdings & {loaded: boolean};
+
+export const useHoldings = (address?: Address): Balance => {
   const {data} = useQuery({
     queryKey: holdingsKey(address),
     queryFn: () => readHoldings(address!),
     enabled: Boolean(address)
   });
 
-  return data ?? EMPTY;
+  return {...(data ?? EMPTY), loaded: Boolean(data)};
 };
 
 const fund = async (address: Address, persona: Persona, force = false) => {
@@ -72,12 +80,27 @@ const fund = async (address: Address, persona: Persona, force = false) => {
  * against on-chain balances: asking twice is a read, so "make sure this address
  * has something" behaves exactly like any other piece of state to fetch.
  */
-export const useAutoFund = (personas: Personas) => {
+/**
+ * Short, and known to be short. An unread balance is not evidence of anything, and
+ * treating it as evidence is what makes a freshly loaded page flash its funding
+ * controls at someone who needs none of them.
+ */
+const knownShort = (persona: Persona, balance: Balance) =>
+  balance.loaded && isShort(persona, balance);
+
+export const useAutoFund = (
+  personas: Personas,
+  balances: {lender: Balance; borrower: Balance}
+) => {
   const queryClient = useQueryClient();
 
   const ensure = (persona: Persona) => ({
     queryKey: ['funded', personas?.[persona]] as const,
-    enabled: Boolean(personas),
+    // Only when the chain already says this actor is short. Without the guard a
+    // refresh asks the faucet about two perfectly funded accounts, and the card
+    // reads 'funding…' for however long the endpoint takes to answer 'nothing to
+    // do' — which is every balance read it makes before it can say so.
+    enabled: Boolean(personas) && knownShort(persona, balances[persona]),
     staleTime: Infinity,
     retry: 1,
     queryFn: async () => {
@@ -94,7 +117,12 @@ export const useAutoFund = (personas: Personas) => {
   const lender = useQuery(ensure('lender'));
   const borrower = useQuery(ensure('borrower'));
 
-  return {funding: lender.isFetching || borrower.isFetching, error: lender.error ?? borrower.error};
+  // Per actor, so one being topped up does not put the other card into a state it
+  // is not in.
+  return {
+    funding: {lender: lender.isFetching, borrower: borrower.isFetching},
+    error: lender.error ?? borrower.error
+  };
 };
 
 /**
@@ -106,12 +134,12 @@ export const useAutoFund = (personas: Personas) => {
  */
 export const useFundActors = (
   personas: Personas,
-  balances: {lender: Holdings; borrower: Holdings}
+  balances: {lender: Balance; borrower: Balance}
 ) => {
   const queryClient = useQueryClient();
 
   const short = (['borrower', 'lender'] as const).filter((persona) =>
-    isShort(persona, balances[persona])
+    knownShort(persona, balances[persona])
   );
 
   const mutation = useMutation({
