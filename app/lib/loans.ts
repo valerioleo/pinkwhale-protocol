@@ -3,7 +3,7 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {parseAbiItem, parseEventLogs, type Address, type Log} from 'viem';
 
-import {chain, publicClient} from './chain';
+import {chain, logWindows, publicClient} from './chain';
 import {pinkwhaleAddress, seaport16Abi, seaport16Address} from './generated';
 import PinkwhaleRecord from '../../deployments/84532-base-sepolia/Pinkwhale.json';
 
@@ -24,13 +24,18 @@ type LoanLog = Log<bigint, number, false, typeof LOAN_EXECUTED>;
 /**
  * Where to start looking. Reading it off the deployment transaction bounds the
  * range to the contract's own lifetime rather than the chain's.
+ *
+ * Held after the first answer: the block a contract was deployed in does not
+ * change, and asking again on every poll is a receipt fetch for a constant.
  */
-const deployedBlock = async () => {
-  const receipt = await publicClient.getTransactionReceipt({
-    hash: PinkwhaleRecord.transactionHash as `0x${string}`
-  });
+let deployedBlockOnce: Promise<bigint> | undefined;
 
-  return receipt.blockNumber;
+const deployedBlock = () => {
+  deployedBlockOnce ??= publicClient
+    .getTransactionReceipt({hash: PinkwhaleRecord.transactionHash as `0x${string}`})
+    .then((receipt) => receipt.blockNumber);
+
+  return deployedBlockOnce;
 };
 
 const orderStatus = (hash: `0x${string}`) =>
@@ -53,13 +58,18 @@ const CLAIMED = parseAbiItem('event DefaultedCollateralClaimed(bytes32 indexed o
 const findResolution = async (log: LoanLog, repaid: boolean) => {
   const toBlock = await publicClient.getBlockNumber();
 
-  const [entry] = await publicClient.getLogs({
-    address: pinkwhaleAddress[chain.id],
-    event: repaid ? LOAN_REPAID : CLAIMED,
-    args: {orderHash: repaid ? log.args.loanId : log.args.defaultOrderHash},
-    fromBlock: log.blockNumber,
-    toBlock
-  });
+  const found = await Promise.all(
+    logWindows(log.blockNumber, toBlock).map((window) =>
+      publicClient.getLogs({
+        address: pinkwhaleAddress[chain.id],
+        event: repaid ? LOAN_REPAID : CLAIMED,
+        args: {orderHash: repaid ? log.args.loanId : log.args.defaultOrderHash},
+        ...window
+      })
+    )
+  );
+
+  const [entry] = found.flat();
 
   if (!entry) return null;
 
@@ -127,25 +137,33 @@ export const useLoans = (borrower?: Address) => {
   const {data, isPending} = useQuery({
     queryKey: ['loans', borrower],
     enabled: Boolean(borrower),
-    refetchInterval: 5_000,
+    // Every poll walks the full history in windows and then asks Seaport about
+    // each loan it finds, so the interval is what keeps that off the node. Nothing
+    // the visitor does waits on it: the mutations invalidate this key directly, and
+    // the countdown runs on a local clock.
+    refetchInterval: 15_000,
     // See the note in holdings.ts: once this list has been read, a changing key
     // must not put the section back to a skeleton it has already been past.
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      // `toBlock: 'latest'` is rejected outright by the CDP node — "invalid block
-      // range params" — even for a range it happily serves when both ends are
-      // numbers. So resolve the head first and ask for a concrete window.
+      // Two separate refusals from this node in one call. `toBlock: 'latest'` is
+      // rejected even for a range it serves happily with numeric ends, so the head
+      // is resolved first; and the resulting range outgrew the 100,000-block cap
+      // days ago, so it is walked in windows rather than asked for at once.
       const [fromBlock, toBlock] = await Promise.all([deployedBlock(), publicClient.getBlockNumber()]);
 
-      const logs = await publicClient.getLogs({
-        address: pinkwhaleAddress[chain.id],
-        event: LOAN_EXECUTED,
-        args: {borrower},
-        fromBlock,
-        toBlock
-      });
+      const found = await Promise.all(
+        logWindows(fromBlock, toBlock).map((window) =>
+          publicClient.getLogs({
+            address: pinkwhaleAddress[chain.id],
+            event: LOAN_EXECUTED,
+            args: {borrower},
+            ...window
+          })
+        )
+      );
 
-      return Promise.all(logs.map((log) => describe(log as LoanLog)));
+      return Promise.all(found.flat().map((log) => describe(log as LoanLog)));
     }
   });
 
