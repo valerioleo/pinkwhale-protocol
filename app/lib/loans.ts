@@ -1,6 +1,6 @@
 'use client';
 
-import {useQuery} from '@tanstack/react-query';
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {parseAbiItem, parseEventLogs, type Address, type Log} from 'viem';
 
 import {chain, publicClient} from './chain';
@@ -128,6 +128,9 @@ export const useLoans = (borrower?: Address) => {
     queryKey: ['loans', borrower],
     enabled: Boolean(borrower),
     refetchInterval: 5_000,
+    // See the note in holdings.ts: once this list has been read, a changing key
+    // must not put the section back to a skeleton it has already been past.
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       // `toBlock: 'latest'` is rejected outright by the CDP node — "invalid block
       // range params" — even for a range it happily serves when both ends are

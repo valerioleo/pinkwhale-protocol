@@ -1,6 +1,6 @@
 'use client';
 
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {keepPreviousData, useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {type Address} from 'viem';
 
 import {chain, publicClient} from './chain';
@@ -55,7 +55,11 @@ export const useHoldings = (address?: Address): Balance => {
   const {data} = useQuery({
     queryKey: holdingsKey(address),
     queryFn: () => readHoldings(address!),
-    enabled: Boolean(address)
+    enabled: Boolean(address),
+    // A blink in the account list must not read as 'we no longer know'. Carrying
+    // the last answer across a key change is the difference between a number a
+    // second out of date and a skeleton, and the stale number is nearer the truth.
+    placeholderData: keepPreviousData
   });
 
   return {...(data ?? EMPTY), loaded: Boolean(data)};

@@ -44,13 +44,17 @@ export const usePersonas = (): {personas: Personas} => {
    * stands, while a list *is* the answer and replaces it.
    */
   const [latched, setLatched] = useState<Personas>(null);
-  const answered = evmAccounts !== null;
 
-  // Adjusted during render rather than in an effect: this is derived state, not a
-  // subscription. React re-runs the component immediately and throws the first pass
-  // away, so nothing downstream ever observes the stale pair.
+  // Monotonic: it moves to another complete pair and never back to nothing. An
+  // earlier version cleared on an empty list, which is indistinguishable from the
+  // same refresh blink one value along. Sign-out is `isSignedIn`'s job, and the
+  // page already hides everything on it.
+  //
+  // Adjusted during render rather than in an effect because this is derived state,
+  // not a subscription: React re-runs the component and throws the first pass away,
+  // so nothing downstream observes the stale pair.
   // https://react.dev/reference/react/useState#storing-information-from-previous-renders
-  if (answered && (latched?.lender !== pair?.lender || latched?.borrower !== pair?.borrower)) {
+  if (pair && (latched?.lender !== pair.lender || latched?.borrower !== pair.borrower)) {
     setLatched(pair);
   }
 
