@@ -9,6 +9,20 @@ export type Persona = 'lender' | 'borrower';
 
 export type Personas = {lender: Address; borrower: Address} | null;
 
+/**
+ * The last complete pair, held outside React so it survives a remount.
+ *
+ * Component state alone was not enough. If anything above unmounts the tree — an
+ * SDK re-initialising, a provider swapping its subtree — `useState` goes back to
+ * null, every query key goes with it, and the whole page returns to skeletons: the
+ * same blink by a different route, and one that `keepPreviousData` cannot cover
+ * because a fresh observer has no previous data to keep.
+ *
+ * Browser-only by construction. It is written only from a signed-in account list,
+ * and there is no such list on the server, so nothing leaks between requests.
+ */
+let lastKnown: Personas = null;
+
 export const usePersonas = (): {personas: Personas} => {
   const {evmAccounts} = useEvmAccounts();
   const {createEvmEoaAccount} = useCreateEvmEoaAccount();
@@ -43,7 +57,7 @@ export const usePersonas = (): {personas: Personas} => {
    * apart from 'not yet read': null means CDP has not answered and the last answer
    * stands, while a list *is* the answer and replaces it.
    */
-  const [latched, setLatched] = useState<Personas>(null);
+  const [latched, setLatched] = useState<Personas>(lastKnown);
 
   // Monotonic: it moves to another complete pair and never back to nothing. An
   // earlier version cleared on an empty list, which is indistinguishable from the
@@ -57,6 +71,13 @@ export const usePersonas = (): {personas: Personas} => {
   if (pair && (latched?.lender !== pair.lender || latched?.borrower !== pair.borrower)) {
     setLatched(pair);
   }
+
+  // Writing out, not reading in: the render above already has the pair, and this
+  // only has to be there for the next mount. Synchronising React state to an
+  // external store is what an effect is actually for.
+  useEffect(() => {
+    lastKnown = latched;
+  }, [latched]);
 
   return {personas: latched};
 };
