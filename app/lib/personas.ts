@@ -9,7 +9,7 @@ export type Persona = 'lender' | 'borrower';
 
 export type Personas = {lender: Address; borrower: Address} | null;
 
-export const usePersonas = (): {personas: Personas; creating: boolean} => {
+export const usePersonas = (): {personas: Personas} => {
   const {evmAccounts} = useEvmAccounts();
   const {createEvmEoaAccount} = useCreateEvmEoaAccount();
 
@@ -22,14 +22,15 @@ export const usePersonas = (): {personas: Personas; creating: boolean} => {
     if (needsSecond && create.isIdle) create.mutate();
   }, [needsSecond, create]);
 
-  if (accounts.length < 2) return {personas: null, creating: create.isPending};
+  // Null covers both waiting states — accounts still loading, and the second
+  // one mid-flight. Callers treat them the same, so they are not told apart.
+  if (accounts.length < 2) return {personas: null};
 
   return {
     personas: {
       lender: accounts[0]!.address as Address,
       borrower: accounts[1]!.address as Address
-    },
-    creating: false
+    }
   };
 };
 

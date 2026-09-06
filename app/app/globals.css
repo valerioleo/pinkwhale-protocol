@@ -82,6 +82,14 @@ h1 { font-size: 30px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.015e
 .hint code { font-family: var(--font-mono); background: var(--muted); padding: 1px 5px;
   border-radius: 3px; font-size: 13px; }
 .hint--bad { color: var(--destructive); }
+
+/* shadcn/ui's Skeleton: a muted block that breathes. Same 2s cubic-bezier as
+   Tailwind's animate-pulse, so it reads as the same component. */
+.skeleton { background: var(--muted); border-radius: var(--radius);
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes skeleton-pulse { 50% { opacity: 0.5; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+.skeleton-stack { display: flex; flex-direction: column; gap: 10px; }
 .muted { color: var(--muted-foreground); font-family: var(--font-sans); font-size: 14px; }
 
 /* ---- controls ----------------------------------------------------------------- */

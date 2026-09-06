@@ -6,6 +6,7 @@ import {formatUnits} from 'viem';
 import {Amount} from './Amount';
 import {LedgerHead, LedgerNote, LedgerRow} from './Ledger';
 import {PunkStack} from './PunkStack';
+import {Skeleton} from './Skeleton';
 import {COLLECTION_SIZE} from '../lib/punks';
 import {USDC_DECIMALS} from '../lib/chain';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC} from '../lib/loan';
@@ -107,5 +108,25 @@ export const OrderPreview = ({
         </span>
       </LedgerRow>
     </Side>
+  </div>
+);
+
+/** The same two boxes, before either side has anything in it. */
+export const OrderPreviewSkeleton = () => (
+  <div className="preview">
+    {['borrower', 'lender'].map((persona) => (
+      <div className={`side side--${persona}`} key={persona}>
+        <div className="ledger-head">
+          <Skeleton style={{width: 44, height: 44, borderRadius: '50%'}} />
+          <Skeleton style={{width: 104, height: 24}} />
+        </div>
+        <div className="skeleton-stack">
+          <Skeleton style={{width: '22%', height: 12}} />
+          <Skeleton style={{height: 20}} />
+          <Skeleton style={{width: '16%', height: 12}} />
+          <Skeleton style={{height: 20}} />
+        </div>
+      </div>
+    ))}
   </div>
 );

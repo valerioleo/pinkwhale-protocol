@@ -5,10 +5,10 @@ import {useIsSignedIn, useSignOut} from '@coinbase/cdp-hooks';
 import {useEffect, useState} from 'react';
 
 import {LoanList} from '../components/LoanList';
-import {OrderPreview} from '../components/OrderPreview';
+import {OrderPreview, OrderPreviewSkeleton} from '../components/OrderPreview';
 import {Section} from '../components/Section';
 import {TxList} from '../components/TxList';
-import {ActorCard} from '../components/ActorCard';
+import {ActorCard, ActorCardSkeleton} from '../components/ActorCard';
 import {useExecuteLoan} from '../lib/execute';
 import {useAutoFund, useFundActors, useHoldings} from '../lib/holdings';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC, termsFor} from '../lib/loan';
@@ -24,7 +24,7 @@ import {formatUnits} from 'viem';
 export default function Playground() {
   const {isSignedIn} = useIsSignedIn();
   const {signOut} = useSignOut();
-  const {personas, creating} = usePersonas();
+  const {personas} = usePersonas();
 
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
@@ -113,6 +113,17 @@ export default function Playground() {
             </div>
             <p className="hint">These are real Base Sepolia accounts.</p>
           </>
+        ) : isSignedIn ? (
+          // Signed in, but the second account is still being created. The cards are
+          // where the visitor's attention already is, so hold their shape rather
+          // than sending them back to a button they have just pressed.
+          <>
+            <div className="actors">
+              <ActorCardSkeleton />
+              <ActorCardSkeleton />
+            </div>
+            <p className="hint">Creating the second actor…</p>
+          </>
         ) : (
           <div className="signin">
             <p className="hint">
@@ -120,61 +131,71 @@ export default function Playground() {
               to borrow with.
             </p>
             <AuthButton />
-            {creating ? <p className="hint">Creating the second actor…</p> : null}
           </div>
         )}
       </Section>
 
-      {connected && !loansLoading && !liveLoan ? (
+      {connected && (loansLoading || !liveLoan) ? (
         <Section title="Orders">
-          {/* Read, then look, then act: the explanation goes above the thing it
-              explains, and the button stays at the bottom where the reader ends up. */}
-          {bothSigned ? (
-            <p className="hint">
-              Both orders are signed and sitting in your browser. Since they are two valid
-              Seaport orders, anyone at all can execute them now.
-            </p>
+          {loansLoading ? (
+            <OrderPreviewSkeleton />
           ) : (
             <>
-              <p className="hint">
-                These are two canonical Seaport orders. The only particular part about them is
-                the <code>zoneHash</code> specified as the Pinkwhale address, to guarantee they
-                can be used only to create loans via Pinkwhale.
-              </p>
-              <p className="hint">
-                These orders are created here together for convenience, but they would normally
-                be signed independently on a marketplace orderbook, waiting to be matched.
-              </p>
-              <p className="hint">
-                In this example, we simulate a lender who accepts any CryptoPunk as collateral
-                for a loan, and a borrower accepting that order.
-              </p>
-            </>
-          )}
+              {/* Read, then look, then act: the explanation goes above the thing it
+                  explains, and the button stays at the bottom where the reader ends up. */}
+              {bothSigned ? (
+                <p className="hint">
+                  Both orders are signed and sitting in your browser. Since they are two valid
+                  Seaport orders, anyone at all can execute them now.
+                </p>
+              ) : (
+                <>
+                  <p className="hint">
+                    These are two canonical Seaport orders. The only particular part about them
+                    is the <code>zoneHash</code> specified as the Pinkwhale address, to guarantee
+                    they can be used only to create loans via Pinkwhale.
+                  </p>
+                  <p className="hint">
+                    These orders are created here together for convenience, but they would
+                    normally be signed independently on a marketplace orderbook, waiting to be
+                    matched.
+                  </p>
+                  <p className="hint">
+                    In this example, we simulate a lender who accepts any CryptoPunk as
+                    collateral for a loan, and a borrower accepting that order.
+                  </p>
+                </>
+              )}
 
-          <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
+              <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
 
-          {bothSigned ? (
-            <div className="row-actions">
-              <button className="btn" disabled={execute.isPending} onClick={() => execute.mutate()}>
-                {execute.isPending ? 'Matching…' : 'Match orders'}
-              </button>
-              <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
-                Discard
-              </button>
-            </div>
-          ) : (
-            <>
-              <button
-                className="btn btn--wide"
-                disabled={sign.isPending || terms.collateral.length === 0}
-                onClick={() => sign.mutate(terms)}
-              >
-                {sign.isPending ? 'Waiting for signatures…' : 'Sign orders'}
-              </button>
-              {terms.collateral.length === 0 ? (
-                <p className="hint">The borrower needs a punk to put up. Mint one above.</p>
-              ) : null}
+              {bothSigned ? (
+                <div className="row-actions">
+                  <button
+                    className="btn"
+                    disabled={execute.isPending}
+                    onClick={() => execute.mutate()}
+                  >
+                    {execute.isPending ? 'Matching…' : 'Match orders'}
+                  </button>
+                  <button className="btn btn--quiet" onClick={() => clearOrders.mutate()}>
+                    Discard
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    className="btn btn--wide"
+                    disabled={sign.isPending || terms.collateral.length === 0}
+                    onClick={() => sign.mutate(terms)}
+                  >
+                    {sign.isPending ? 'Waiting for signatures…' : 'Sign orders'}
+                  </button>
+                  {terms.collateral.length === 0 ? (
+                    <p className="hint">The borrower needs a punk to put up. Mint one above.</p>
+                  ) : null}
+                </>
+              )}
             </>
           )}
 
@@ -203,6 +224,7 @@ export default function Playground() {
               now={now}
               personas={personas}
               busy={resolve.isPending}
+              loading={loansLoading}
               onRepay={(loan) => resolve.mutate({loan, kind: 'repay'})}
               onClaim={(loan) => resolve.mutate({loan, kind: 'claim'})}
             />

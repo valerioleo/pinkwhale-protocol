@@ -5,7 +5,8 @@ import {Blobatar} from '@blobatar/react';
 import {Amount} from './Amount';
 import {LedgerHead, LedgerRow} from './Ledger';
 import {PunkStack} from './PunkStack';
-import type {Holdings} from '../lib/holdings';
+import {Skeleton} from './Skeleton';
+import type {Balance} from '../lib/holdings';
 import {PERSONA_HUE} from '../lib/personas';
 import {explorerUrl} from '../lib/txLog';
 
@@ -20,7 +21,7 @@ export const ActorCard = ({
 }: {
   persona: 'lender' | 'borrower';
   address: string;
-  holdings: Holdings;
+  holdings: Balance;
   funding: boolean;
 }) => (
   <div className="actor">
@@ -34,19 +35,50 @@ export const ActorCard = ({
       }
     />
 
+    {/* An unread balance is not a zero balance, and rendering it as one tells the
+        visitor their brand new actor is empty. */}
     <LedgerRow label="USDC">
-      <Amount value={holdings.usdc} animated={false} unit={false} />
+      {holdings.loaded ? (
+        <Amount value={holdings.usdc} animated={false} unit={false} />
+      ) : (
+        <Skeleton style={{width: 72, height: 19}} />
+      )}
     </LedgerRow>
 
     <LedgerRow label="CryptoPunks">
-      <span className="count-and-stack">
-        {/* Past five the exact figure stops being the point, and five faces is
-            already more than anyone counts. */}
-        {holdings.punks.length > 5 ? '5+' : holdings.punks.length}
-        <PunkStack ids={holdings.punks} size={28} />
-      </span>
+      {holdings.loaded ? (
+        <span className="count-and-stack">
+          {/* Past five the exact figure stops being the point, and five faces is
+              already more than anyone counts. */}
+          {holdings.punks.length > 5 ? '5+' : holdings.punks.length}
+          <PunkStack ids={holdings.punks} size={28} />
+        </span>
+      ) : (
+        <Skeleton style={{width: 58, height: 28}} />
+      )}
     </LedgerRow>
 
     {funding ? <p className="actor-note">funding…</p> : null}
+  </div>
+);
+
+/** The card's shape, held while the actor itself is still being created. */
+export const ActorCardSkeleton = () => (
+  <div className="actor">
+    <div className="ledger-head">
+      <Skeleton style={{width: 48, height: 48, borderRadius: '50%'}} />
+      <span className="ledger-titles skeleton-stack">
+        <Skeleton style={{width: 92, height: 22}} />
+        <Skeleton style={{width: 116, height: 12}} />
+      </span>
+    </div>
+
+    <LedgerRow label="USDC">
+      <Skeleton style={{width: 72, height: 19}} />
+    </LedgerRow>
+
+    <LedgerRow label="CryptoPunks">
+      <Skeleton style={{width: 58, height: 28}} />
+    </LedgerRow>
   </div>
 );

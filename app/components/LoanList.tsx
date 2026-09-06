@@ -6,6 +6,7 @@ import {formatUnits} from 'viem';
 
 import {Amount} from './Amount';
 import {LedgerHead, LedgerNote, LedgerRow} from './Ledger';
+import {Skeleton} from './Skeleton';
 import {USDC_DECIMALS} from '../lib/chain';
 import type {Loan} from '../lib/loans';
 import {PERSONA_HUE, type Personas} from '../lib/personas';
@@ -231,13 +232,37 @@ const LoanCard = ({
   );
 };
 
+/** The card's own shape, held while the logs are still being read. */
+const LoanCardSkeleton = () => (
+  <li className="loan-card">
+    <div className="loan-card-head">
+      <Skeleton style={{width: 128, height: 12}} />
+      <Skeleton style={{width: 50, height: 17}} />
+    </div>
+
+    <div className="loan-figures">
+      <div className="figure figure--owed">
+        <Skeleton style={{width: 44, height: 11, marginBottom: 9}} />
+        <Skeleton style={{width: 136, height: 30}} />
+      </div>
+      <div className="figure">
+        <Skeleton style={{width: 68, height: 11, marginBottom: 9}} />
+        <Skeleton style={{width: 78, height: 40}} />
+      </div>
+    </div>
+
+    <Skeleton style={{height: 36}} />
+  </li>
+);
+
 export const LoanList = ({
   loans,
   now,
   personas,
   onRepay,
   onClaim,
-  busy
+  busy,
+  loading
 }: {
   loans: Loan[];
   now: bigint;
@@ -245,7 +270,17 @@ export const LoanList = ({
   onRepay: (loan: Loan) => void;
   onClaim: (loan: Loan) => void;
   busy: boolean;
+  loading: boolean;
 }) => {
+  // 'No loans yet' is an answer, and until the logs come back we do not have one.
+  if (loading) {
+    return (
+      <ul className="loans">
+        <LoanCardSkeleton />
+      </ul>
+    );
+  }
+
   if (loans.length === 0) {
     return <p className="hint">No loans yet. Create a pair of orders and match them.</p>;
   }
