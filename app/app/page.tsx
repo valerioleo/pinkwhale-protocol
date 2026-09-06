@@ -137,36 +137,37 @@ export default function Playground() {
 
       {connected && (loansLoading || !liveLoan) ? (
         <Section title="Orders">
+          {/* Read, then look, then act: the explanation goes above the thing it
+              explains, and the button stays at the bottom where the reader ends up.
+              It is outside the loading branch because the copy does not depend on the
+              chain — the Loans section already reads this way. */}
+          {bothSigned ? (
+            <p className="hint">
+              Both orders are signed and sitting in your browser. Since they are two valid
+              Seaport orders, anyone at all can execute them now.
+            </p>
+          ) : (
+            <>
+              <p className="hint">
+                These are two canonical Seaport orders. The only particular part about them is
+                the <code>zoneHash</code> specified as the Pinkwhale address, to guarantee they
+                can be used only to create loans via Pinkwhale.
+              </p>
+              <p className="hint">
+                These orders are created here together for convenience, but they would normally
+                be signed independently on a marketplace orderbook, waiting to be matched.
+              </p>
+              <p className="hint">
+                In this example, we simulate a lender who accepts any CryptoPunk as collateral
+                for a loan, and a borrower accepting that order.
+              </p>
+            </>
+          )}
+
           {loansLoading ? (
             <OrderPreviewSkeleton />
           ) : (
             <>
-              {/* Read, then look, then act: the explanation goes above the thing it
-                  explains, and the button stays at the bottom where the reader ends up. */}
-              {bothSigned ? (
-                <p className="hint">
-                  Both orders are signed and sitting in your browser. Since they are two valid
-                  Seaport orders, anyone at all can execute them now.
-                </p>
-              ) : (
-                <>
-                  <p className="hint">
-                    These are two canonical Seaport orders. The only particular part about them
-                    is the <code>zoneHash</code> specified as the Pinkwhale address, to guarantee
-                    they can be used only to create loans via Pinkwhale.
-                  </p>
-                  <p className="hint">
-                    These orders are created here together for convenience, but they would
-                    normally be signed independently on a marketplace orderbook, waiting to be
-                    matched.
-                  </p>
-                  <p className="hint">
-                    In this example, we simulate a lender who accepts any CryptoPunk as
-                    collateral for a loan, and a borrower accepting that order.
-                  </p>
-                </>
-              )}
-
               <OrderPreview collateral={terms.collateral} personas={personas} signed={bothSigned} />
 
               {bothSigned ? (
