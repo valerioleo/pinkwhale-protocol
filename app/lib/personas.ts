@@ -2,7 +2,7 @@
 
 import {useCreateEvmEoaAccount, useEvmAccounts} from '@coinbase/cdp-hooks';
 import {useMutation} from '@tanstack/react-query';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import type {Address} from 'viem';
 
 export type Persona = 'lender' | 'borrower';
@@ -22,16 +22,39 @@ export const usePersonas = (): {personas: Personas} => {
     if (needsSecond && create.isIdle) create.mutate();
   }, [needsSecond, create]);
 
-  // Null covers both waiting states — accounts still loading, and the second
-  // one mid-flight. Callers treat them the same, so they are not told apart.
-  if (accounts.length < 2) return {personas: null};
+  const [first, second] = accounts;
 
-  return {
-    personas: {
-      lender: accounts[0]!.address as Address,
-      borrower: accounts[1]!.address as Address
-    }
-  };
+  const pair: Personas =
+    first && second
+      ? {lender: first.address as Address, borrower: second.address as Address}
+      : null;
+
+  /**
+   * Latched, because `useEvmAccounts` reports `null` while it refreshes and null is
+   * indistinguishable from 'not signed in' at the call site.
+   *
+   * Unlatched, that blink took `personas` to null, which took every query key with
+   * it — `['holdings', undefined]`, `['loans', undefined]` are fresh cache entries
+   * holding nothing, so the whole page dropped back to skeletons and recovered a
+   * moment later, over and over. The addresses were never in doubt; only our
+   * knowledge of them was.
+   *
+   * So the two answers are kept apart, exactly as `Balance.loaded` keeps 'empty'
+   * apart from 'not yet read': null means CDP has not answered and the last answer
+   * stands, while a list *is* the answer and replaces it.
+   */
+  const [latched, setLatched] = useState<Personas>(null);
+  const answered = evmAccounts !== null;
+
+  // Adjusted during render rather than in an effect: this is derived state, not a
+  // subscription. React re-runs the component immediately and throws the first pass
+  // away, so nothing downstream ever observes the stale pair.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  if (answered && (latched?.lender !== pair?.lender || latched?.borrower !== pair?.borrower)) {
+    setLatched(pair);
+  }
+
+  return {personas: latched};
 };
 
 /**
