@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export type TokenKind = 'usdc' | 'bayc' | 'pudgy' | 'apecoin' | 'pinkwhale';
 
 const TOKEN_IMAGES: Record<Exclude<TokenKind, 'pinkwhale'>, {src: string; alt: string}> = {
@@ -24,5 +26,5 @@ export const TokenIcon = ({kind}: {kind: TokenKind}) => {
 
   const {src, alt} = TOKEN_IMAGES[kind];
 
-  return <img className="pw-icon" src={src} alt={alt} width={20} height={20} loading="lazy" />;
+  return <Image className="pw-icon" src={src} alt={alt} width={20} height={20} loading="lazy" />;
 };

@@ -5,22 +5,17 @@
     <title>Pinkwhale — social card</title>
 
     <style>
-      /* The font vocs itself serves, loaded from the same file the site loads it
-         from, so the card cannot drift onto a different typeface. */
-      @font-face {
-        font-family: 'Geist';
-        font-style: normal;
-        font-weight: 100 900;
-        src: url('../../node_modules/vocs/src/server/fonts/geist.woff2') format('woff2');
-      }
+      /* Rendered headlessly and offline, so the card names families the machine
+         already has rather than fetching a webfont. It used to load Geist out of
+         vocs' own package directory, which went when vocs did. */
 
       :root {
-        /* Dark-mode vocs tokens, resolved by hand because the card is rendered
-           outside the app: --background-color-primary is gray2 in dark, and
-           --text-color-primary / --text-color-secondary are gray12 / gray10. */
-        --bg: oklch(0.195 0 0);
-        --text: oklch(0.933 0 0);
-        --text-secondary: oklch(0.72 0 0);
+        /* The site's dark scheme, resolved by hand: the card is rasterised outside
+           the app and cannot read its stylesheet. Keep in step with the
+           prefers-color-scheme block in app/app/globals.css. */
+        --bg: #022331;
+        --text: #e6ebee;
+        --text-secondary: #9fb0b8;
 
         /* Verbatim from src/components/pinkwhale.css. */
         --pw-borrower: #e0a144;
@@ -44,7 +39,7 @@
         padding: 68px 72px 64px;
         background: var(--bg);
         color: var(--text);
-        font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+        font-family: ui-sans-serif, system-ui, sans-serif;
         font-feature-settings: 'rlig' 1, 'calt' 1;
         letter-spacing: 0.005em;
         -webkit-font-smoothing: antialiased;

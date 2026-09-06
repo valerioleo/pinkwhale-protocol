@@ -13,6 +13,16 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // A leading underscore is how the codebase already says "destructured only
+      // to leave it behind" — the rule should read it the same way.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_"}
+      ]
+    }
+  }
 ]);
 
 export default eslintConfig;

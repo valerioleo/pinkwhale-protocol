@@ -1,17 +1,17 @@
 ---
 title: Seaport as a loan book
 description: An NFT lending protocol built entirely on Seaport, and what I got wrong.
-showAskAi: false
 ---
 
-import {LifecycleScrubber} from '../components/LifecycleScrubber'
-import {OrderAnatomy} from '../components/OrderAnatomy'
-import {Pill} from '../components/Pill'
+import {Playground} from '../components/Playground'
+import {LifecycleScrubber} from '../components/article/LifecycleScrubber'
+import {OrderAnatomy} from '../components/article/OrderAnatomy'
+import {Pill} from '../components/article/Pill'
 
 {/*
-  Every Solidity block below is pulled out of the real .sol files at build time with
-  vocs' `[!include]` markers. `~` resolves to docs/src, so `~/../../contracts/...`
-  reaches the actual contracts this site is documenting. Rename a region and the
+  Every Solidity block below is pulled out of the real .sol files at build time by
+  lib/mdx/include.ts, which reads between a matching pair of `[!region name]`
+  comments in the contract. `~` is the repository root. Rename a region and the
   block goes empty, which is the point: the article cannot drift from the repo.
 */}
 
@@ -127,8 +127,8 @@ terms travel alongside, and the order commits to their hash.
 
 Which is why `executeLoan` checks that the two match:
 
-```solidity [contracts/Pinkwhale/Pinkwhale.sol] {16-21}
-// [!include ~/../../contracts/Pinkwhale/Pinkwhale.sol:assert-terms]
+```solidity title="contracts/Pinkwhale/Pinkwhale.sol" {16-21}
+// [!include ~/contracts/Pinkwhale/Pinkwhale.sol:assert-terms]
 ```
 
 Lines 16 to 21 are the pair that matters. Rehash the terms that were handed in, compare
@@ -152,8 +152,8 @@ Pinkwhale is now holding collateral, and the borrower is holding money.
 
 Still inside the same transaction, Pinkwhale builds two new orders and puts them on Seaport:
 
-```solidity [contracts/Pinkwhale/Utils/SeaportUtils.sol] {29}
-// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:create-resolution-orders]
+```solidity title="contracts/Pinkwhale/Utils/SeaportUtils.sol" {29}
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:create-resolution-orders]
 ```
 
 `seaport.validate` on line 29 is the whole reason this works. It marks an order as valid **on
@@ -174,7 +174,7 @@ worth slowing down for.
 Both orders are `FULL_RESTRICTED`, which means Seaport will not settle them without calling
 their zone first:
 
-```solidity [seaport-core/src/lib/ZoneInteraction.sol]
+```solidity title="seaport-core/src/lib/ZoneInteraction.sol"
 // OrderType 2-3 requires zone to call or approve via authorizeOrder.
 if (
     _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
@@ -192,8 +192,8 @@ hands control to `parameters.zone` before settling, and the zone can refuse.
 So Pinkwhale writes a `zoneHash` into each order naming the one address allowed to fulfil it,
 then checks it when the call comes back:
 
-```solidity [contracts/Pinkwhale/PinkwhaleZone.sol] {11}
-// [!include ~/../../contracts/Pinkwhale/PinkwhaleZone.sol:authorize-order]
+```solidity title="contracts/Pinkwhale/PinkwhaleZone.sol" {11}
+// [!include ~/contracts/Pinkwhale/PinkwhaleZone.sol:authorize-order]
 ```
 
 Seaport hands the zone a `ZoneParameters` struct, and two of its fields matter: `zoneHash`,
@@ -222,8 +222,8 @@ Its `zoneHash` is `keccak256(bytes32(0), borrower)`, so by the mechanism above *
 borrower** can do this. A stranger who tries to pay the money and take the ape is turned away
 by the zone.
 
-```solidity [contracts/Pinkwhale/Utils/SeaportUtils.sol] {3-6}
-// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:repayment-order]
+```solidity title="contracts/Pinkwhale/Utils/SeaportUtils.sol" {3-6}
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:repayment-order]
 ```
 
 ### 5. Or the lender claims
@@ -237,8 +237,8 @@ Its `zoneHash` is `keccak256(repaymentOrderHash, lender)`, so **only the lender*
 it. But the hash commits to a second thing: the repayment order it was derived from. The
 lender has to hand that hash back in `extraData`, and the zone uses it for one more check:
 
-```solidity [contracts/Pinkwhale/Utils/SeaportUtils.sol] {5-11}
-// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:assert-order-execution]
+```solidity title="contracts/Pinkwhale/Utils/SeaportUtils.sol" {5-11}
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:assert-order-execution]
 ```
 
 `getOrderStatus` is Seaport's own record of what has been filled. If the repayment order named
@@ -337,7 +337,9 @@ pnpm install
 forge test
 ```
 
-Forty-three tests, including every attack in the [Reference](/reference#try-to-break-it). See
+Forty-four tests, including every attack in the [Reference](/reference#try-to-break-it). See
 [Run it yourself](/run) for the local
 deployment and the end-to-end demo, or [Reference](/reference) for the order shapes and the
 full error surface.
+
+<Playground />

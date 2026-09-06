@@ -16,8 +16,8 @@
   --pw-border: rgba(127, 127, 145, 0.28);
 }
 
-/* vocs styles prose <code> as `display: block; padding: 0 24px`, which pushes any
-   inline code inside a widget off to the right. Put it back to being inline. */
+/* The prose styles inline <code> with a tint and padding, which is right in a
+   paragraph and wrong inside a widget that has its own surface. */
 .pw-widget code {
   display: inline;
   padding: 0;
@@ -43,7 +43,7 @@
 
 .pw-widget__lead {
   margin: 0;
-  color: var(--vocs-color_text3, inherit);
+  color: var(--muted-foreground);
   line-height: 1.6;
 }
 
@@ -98,7 +98,7 @@
 /* -- generic bits --------------------------------------------------------- */
 
 .pw-hex {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.82em;
   font-variant-numeric: tabular-nums;
 }
@@ -162,7 +162,7 @@
 }
 
 .pw-scrubber .pw-verdict {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.78rem;
 }
 
@@ -199,7 +199,7 @@
 }
 
 .pw-detail__note h4 {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.85rem;
 }
 
@@ -213,7 +213,7 @@
 }
 
 .pw-items__name {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
 }
 
 .pw-items__subtitle {
@@ -254,7 +254,7 @@
 }
 
 .pw-item__box {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   color: var(--pw-muted);
 }
 
@@ -309,7 +309,7 @@
 }
 
 .pw-field__name {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   display: flex;
   align-items: center;
@@ -350,7 +350,7 @@
 }
 
 .pw-code {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.86em;
   background: color-mix(in srgb, var(--pw-muted) 14%, transparent);
   border-radius: 4px;
@@ -493,7 +493,7 @@
 }
 
 .pw-bar__time {
-  font-family: var(--vocs-fontFamily_mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.62rem;
   opacity: 0.7;
 }

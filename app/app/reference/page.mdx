@@ -1,10 +1,9 @@
 ---
-showAskAi: false
 title: Reference
 description: The four orders, the events, and every revert Pinkwhale can produce.
 ---
 
-import {AttackPlayground} from '../components/AttackPlayground'
+import {AttackPlayground} from '../../components/article/AttackPlayground'
 
 # Reference
 
@@ -30,7 +29,7 @@ itself, which is what lets a contract be an offerer.
 ## zoneHash
 
 ```solidity
-// [!include ~/../../contracts/Pinkwhale/Utils/PinkwhaleUtils.sol:zone-hash]
+// [!include ~/contracts/Pinkwhale/Utils/PinkwhaleUtils.sol:zone-hash]
 ```
 
 | Order | `upstreamOrder` | `authorisedCaller` |
@@ -53,7 +52,7 @@ The default order is not signed or stored anywhere. It is computed from the repa
 the same transaction, and every argument is doing something:
 
 ```solidity
-// [!include ~/../../contracts/Pinkwhale/Utils/SeaportUtils.sol:default-order]
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:default-order]
 ```
 
 1. It reuses `repaymentOrder.parameters.offer`, so both orders offer **the same collateral**.
@@ -130,8 +129,8 @@ hash `LoanRepaid` fires with, and the value the default order commits to in its 
 Pinkwhale's own reverts. Seaport's come through unchanged: `InvalidTime`,
 `InvalidRestrictedOrder`, `OrderAlreadyFilled`, `InvalidProof`.
 
-```solidity [contracts/Pinkwhale/PinkwhaleErrors.sol]
-// [!include ~/../../contracts/Pinkwhale/PinkwhaleErrors.sol]
+```solidity title="contracts/Pinkwhale/PinkwhaleErrors.sol"
+// [!include ~/contracts/Pinkwhale/PinkwhaleErrors.sol]
 ```
 
 ### Try to break it

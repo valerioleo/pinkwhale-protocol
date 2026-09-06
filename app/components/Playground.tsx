@@ -4,11 +4,11 @@ import {AuthButton} from '@coinbase/cdp-react';
 import {useIsSignedIn, useSignOut} from '@coinbase/cdp-hooks';
 import {useEffect, useState} from 'react';
 
-import {LoanList} from '../components/LoanList';
-import {OrderPreview, OrderPreviewSkeleton} from '../components/OrderPreview';
-import {Section} from '../components/Section';
-import {TxList} from '../components/TxList';
-import {ActorCard, ActorCardSkeleton} from '../components/ActorCard';
+import {LoanList} from './LoanList';
+import {OrderPreview, OrderPreviewSkeleton} from './OrderPreview';
+import {Section} from './Section';
+import {TxList} from './TxList';
+import {ActorCard, ActorCardSkeleton} from './ActorCard';
 import {useExecuteLoan} from '../lib/execute';
 import {useAutoFund, useFundActors, useHoldings} from '../lib/holdings';
 import {DURATION_LABEL, PRINCIPAL, REPAYMENT_USDC, termsFor} from '../lib/loan';
@@ -21,7 +21,7 @@ import {USDC_DECIMALS} from '../lib/chain';
 import {useTransactions} from '../lib/txLog';
 import {formatUnits} from 'viem';
 
-export default function Playground() {
+export const Playground = () => {
   const {isSignedIn} = useIsSignedIn();
   const {signOut} = useSignOut();
   const {personas} = usePersonas();
@@ -64,10 +64,10 @@ export default function Playground() {
   const resolveTxs = useTransactions('resolve');
 
   return (
-    <main>
+    <section className="playground" id="playground">
       <header className="masthead">
         <div>
-          <h1>Pinkwhale playground</h1>
+          <h2>Pinkwhale playground</h2>
           <p className="sub">
             {formatUnits(PRINCIPAL, USDC_DECIMALS)} USDC against a CryptoPunk, {REPAYMENT_USDC} USDC
             back within {DURATION_LABEL}. Four ordinary Seaport orders.
@@ -238,7 +238,6 @@ export default function Playground() {
           <p className="hint">Sign in to see yours.</p>
         )}
       </Section>
-
-    </main>
+    </section>
   );
-}
+};
