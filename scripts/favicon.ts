@@ -1,5 +1,5 @@
 /**
- * Builds docs/public/favicon.ico from the whale in docs/public/icon.svg.
+ * Builds app/public/favicon.ico from the whale in app/public/icon.svg.
  *
  *   pnpm docs:favicon
  *
@@ -24,8 +24,8 @@ const ICONDIR_BYTES = 6;
 const ICONDIRENTRY_BYTES = 16;
 
 const root = resolve(fileURLToPath(import.meta.url), '../..');
-const source = join(root, 'docs/public/icon.svg');
-const output = join(root, 'docs/public/favicon.ico');
+const source = join(root, 'app/public/icon.svg');
+const output = join(root, 'app/public/favicon.ico');
 
 type Icon = {size: number; data: Buffer};
 

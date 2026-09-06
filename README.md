@@ -102,7 +102,7 @@ contracts/Seaport/       thin deployable wrappers around seaport-core 1.6.6
 contracts/Tokens/        mock ERC20/721/1155 for local runs
 test/                    Foundry: happy paths, guards, criteria loans
 scripts/                 viem + deployoor deploy and demo
-docs/                    the interactive article (vocs 2)
+app/                     the site: the article, and a live playground on Base Sepolia
 ```
 
 Everything else is Seaport's 25 KB, not ours: signature verification, order matching, time
@@ -161,12 +161,15 @@ the article's widgets import.
 ### The article
 
 ```bash
-pnpm docs:dev
+pnpm dev
 ```
 
 An interactive walkthrough: an order anatomy inspector, a lifecycle scrubber, and a red-team
-console where every attack links to the test that proves it. Solidity snippets are pulled from the real `.sol` files at build time,
-so the article cannot drift from the repo.
+console where every attack links to the test that proves it. Solidity snippets are pulled from
+the real `.sol` files at build time, so the article cannot drift from the repo.
+
+At the foot of it is a playground running against Base Sepolia, where two wallets created on
+sign-in open, repay and default on a real loan.
 
 ## Known limitations
 

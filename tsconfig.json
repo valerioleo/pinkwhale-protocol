@@ -7,7 +7,6 @@
     ],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "jsx": "react-jsx",
     "types": [
       "node"
     ],
@@ -24,14 +23,11 @@
     "scripts/**/*.ts",
     "test/**/*.ts",
     "deployers/**/*.ts",
-    "deployoor.config.ts",
-    "docs/**/*.ts",
-    "docs/**/*.tsx"
+    "deployoor.config.ts"
   ],
   "exclude": [
     "app",
     "cache",
-    "docs/dist",
     "lib",
     "node_modules",
     "out"

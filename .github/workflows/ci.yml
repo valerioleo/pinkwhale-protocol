@@ -56,8 +56,5 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build docs
-        run: pnpm docs:build
-
-      - name: Build playground
+      - name: Build site
         run: pnpm --filter @pinkwhale/app build

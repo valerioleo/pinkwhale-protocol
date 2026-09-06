@@ -8,10 +8,6 @@ node_modules/
 .env
 .env.*.local
 
-# vocs
-docs/dist/
-docs/.vocs/
-docs/.vercel/
 
 # Vercel
 .vercel/
