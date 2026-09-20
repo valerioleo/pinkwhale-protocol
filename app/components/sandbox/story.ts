@@ -2,31 +2,32 @@
  * One loan, four steps, told through who is holding what.
  *
  * The strip at the top is the only thing that persists: three columns, and the
- * assets sit in whichever one owns them at that step. Everything else on the page
- * explains a movement between two of those columns.
+ * assets sit in whichever one owns them. Everything else on the page explains a
+ * movement between two of those columns.
  *
- * So holdings are the model and the prose is the commentary — not the other way
- * round. Each step declares the world at its end; what animates is the difference
- * from the step before, which means no transition has to be written down twice.
+ * So holdings are the model and the prose is the commentary. Each step declares
+ * the moments it plays through; what animates is the difference between them,
+ * which means no transition has to be written down twice.
  */
 
 export type Holder = 'alice' | 'pinkwhale' | 'bob';
 
 /**
- * Three assets rather than two, because the repayment is not the principal.
- * Alice's 110 is money she brings, and keeping it distinct is what lets the strip
- * show her holding the principal and the repayment at once in step 03.
+ * Two, and only ever two. There is one ape and one pile of USDC, and the pile
+ * keeps its identity while its amount changes — Alice's debt growing to 110 is
+ * the same money becoming more of itself, not a second pile appearing beside the
+ * first. Modelling it as two assets made the strip draw a fresh bubble on Bob
+ * when what should happen is that Alice's bubble travels there.
  */
-export type AssetId = 'ape' | 'principal' | 'repayment';
+export type AssetId = 'ape' | 'usdc';
 
-export const ASSETS: Record<
-  AssetId,
-  {readonly label: string; readonly kind: 'nft' | 'coin'; readonly icon: string}
-> = {
-  ape: {label: 'BAYC #8817', kind: 'nft', icon: '/tokens/bayc.png'},
-  principal: {label: '100 USDC', kind: 'coin', icon: '/tokens/usdc.png'},
-  repayment: {label: '110 USDC', kind: 'coin', icon: '/tokens/usdc.png'}
+export const ASSETS: Record<AssetId, {readonly kind: 'nft' | 'coin'; readonly icon: string}> = {
+  ape: {kind: 'nft', icon: '/tokens/bayc.png'},
+  usdc: {kind: 'coin', icon: '/tokens/usdc.png'}
 };
+
+/** The ape's label never changes; the USDC's does, so it is carried per frame. */
+export const APE_LABEL = 'BAYC #8817';
 
 /** `hue` is an OKLCh angle, which is what blobatar builds its palette in — the
  *  hi-fi's pink and blue faces, read back as angles. */
@@ -41,34 +42,22 @@ export const HOLDERS: readonly {
   {id: 'bob', name: 'Bob', role: 'lender', hue: 230}
 ];
 
-/**
- * What changed hands on the way into this step, as asset ids.
- *
- * Derived rather than declared: the `moves` strings are prose for the reader and
- * would drift the moment a holding changed. This is the same diff the animation
- * runs on, so the green ring can never mark something that did not move.
- */
-export const movedInto = (index: number): ReadonlySet<AssetId> => {
-  const step = STEPS[index];
-  const before = STEPS[index - 1];
-
-  if (!step || !before) return new Set();
-
-  const owner = (holdings: Holdings) =>
-    new Map(
-      (Object.keys(holdings) as Holder[]).flatMap((holder) =>
-        holdings[holder].map((asset) => [asset, holder] as const)
-      )
-    );
-
-  const was = owner(before.holdings);
-
-  return new Set(
-    [...owner(step.holdings)].filter(([asset, holder]) => was.get(asset) !== holder).map(([asset]) => asset)
-  );
-};
-
 export type Holdings = Readonly<Record<Holder, readonly AssetId[]>>;
+
+/**
+ * One moment in a step.
+ *
+ * Most steps are a single moment. Step 03 is three, because paying a debt is not
+ * one movement: the amount owed appears, the money goes to Bob, and only then
+ * does the collateral come back. That order is the point — Seaport releases the
+ * ape *because* it was paid, and a strip that handed it back at the same instant
+ * would be drawing a swap.
+ */
+export type Frame = {
+  readonly holdings: Holdings;
+  /** What the single USDC chip reads at this moment. */
+  readonly usdc: string;
+};
 
 type Tone = 'neutral' | 'muted' | 'good' | 'bad';
 
@@ -92,10 +81,9 @@ export type Scene = {
 export type Step = {
   readonly title: string;
   readonly body: string;
-  readonly holdings: Holdings;
-  /** The design's own annotation of what to watch move. The animation is driven
-   *  by the holdings diff; these name it, including the parts that are not a
-   *  transfer at all. */
+  readonly frames: readonly Frame[];
+  /** The hi-fi's annotation of what to watch. The animation runs off the frames;
+   *  these name it, including the parts that are not a transfer at all. */
   readonly moves: readonly string[];
   readonly scene: Scene;
 };
@@ -108,7 +96,9 @@ export const STEPS: readonly Step[] = [
     body:
       'Alice and Bob each sign an ordinary Seaport order. Both name Pinkwhale as zone and commit ' +
       'a hash of the terms, interest and duration, in zoneHash. Nothing has moved.',
-    holdings: {alice: ['ape'], pinkwhale: [], bob: ['principal']},
+    frames: [
+      {holdings: {alice: ['ape'], pinkwhale: [], bob: ['usdc']}, usdc: '100 USDC'}
+    ],
     moves: [],
     scene: {
       cards: [
@@ -148,7 +138,9 @@ export const STEPS: readonly Step[] = [
       "Pinkwhale matches the pair. In that single transaction the ape moves into Pinkwhale's " +
       'address as escrow, the USDC moves to Alice, and two new orders with the same shape are ' +
       'created: repayment and default.',
-    holdings: {alice: ['principal'], pinkwhale: ['ape'], bob: []},
+    frames: [
+      {holdings: {alice: ['usdc'], pinkwhale: ['ape'], bob: []}, usdc: '100 USDC'}
+    ],
     moves: ['ape Alice → Pinkwhale', '100 USDC Bob → Alice'],
     scene: {
       tx: {
@@ -189,8 +181,15 @@ export const STEPS: readonly Step[] = [
       'At day 30 Alice owes 110 USDC, so it appears in her balance. She fills the repayment ' +
       'order: in that single transaction the USDC moves to Bob, the ape moves back to her, and ' +
       'the zone invalidates the default order.',
-    holdings: {alice: ['principal', 'ape'], pinkwhale: [], bob: ['repayment']},
-    moves: ['110 USDC appears on Alice', '110 USDC Alice → Bob', 'ape Pinkwhale → Alice'],
+    // Three moments, in the order the contract enforces them. The debt appears,
+    // it is paid, and only then is the collateral released — releasing it
+    // alongside the payment would draw a swap, not a repayment.
+    frames: [
+      {holdings: {alice: ['usdc'], pinkwhale: ['ape'], bob: []}, usdc: '110 USDC'},
+      {holdings: {alice: [], pinkwhale: ['ape'], bob: ['usdc']}, usdc: '110 USDC'},
+      {holdings: {alice: ['ape'], pinkwhale: [], bob: ['usdc']}, usdc: '110 USDC'}
+    ],
+    moves: ['Alice owes 110 USDC', '110 USDC Alice → Bob', 'ape Pinkwhale → Alice'],
     scene: {
       tx: {
         header: 'ONE TRANSACTION · fulfillOrder(repayment)',
@@ -226,11 +225,13 @@ export const STEPS: readonly Step[] = [
     body:
       'The window closes with the repayment order unfilled. That expiry is what activates the ' +
       'default order. Bob fills it and the ape moves to him for free. Alice keeps the 100 USDC.',
-    // The branch, not the next moment: this is what happens instead of step 03, so
-    // the strip rewinds to the state the loan was left in and plays a different
-    // ending. The ape ends on Bob — the design's own note says it slides from
-    // Pinkwhale to him, though the panel lists it under both.
-    holdings: {alice: ['principal'], pinkwhale: [], bob: ['ape']},
+    // The branch, not the next moment: this is what happens instead of step 03,
+    // so the strip rewinds to the state the loan was left in and plays a
+    // different ending. The ape ends on Bob — the design's own note says it
+    // slides from Pinkwhale to him, though its panel lists it under both.
+    frames: [
+      {holdings: {alice: ['usdc'], pinkwhale: [], bob: ['ape']}, usdc: '100 USDC'}
+    ],
     moves: ['repayment expires', 'ape Pinkwhale → Bob, for free'],
     scene: {
       link: 'activates',
@@ -263,3 +264,46 @@ export const STEPS: readonly Step[] = [
     }
   }
 ];
+
+export const frameAt = (step: number, frame: number): Frame | undefined =>
+  STEPS[step]?.frames[frame];
+
+export const lastFrame = (step: number): Frame | undefined => {
+  const frames = STEPS[step]?.frames;
+
+  return frames?.[frames.length - 1];
+};
+
+/**
+ * What changed hands on the way into a given frame.
+ *
+ * Derived rather than declared: the `moves` strings are prose and would drift the
+ * moment a holding changed. This is the same diff the animation runs on, so the
+ * ring can never mark something that did not move.
+ */
+export const movedInto = (step: number, frame: number): ReadonlySet<AssetId> => {
+  const current = frameAt(step, frame);
+  const before = frame > 0 ? frameAt(step, frame - 1) : lastFrame(step - 1);
+
+  if (!current || !before) return new Set();
+
+  const owner = (holdings: Holdings) =>
+    new Map(
+      (Object.keys(holdings) as Holder[]).flatMap((holder) =>
+        holdings[holder].map((asset) => [asset, holder] as const)
+      )
+    );
+
+  const was = owner(before.holdings);
+  const moved = new Set(
+    [...owner(current.holdings)]
+      .filter(([asset, holder]) => was.get(asset) !== holder)
+      .map(([asset]) => asset)
+  );
+
+  // A balance that grew without going anywhere has still changed, and the reader
+  // is being asked to look at it.
+  if (current.usdc !== before.usdc) moved.add('usdc');
+
+  return moved;
+};

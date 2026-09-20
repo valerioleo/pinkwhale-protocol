@@ -101,10 +101,6 @@ main:has(.ls) { max-width: none; padding: 0; }
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
   padding: 8px 20px; border-top: 1px solid var(--line);
 }
-.ls-moves-key {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft);
-}
 .ls-move {
   display: inline-flex; align-items: center; gap: 7px;
   font-family: var(--font-geist-mono), ui-monospace, monospace;

@@ -12,29 +12,41 @@ import {
 
 import {Chip} from './Chip';
 import {ArrowLeft, ArrowRight, Info, Zap} from './icons';
-import {HOLDERS, STEPS, movedInto, type AssetId, type OrderCard, type Step} from './story';
+import {
+  APE_LABEL,
+  HOLDERS,
+  STEPS,
+  frameAt,
+  movedInto,
+  type AssetId,
+  type Frame,
+  type OrderCard,
+  type Step
+} from './story';
 
 /**
- * The loan, told by moving three assets between three columns.
+ * The loan, told by moving two assets between three columns.
  *
- * Each step carries its own strip, sticky at the top while that step is being
- * read, so the balances are always the ones the prose beside them is talking
- * about. As a step arrives its assets travel: the chip is measured before and
- * after and animated across the gap, and whatever changed hands wears a ring for
- * as long as the step is on screen.
+ * One strip, sticky under the nav, holding everything anyone owns. A step takes
+ * over when its top reaches that strip, and the assets travel: the chip is
+ * measured before and after and animated across the gap, and whatever changed
+ * wears a ring while its moment is on screen.
  */
-
-/** A step takes over once its top crosses this fraction of the viewport. */
-const ACTIVATION_LINE = 0.55;
 
 /**
- * Publish the nav's real height so the strip can come to rest exactly under it.
- *
- * It was a hard-coded 56px before and the nav is not 56px, so the strip spent
- * every scroll partly hidden. Nothing here should be guessing a number that the
- * browser already knows and will happily recompute when the nav wraps, the font
- * loads, or someone adds a link to it.
+ * How long each moment of a multi-frame step holds before the next plays. Longer
+ * than the 620ms the chips take to travel, so one movement finishes before the
+ * next begins — they are a sequence, and overlapping them would say otherwise.
  */
+const FRAME_MS = 900;
+
+const pad = (index: number) => String(index + 1).padStart(2, '0');
+
+const NEVER_CHANGES = () => () => {};
+const onClient = () => true;
+const onServer = () => false;
+
+/** Publish the nav's real height so the strip comes to rest exactly under it. */
 const useNavHeight = () => {
   useEffect(() => {
     const nav = document.querySelector('.nav');
@@ -57,22 +69,16 @@ const useNavHeight = () => {
   }, []);
 };
 
-const pad = (index: number) => String(index + 1).padStart(2, '0');
-
-const NEVER_CHANGES = () => () => {};
-const onClient = () => true;
-const onServer = () => false;
-
 /**
  * FLIP, for the one thing on the page that has to feel physical.
  *
- * A crossfade would say two assets existed; there is only ever one ape. Positions
- * are taken against the strip rather than the viewport because the strip is
- * sticky — while it is settling its viewport coordinates move under us, and a
- * step changing during those few hundred pixels would animate the page's scroll
- * instead of the asset's journey.
+ * A crossfade would say two assets existed; there is only ever one ape and one
+ * pile of USDC. Positions are taken against the strip rather than the viewport
+ * because the strip is sticky — while it settles its viewport coordinates move
+ * under us, and a change during those few hundred pixels would animate the page's
+ * scroll instead of the asset's journey.
  */
-const useAssetFlip = (active: number) => {
+const useAssetFlip = (key: string) => {
   const chips = useRef(new Map<AssetId, HTMLElement>());
   const previous = useRef(new Map<AssetId, {x: number; y: number}>());
   const strip = useRef<HTMLDivElement | null>(null);
@@ -115,7 +121,7 @@ const useAssetFlip = (active: number) => {
     previous.current.forEach((_position, id) => {
       if (!chips.current.has(id)) previous.current.delete(id);
     });
-  }, [active]);
+  }, [key]);
 
   const register = (id: AssetId) => (node: HTMLElement | null) => {
     if (node) chips.current.set(id, node);
@@ -128,64 +134,66 @@ const useAssetFlip = (active: number) => {
  * The balances bar — one for the page, not one per step.
  *
  * The hi-fi draws a copy above every step, which is how a static board has to
- * show four different states. Here there is only ever one, because the assets
- * have to be able to travel: a chip that is replaced by a copy of itself in
- * another element has not moved anywhere, it has been redrawn.
+ * show four states. Here there is only ever one, because the assets have to be
+ * able to travel: a chip replaced by a copy of itself in another element has not
+ * moved anywhere, it has been redrawn.
  */
 const Strip = ({
   step,
-  index,
+  frame,
+  moment,
   register,
   stripRef
 }: {
   step: Step;
-  index: number;
+  frame: Frame;
+  moment: ReadonlySet<AssetId>;
   register: (id: AssetId) => (node: HTMLElement | null) => void;
   stripRef: RefObject<HTMLDivElement | null>;
-}) => {
-  const moved = movedInto(index);
+}) => (
+  <div className="ls-balances">
+    <div className="ls-strip" ref={stripRef}>
+      {HOLDERS.map((holder) => (
+        <div className="ls-col" key={holder.id} data-who={holder.id}>
+          <span className="ls-col-face">
+            <Blobatar name={holder.name} size={26} hue={holder.hue} />
+          </span>
+          <span className="ls-col-who">
+            <span className="ls-col-name">{holder.name}</span>
+            <span className="ls-col-role">{holder.role}</span>
+          </span>
+          <span className="ls-col-holds">
+            {frame.holdings[holder.id].length === 0 ? (
+              <span className="ls-empty">holds nothing</span>
+            ) : (
+              frame.holdings[holder.id].map((id) => (
+                <Chip
+                  key={id}
+                  id={id}
+                  label={id === 'ape' ? APE_LABEL : frame.usdc}
+                  moved={moment.has(id)}
+                  innerRef={register(id)}
+                />
+              ))
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
 
-  return (
-    <div className="ls-balances">
-      <div className="ls-strip" ref={stripRef}>
-        {HOLDERS.map((holder) => (
-          <div className="ls-col" key={holder.id} data-who={holder.id}>
-            <span className="ls-col-face">
-              <Blobatar name={holder.name} size={26} hue={holder.hue} />
-            </span>
-            <span className="ls-col-who">
-              <span className="ls-col-name">{holder.name}</span>
-              <span className="ls-col-role">{holder.role}</span>
-            </span>
-            <span className="ls-col-holds">
-              {step.holdings[holder.id].length === 0 ? (
-                <span className="ls-empty">holds nothing</span>
-              ) : (
-                step.holdings[holder.id].map((id) => (
-                  <Chip key={id} id={id} moved={moved.has(id)} innerRef={register(id)} />
-                ))
-              )}
-            </span>
-          </div>
+    {step.moves.length > 0 ? (
+      <div className="ls-moves">
+        {step.moves.map((move, order) => (
+          <span key={move} className="ls-move">
+            {/* The arrow says which way across the strip to look. */}
+            {order % 2 === 0 ? <ArrowRight /> : <ArrowLeft />}
+            {move}
+          </span>
         ))}
       </div>
-
-      {step.moves.length > 0 ? (
-        <div className="ls-moves">
-          <span className="ls-moves-key">On scroll</span>
-          {step.moves.map((move, order) => (
-            <span key={move} className="ls-move">
-              {/* Alternating direction, as the hi-fi draws it: the arrow says
-                  which way across the strip to look. */}
-              {order % 2 === 0 ? <ArrowRight /> : <ArrowLeft />}
-              {move}
-            </span>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-};
+    ) : null}
+  </div>
+);
 
 const Card = ({card}: {card: OrderCard}) => (
   <div className="ls-card">
@@ -243,9 +251,17 @@ const Scene = ({scene}: {scene: Step['scene']}) => (
 
 export const LoanStory = () => {
   const [active, setActive] = useState(0);
+  /**
+   * Which moment of the active step is showing, tagged with the step it belongs
+   * to. Tagged rather than reset, so arriving at a new step derives frame 0
+   * without a second state write — the tag simply stops matching.
+   */
+  const [played, setPlayed] = useState({step: 0, frame: 0});
   const stepsRef = useRef<(HTMLElement | null)[]>([]);
   const mounted = useSyncExternalStore(NEVER_CHANGES, onClient, onServer);
-  const {register, stripRef} = useAssetFlip(active);
+
+  const frameIndex = played.step === active ? played.frame : 0;
+  const {register, stripRef} = useAssetFlip(`${active}:${frameIndex}`);
 
   useNavHeight();
 
@@ -255,12 +271,15 @@ export const LoanStory = () => {
     // past a thin trigger band between two frames leaves the strip holding assets
     // where they no longer are.
     const compute = () => {
-      const line = window.innerHeight * ACTIVATION_LINE;
+      // The strip's own lower edge is the line. A step takes over exactly when it
+      // arrives underneath the balances it is about to change, which is both what
+      // the eye expects and a number nothing has to keep in sync by hand.
+      const line = stripRef.current?.getBoundingClientRect().bottom ?? 0;
 
       setActive(
         stepsRef.current.reduce(
           (found, node, index) =>
-            node !== null && node.getBoundingClientRect().top <= line ? index : found,
+            node !== null && node.getBoundingClientRect().top <= line + 1 ? index : found,
           0
         )
       );
@@ -285,13 +304,31 @@ export const LoanStory = () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, []);
+  }, [stripRef]);
+
+  useEffect(() => {
+    const total = STEPS[active]?.frames.length ?? 1;
+
+    if (total < 2) return;
+
+    // Scheduled, never set synchronously: the displayed frame falls back to 0
+    // whenever the tag does not match, so arriving needs no write at all.
+    const timers = Array.from({length: total - 1}, (_, order) =>
+      window.setTimeout(() => setPlayed({step: active, frame: order + 1}), (order + 1) * FRAME_MS)
+    );
+
+    return () => timers.forEach(window.clearTimeout);
+  }, [active]);
+
+  const step = STEPS[active] ?? STEPS[0]!;
+  const frame = frameAt(active, frameIndex) ?? step.frames[0]!;
 
   return (
     <section className="ls" data-mounted={mounted ? 'true' : 'false'}>
       <Strip
-        step={STEPS[active] ?? STEPS[0]!}
-        index={active}
+        step={step}
+        frame={frame}
+        moment={movedInto(active, frameIndex)}
         register={register}
         stripRef={stripRef}
       />
