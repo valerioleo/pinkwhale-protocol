@@ -82,9 +82,6 @@ export type Step = {
   readonly title: string;
   readonly body: string;
   readonly frames: readonly Frame[];
-  /** The hi-fi's annotation of what to watch. The animation runs off the frames;
-   *  these name it, including the parts that are not a transfer at all. */
-  readonly moves: readonly string[];
   readonly scene: Scene;
 };
 
@@ -99,7 +96,6 @@ export const STEPS: readonly Step[] = [
     frames: [
       {holdings: {alice: ['ape'], pinkwhale: [], bob: ['usdc']}, usdc: '100 USDC'}
     ],
-    moves: [],
     scene: {
       cards: [
         {
@@ -141,7 +137,6 @@ export const STEPS: readonly Step[] = [
     frames: [
       {holdings: {alice: ['usdc'], pinkwhale: ['ape'], bob: []}, usdc: '100 USDC'}
     ],
-    moves: ['ape Alice → Pinkwhale', '100 USDC Bob → Alice'],
     scene: {
       tx: {
         header: 'ONE TRANSACTION · matchOrders',
@@ -189,7 +184,6 @@ export const STEPS: readonly Step[] = [
       {holdings: {alice: [], pinkwhale: ['ape'], bob: ['usdc']}, usdc: '110 USDC'},
       {holdings: {alice: ['ape'], pinkwhale: [], bob: ['usdc']}, usdc: '110 USDC'}
     ],
-    moves: ['Alice owes 110 USDC', '110 USDC Alice → Bob', 'ape Pinkwhale → Alice'],
     scene: {
       tx: {
         header: 'ONE TRANSACTION · fulfillOrder(repayment)',
@@ -232,7 +226,6 @@ export const STEPS: readonly Step[] = [
     frames: [
       {holdings: {alice: ['usdc'], pinkwhale: [], bob: ['ape']}, usdc: '100 USDC'}
     ],
-    moves: ['repayment expires', 'ape Pinkwhale → Bob, for free'],
     scene: {
       link: 'activates',
       cards: [
@@ -277,9 +270,9 @@ export const lastFrame = (step: number): Frame | undefined => {
 /**
  * What changed hands on the way into a given frame.
  *
- * Derived rather than declared: the `moves` strings are prose and would drift the
- * moment a holding changed. This is the same diff the animation runs on, so the
- * ring can never mark something that did not move.
+ * Derived, never declared. This is the same diff the animation runs on, so the
+ * ring cannot mark something that did not move — there is no second description
+ * of the transition to fall out of step with the first.
  */
 export const movedInto = (step: number, frame: number): ReadonlySet<AssetId> => {
   const current = frameAt(step, frame);

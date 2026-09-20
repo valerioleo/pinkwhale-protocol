@@ -1,7 +1,7 @@
 /**
- * The four lucide glyphs the hi-fi uses, inlined.
+ * The two lucide glyphs the page uses, inlined.
  *
- * Four paths is not worth a dependency, and inlining them means they take
+ * Two paths is not worth a dependency, and inlining them means they take
  * `currentColor` from whatever they sit in rather than needing a prop.
  */
 const base = {
@@ -15,20 +15,6 @@ const base = {
   strokeLinejoin: 'round',
   'aria-hidden': true
 } as const;
-
-export const ArrowRight = () => (
-  <svg {...base}>
-    <path d="M5 12h14" />
-    <path d="m12 5 7 7-7 7" />
-  </svg>
-);
-
-export const ArrowLeft = () => (
-  <svg {...base}>
-    <path d="M19 12H5" />
-    <path d="m12 19-7-7 7-7" />
-  </svg>
-);
 
 export const Zap = () => (
   <svg {...base} width={12} height={12}>

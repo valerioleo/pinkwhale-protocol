@@ -53,9 +53,10 @@ test('the USDC keeps its identity while its amount changes', () => {
   }
 });
 
-test('each step names a move for everything that actually changed', () => {
-  // Not a string match on the labels — they are prose. Only that a step which
-  // changes the world says so, and a step that says so changes something.
+test('every step after the first changes the world', () => {
+  // A step that leaves the strip exactly as it found it has no reason to be a
+  // step: nothing would animate, and the reader would scroll past a paragraph
+  // wondering what they were meant to have noticed.
   STEPS.forEach((step, index) => {
     if (index === 0) return;
 
@@ -66,6 +67,6 @@ test('each step names a move for everything that actually changed', () => {
       before.usdc !== after.usdc ||
       HOLDERS.some(({id}) => before.holdings[id].join() !== after.holdings[id].join());
 
-    assert.equal(changed, step.moves.length > 0, `step ${index + 1}: moves and frames disagree`);
+    assert.ok(changed, `step ${index + 1} leaves the strip unchanged`);
   });
 });

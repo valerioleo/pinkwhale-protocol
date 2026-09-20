@@ -11,7 +11,7 @@ import {
 } from 'react';
 
 import {Chip} from './Chip';
-import {ArrowLeft, ArrowRight, Info, Zap} from './icons';
+import {Info, Zap} from './icons';
 import {
   APE_LABEL,
   HOLDERS,
@@ -139,13 +139,11 @@ const useAssetFlip = (key: string) => {
  * moved anywhere, it has been redrawn.
  */
 const Strip = ({
-  step,
   frame,
   moment,
   register,
   stripRef
 }: {
-  step: Step;
   frame: Frame;
   moment: ReadonlySet<AssetId>;
   register: (id: AssetId) => (node: HTMLElement | null) => void;
@@ -181,17 +179,6 @@ const Strip = ({
       ))}
     </div>
 
-    {step.moves.length > 0 ? (
-      <div className="ls-moves">
-        {step.moves.map((move, order) => (
-          <span key={move} className="ls-move">
-            {/* The arrow says which way across the strip to look. */}
-            {order % 2 === 0 ? <ArrowRight /> : <ArrowLeft />}
-            {move}
-          </span>
-        ))}
-      </div>
-    ) : null}
   </div>
 );
 
@@ -326,7 +313,6 @@ export const LoanStory = () => {
   return (
     <section className="ls" data-mounted={mounted ? 'true' : 'false'}>
       <Strip
-        step={step}
         frame={frame}
         moment={movedInto(active, frameIndex)}
         register={register}
