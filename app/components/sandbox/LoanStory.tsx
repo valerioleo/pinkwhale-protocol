@@ -1,226 +1,169 @@
 'use client';
 
-import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 
-import {
-  DURATION_DAYS,
-  STEPS,
-  owedOnDay,
-  type ActorRow,
-  type OrderColumn,
-  type Step
-} from './story';
+import {ASSETS, HOLDERS, STEPS, type AssetId, type OrderCard, type Step} from './story';
 
 /**
- * The loan lifecycle, read by scrolling.
+ * The loan, told by moving three assets between three columns.
  *
- * Prose steps run down the left; one sticky panel on the right holds the state of
- * the world at whichever step you have reached. Each panel is a whole picture
- * rather than a diff, so the thing you notice between two of them is exactly what
- * the step you just read described.
+ * The strip is the constant: Alice, Pinkwhale, Bob, always in that order, always
+ * on screen. Each step below it describes one movement between two of those
+ * columns, and as the step arrives the asset actually travels — the chip is the
+ * same DOM node throughout, so it slides from where it was to where it now
+ * belongs rather than disappearing here and reappearing there.
  *
- * Progressive enhancement, as in cudo's project tour: prerendered and with JS off
- * every step is at full contrast and the panel shows the last state, because the
- * steps are the content and the panel is the illustration.
+ * That is the whole argument the page is making. A loan is not a new kind of
+ * object; it is an ape and some USDC changing hands under rules two signatures
+ * already agreed.
  */
 
-/**
- * A step takes over once its top crosses this fraction of the viewport. Well above
- * the panel's own offset on purpose — a step should activate as its heading comes
- * comfortably into view, not once it has climbed to the very top.
- */
-const ACTIVATION_LINE = 0.45;
-
-/** The step whose panel advances while you read it. */
-const CLOCK_STEP = 2;
+/** A step takes over once its top crosses this fraction of the viewport. */
+const ACTIVATION_LINE = 0.55;
 
 const pad = (index: number) => String(index + 1).padStart(2, '0');
 
-/**
- * Whether we are past hydration, asked without an effect.
- *
- * A `setMounted(true)` in an effect says the same thing, but it says it by
- * scheduling a second render, and the lint rule is right to object. This is the
- * shape React provides for a value that differs between server and client:
- * subscribe to nothing, because the answer never changes once it is true.
- */
 const NEVER_CHANGES = () => () => {};
 const onClient = () => true;
 const onServer = () => false;
 
-const Actors = ({rows}: {rows: readonly ActorRow[]}) => (
-  <div className="ls-block">
-    <p className="ls-block-label">Actors</p>
-    <ul className="ls-actors">
-      {rows.map((actor) => (
-        <li key={actor.name} className="ls-actor" data-tint={actor.tint}>
-          <span className="ls-actor-face" aria-hidden="true" />
-          <span className="ls-actor-who">
-            <span className="ls-actor-name">{actor.name}</span>
-            <span className="ls-actor-role">{actor.role}</span>
-          </span>
-          <span className="ls-actor-holds">
-            <span className="ls-actor-usdc">{actor.usdc}</span>
-            <span className="ls-actor-nft">{actor.nft}</span>
-          </span>
-        </li>
+/**
+ * FLIP, for the one thing on the page that has to feel physical.
+ *
+ * React moves a keyed chip into its new column and the browser paints it there
+ * immediately; this reads both positions, puts the chip back where it was with a
+ * transform, and then releases it in the next frame. The alternative — fading one
+ * copy out and another in — says two assets existed. There is only ever one ape.
+ */
+const useAssetFlip = (active: number) => {
+  const chips = useRef(new Map<AssetId, HTMLElement>());
+  const previous = useRef(new Map<AssetId, {x: number; y: number}>());
+  const strip = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const frame = strip.current?.getBoundingClientRect();
+
+    if (!frame) return;
+
+    // Measured against the strip, not the viewport. The strip is sticky, so while
+    // it is still scrolling into place its viewport coordinates move under us —
+    // and a step that changed during those few hundred pixels would animate the
+    // page's scroll rather than the asset's journey.
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // An asset that changes column changes parent, so React unmounts the old chip
+    // and mounts a new one rather than moving the node. Pruning by `isConnected`
+    // rather than by a ref cleanup means this does not depend on whether React
+    // happens to call the detaching ref before or after the attaching one.
+    chips.current.forEach((node, id) => {
+      if (!node.isConnected) chips.current.delete(id);
+    });
+
+    chips.current.forEach((node, id) => {
+      const box = node.getBoundingClientRect();
+      const now = {x: box.left - frame.left, y: box.top - frame.top};
+      const before = previous.current.get(id);
+
+      previous.current.set(id, now);
+
+      if (!before || reduced) return;
+
+      const dx = before.x - now.x;
+      const dy = before.y - now.y;
+
+      // Sub-pixel drift is not movement; animating it only costs a repaint.
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+
+      node.animate(
+        [{transform: `translate(${dx}px, ${dy}px)`}, {transform: 'translate(0, 0)'}],
+        {duration: 620, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)'}
+      );
+    });
+
+    // An asset that has left the strip should not animate in from a stale
+    // position if it comes back: step 04 rewinds the world, and by then the ape
+    // has been in three different columns.
+    previous.current.forEach((_position, id) => {
+      if (!chips.current.has(id)) previous.current.delete(id);
+    });
+  }, [active]);
+
+  const register = (id: AssetId) => (node: HTMLElement | null) => {
+    if (node) chips.current.set(id, node);
+  };
+
+  return {register, strip};
+};
+
+const Card = ({card}: {card: OrderCard}) => (
+  <div className="ls-card" data-tone={card.tone}>
+    <div className="ls-card-head">
+      <span className="ls-card-title">{card.title}</span>
+      <span className="ls-chip" data-tone={card.tone}>
+        {card.status}
+      </span>
+    </div>
+    <p className="ls-card-by">{card.by}</p>
+    <dl className="ls-card-rows">
+      {card.rows.map((row) => (
+        <div key={row.label} className="ls-card-row">
+          <dt>{row.label}</dt>
+          <dd>{row.value}</dd>
+        </div>
       ))}
-    </ul>
+    </dl>
   </div>
 );
 
-/**
- * The two orders side by side, aligned row for row.
- *
- * Reading across a row is the whole argument — what one order offers is what the
- * other asks for — so the labels sit in their own column and the two orders share
- * them rather than each repeating the set.
- */
-const Orders = ({columns}: {columns: readonly [OrderColumn, OrderColumn]}) => {
-  // Driven off the first column: both are built from the same row list, and a
-  // label that appeared in only one of them would break the alignment that makes
-  // the figure readable.
-  const labels = columns[0].rows.map((row) => row.label);
-
-  return (
-    <div className="ls-block">
-      <p className="ls-block-label">Orders</p>
-      <div className="ls-orders">
-        <div className="ls-orders-head">
-          <span />
-          {columns.map((column) => (
-            <span key={column.title} className="ls-order-title" data-state={column.state ?? 'live'}>
-              {column.title}
-              {column.state && column.state !== 'live' ? (
-                <span className="ls-order-state">{column.state}</span>
-              ) : null}
-            </span>
+const Scene = ({scene}: {scene: Step['scene']}) => (
+  <div className="ls-scene">
+    {scene.tx ? (
+      <div className="ls-tx">
+        <p className="ls-tx-head">{scene.tx.header}</p>
+        <ol className="ls-tx-beats">
+          {scene.tx.beats.map((beat) => (
+            <li key={beat}>{beat}</li>
           ))}
-        </div>
-
-        <div className="ls-order-row">
-          <span className="ls-order-label">created by</span>
-          {columns.map((column) => (
-            <span key={column.title} className="ls-order-cell">
-              <span className="ls-order-line">{column.createdBy}</span>
-            </span>
-          ))}
-        </div>
-
-        {labels.map((label, index) => (
-          <div key={label} className="ls-order-row">
-            <span className="ls-order-label">{label}</span>
-            {columns.map((column) => {
-              const cell = column.rows[index];
-
-              return (
-                <span key={column.title} className="ls-order-cell">
-                  <span className="ls-order-line">{cell?.line ?? '—'}</span>
-                  {cell?.sub ? <span className="ls-order-sub">{cell.sub}</span> : null}
-                </span>
-              );
-            })}
-          </div>
-        ))}
+        </ol>
       </div>
-    </div>
-  );
-};
+    ) : null}
 
-/**
- * The panel for one step. `day` is passed in rather than read from the step so the
- * clock step can redraw without the rest of the panel knowing there is a clock.
- */
-const Panel = ({step, day}: {step: Step; day: number | null}) => {
-  const {panel} = step;
-
-  const bars =
-    day === null
-      ? panel.bars
-      : [
-          {label: `Day ${day} of ${DURATION_DAYS}`, value: '', sub: 'advances as you scroll'},
-          {label: 'Alice owes today', value: `${owedOnDay(day).toFixed(2)} USDC`}
-        ];
-
-  return (
-    <div className="ls-panel" data-tone={panel.tone}>
-      <div className="ls-panel-head">
-        <span className="ls-panel-title">
-          {day === null ? panel.header : `loan #1 · day ${day}`}
-        </span>
-        <span className="ls-status" data-tone={panel.tone}>
-          {panel.status}
-        </span>
-      </div>
-
-      {bars ? (
-        <div className="ls-bars">
-          {bars.map((bar) => (
-            <div key={bar.label} className="ls-bar">
-              <span className="ls-bar-label">{bar.label}</span>
-              {bar.value ? <span className="ls-bar-value">{bar.value}</span> : null}
-              {bar.sub ? <span className="ls-bar-sub">{bar.sub}</span> : null}
-            </div>
-          ))}
+    <div className="ls-cards">
+      {scene.cards.map((card, index) => (
+        <div className="ls-cards-slot" key={card.title}>
+          {index > 0 && scene.link ? <span className="ls-link">{scene.link}</span> : null}
+          <Card card={card} />
         </div>
-      ) : null}
-
-      {panel.action ? (
-        <button type="button" className="ls-action" disabled>
-          {panel.action}
-        </button>
-      ) : null}
-
-      <Actors rows={panel.actors} />
-      <Orders columns={panel.orders} />
+      ))}
     </div>
-  );
-};
+
+    {scene.note ? <p className="ls-note">{scene.note}</p> : null}
+  </div>
+);
 
 export const LoanStory = () => {
   const [active, setActive] = useState(0);
-  const [day, setDay] = useState<number | null>(null);
   const stepsRef = useRef<(HTMLElement | null)[]>([]);
   const mounted = useSyncExternalStore(NEVER_CHANGES, onClient, onServer);
+  const {register, strip} = useAssetFlip(active);
 
   useEffect(() => {
-    // Derived from geometry rather than from IntersectionObserver, for the reason
-    // cudo's tour gives: an observer only reports crossings it happens to see, so a
-    // fling that carries a step past a thin trigger band between two frames leaves
-    // the panel showing something that is no longer true, and scrolling back does
-    // not necessarily resync it. This recomputes the same answer from scratch on
-    // every scroll event, in either direction.
+    // Geometry rather than IntersectionObserver, as in cudo's tour: an observer
+    // only reports crossings it happens to see, so a fling that carries a step
+    // past a thin trigger band between two frames leaves the strip holding assets
+    // where they no longer are. This recomputes from scratch on every event.
     const compute = () => {
       const line = window.innerHeight * ACTIVATION_LINE;
 
-      const reached = stepsRef.current.reduce(
-        (found, node, index) =>
-          node !== null && node.getBoundingClientRect().top <= line ? index : found,
-        0
+      setActive(
+        stepsRef.current.reduce(
+          (found, node, index) =>
+            node !== null && node.getBoundingClientRect().top <= line ? index : found,
+          0
+        )
       );
-
-      setActive(reached);
-
-      // How far through the clock step we are, as a fraction of its own height.
-      // Only meaningful while that step is the active one; elsewhere the panel
-      // shows the step's written figures.
-      const clock = stepsRef.current[CLOCK_STEP];
-
-      if (reached !== CLOCK_STEP || clock === null || clock === undefined) {
-        setDay(null);
-
-        return;
-      }
-
-      const box = clock.getBoundingClientRect();
-      const travelled = (line - box.top) / Math.max(box.height, 1);
-      const fraction = Math.min(Math.max(travelled, 0), 1);
-
-      setDay(Math.max(1, Math.round(fraction * DURATION_DAYS)));
     };
 
-    // At most one recompute per frame. The flag lives on an object created here,
-    // so nothing outside this effect can observe or reassign it.
     const frame = {pending: false};
     const onScroll = () => {
       if (frame.pending) return;
@@ -247,57 +190,76 @@ export const LoanStory = () => {
   return (
     <section className="ls" data-mounted={mounted ? 'true' : 'false'}>
       <header className="ls-head">
-        <span className="ls-kicker">
-          <span className="ls-kicker-num">02</span>
-          <span className="ls-kicker-label">The loan story</span>
-        </span>
-        <h1 className="ls-title">One loan, five states</h1>
+        <h1 className="ls-title">One loan, four states</h1>
         <p className="ls-sub">
-          Every state below is four Seaport orders and nothing else. Scroll to move through them.
+          Three assets, three columns. Everything below is one of them changing hands.
         </p>
       </header>
 
-      <div className="ls-grid">
-        <ol className="ls-steps">
-          {STEPS.map((entry, index) => (
-            <li
-              key={entry.title}
-              className="ls-step"
-              data-active={index === active ? 'true' : 'false'}
-              ref={(node) => {
-                stepsRef.current[index] = node;
-              }}
-            >
-              <span className="ls-step-num">{pad(index)}</span>
-              <h2 className="ls-step-title">
-                {entry.title}
-                <span className="ls-step-day">{entry.day}</span>
-              </h2>
-              <p className="ls-step-body">{entry.body}</p>
-              {entry.meta ? (
-                <p className="ls-step-meta">
-                  <span className="ls-step-meta-label">{entry.meta.label}</span>
-                  <span className="ls-step-meta-value">{entry.meta.value}</span>
-                </p>
-              ) : null}
-
-              {/* The one-column layout has no room for a panel that follows along,
-                  so each step carries its own. */}
-              <div className="ls-step-panel">
-                <Panel step={entry} day={null} />
-              </div>
-            </li>
+      {/* One strip for the whole page, not one per step: it is the thing that
+          persists while the steps scroll past it. */}
+      <div className="ls-balances">
+        <div className="ls-strip" ref={strip}>
+          {HOLDERS.map((holder) => (
+            <div className="ls-col" key={holder.id} data-who={holder.id}>
+              <span className="ls-col-face" aria-hidden="true" />
+              <span className="ls-col-who">
+                <span className="ls-col-name">{holder.name}</span>
+                <span className="ls-col-role">{holder.role}</span>
+              </span>
+              <span className="ls-col-holds">
+                {step.holdings[holder.id].length === 0 ? (
+                  <span className="ls-empty">holds nothing</span>
+                ) : (
+                  step.holdings[holder.id].map((id) => (
+                    <span
+                      key={id}
+                      ref={register(id)}
+                      className="ls-asset"
+                      data-kind={ASSETS[id].kind}
+                    >
+                      {ASSETS[id].label}
+                    </span>
+                  ))
+                )}
+              </span>
+            </div>
           ))}
-        </ol>
+        </div>
 
-        <aside className="ls-sticky">
-          <Panel step={step} day={day} />
-        </aside>
+        {step.moves.length > 0 ? (
+          <div className="ls-moves">
+            <span className="ls-moves-key">On scroll</span>
+            {step.moves.map((move) => (
+              <span key={move} className="ls-move">
+                {move}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
-      <p className="ls-caption">
-        Fig. 1 — the same two orders throughout. Only the clock and who has filled what changes.
-      </p>
+      <ol className="ls-steps">
+        {STEPS.map((entry, index) => (
+          <li
+            key={entry.title}
+            className="ls-step"
+            data-active={index === active ? 'true' : 'false'}
+            ref={(node) => {
+              stepsRef.current[index] = node;
+            }}
+          >
+            <div className="ls-inner">
+              <div className="ls-text">
+                <span className="ls-step-num">{pad(index)}</span>
+                <h2 className="ls-step-title">{entry.title}</h2>
+                <p className="ls-step-body">{entry.body}</p>
+              </div>
+              <Scene scene={entry.scene} />
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 };

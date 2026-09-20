@@ -1,230 +1,222 @@
 /*
  * ────────────────────────────────────────────────────────────────────────
- * FIG. 1 — THE LOAN STORY
- * Sandbox. Structure follows the Pencil design; colour comes from the app's
- * tokens so it can move into the article without a second palette.
+ * THE LOAN STORY — sandbox
+ * Structure from the Pencil hi-fi; colour from the app's tokens, which the
+ * design was already borrowing from (#24201e is --foreground).
  * ────────────────────────────────────────────────────────────────────────
  */
 
-/*
- * The layout wraps every page in a 42rem <main> because every other page is
- * prose. This one is a figure: two order columns beside a label column, next to a
- * column of text. Released from the measure rather than moved out of the layout,
- * so the nav and the tokens still come from the same place.
- */
+/* The layout caps every page at the prose measure because every other page is
+   prose. This one is a figure. */
 main:has(.ls) { max-width: none; padding: 0; }
 
-.ls {
-  max-width: 78rem;
-  margin: 0 auto;
-  padding: 56px 28px 140px;
-}
+.ls { max-width: 82rem; margin: 0 auto; padding: 48px 24px 140px; }
 
-/* ── Heading ────────────────────────────────────────────────────────── */
-
-.ls-head { max-width: 42rem; margin-bottom: 56px; }
-.ls-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.ls-kicker-num {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  background: var(--foreground); color: var(--background);
-  padding: 2px 7px; border-radius: 6px;
-}
-.ls-kicker-label {
-  font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.04em;
-  text-transform: uppercase; color: var(--muted-foreground);
-}
+.ls-head { max-width: 40rem; margin-bottom: 28px; }
 .ls-title {
   font-size: 2.125rem; line-height: 1.15; letter-spacing: -0.02em;
-  margin: 0 0 12px; font-weight: 600;
+  margin: 0 0 10px; font-weight: 600;
 }
 .ls-sub { color: var(--muted-foreground); margin: 0; font-size: 17px; }
 
-/* ── Grid ───────────────────────────────────────────────────────────── */
+/* ── The strip ──────────────────────────────────────────────────────── */
 
-.ls-grid { display: grid; grid-template-columns: minmax(0, 27rem) minmax(0, 1fr); gap: 64px; align-items: start; }
-.ls-steps { list-style: none; margin: 0; padding: 0; }
-.ls-sticky { position: sticky; top: 76px; }
-
-/* One column below the point where two stop fitting: the panel cannot follow
-   along, so each step carries its own copy instead. */
-@media (max-width: 64rem) {
-  .ls-grid { grid-template-columns: 1fr; gap: 0; }
-  .ls-sticky { display: none; }
-}
-@media (min-width: 64.0625rem) {
-  .ls-step-panel { display: none; }
-
-  /* A screen of scroll per step, which is what gives the panel time to change
-     and the clock step somewhere to run. Only where there is a panel to follow:
-     in one column the step carries its own, and the runway would be dead space. */
-  .ls-step { min-height: 78vh; }
-}
-.ls-step-panel { margin-top: 24px; }
-
-/* ── Steps ──────────────────────────────────────────────────────────── */
-
-.ls-step {
-  padding: 0 0 72px;
-  display: flex; flex-direction: column; align-items: flex-start;
-}
-.ls-step-num {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  color: var(--muted-foreground); letter-spacing: 0.06em;
-}
-.ls-step-title {
-  font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.25;
-  letter-spacing: -0.015em; margin: 10px 0 12px; font-weight: 600;
-  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
-}
-.ls-step-day {
-  font-family: var(--font-mono); font-size: 11.5px; font-weight: 400;
-  color: var(--muted-foreground);
-  border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
-}
-.ls-step-body { margin: 0; color: var(--muted-foreground); line-height: 1.65; }
-
-.ls-step-meta {
-  margin: 18px 0 0; display: flex; align-items: center; gap: 9px;
-  font-family: var(--font-mono); font-size: 12px;
-}
-.ls-step-meta-label { color: var(--muted-foreground); }
-.ls-step-meta-value {
-  color: var(--foreground); border: 1px solid var(--border);
-  border-radius: 999px; padding: 2px 9px;
+/*
+ * Sticky for the whole page rather than per step. It is the one thing that
+ * persists while the steps scroll past, and an asset has to be able to travel
+ * between two columns that never move.
+ */
+.ls-balances {
+  position: sticky; top: 0; z-index: 10;
+  margin-bottom: 40px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
 /*
- * Only once mounted. Prerendered, every step is at full contrast — dimming
- * four of five with no way to scroll them back would be worse than not dimming
- * at all.
+ * Not three equal columns. Alice is pinned left, Bob right, Pinkwhale sized to
+ * its content in the middle — and Bob's column is mirrored, so both actors hold
+ * their assets on the side nearest custody. Every movement in the story is then
+ * a short horizontal trip toward or away from the centre, which is the reason the
+ * chips animate at all.
  */
-@media (min-width: 64.0625rem) {
-  .ls[data-mounted='true'] .ls-step { opacity: 0.42; transition: opacity 0.25s ease; }
-  .ls[data-mounted='true'] .ls-step[data-active='true'] { opacity: 1; }
-}
+.ls-strip { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 12px 20px; }
 
-/* ── Panel ──────────────────────────────────────────────────────────── */
+.ls-col { display: flex; flex-direction: row; align-items: center; gap: 12px; min-width: 0; }
+.ls-col[data-who='alice'] { flex: 1 1 0; justify-content: flex-start; }
+.ls-col[data-who='pinkwhale'] { flex: 0 0 auto; justify-content: center; }
+/* `flex-start` with row-reverse is the right-hand edge: the axis is flipped, so
+   the two properties have to be read together. */
+.ls-col[data-who='bob'] { flex: 1 1 0; flex-direction: row-reverse; justify-content: flex-start; }
+.ls-col-face { width: 30px; height: 30px; border-radius: 50%; flex: none; }
+/* The design's actor tints: they identify a person, not decorate a row. */
+.ls-col[data-who='alice'] .ls-col-face { background: #ffbad1; }
+.ls-col[data-who='pinkwhale'] .ls-col-face { background: var(--brand); }
+.ls-col[data-who='bob'] .ls-col-face { background: #94dff7; }
 
-.ls-panel {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--card); overflow: hidden;
+.ls-col-who { display: flex; flex-direction: column; min-width: 0; }
+.ls-col-name { font-family: var(--font-sans); font-size: 14px; font-weight: 600; line-height: 1.2; }
+.ls-col-role { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+
+.ls-col-holds { display: flex; flex-direction: row; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.ls-asset {
+  font-family: var(--font-mono); font-size: 12px; white-space: nowrap;
+  padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--background);
+  /* Held above its column so a chip in flight is never clipped by a neighbour. */
+  position: relative; z-index: 1;
 }
-.ls-panel-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  padding: 13px 16px; border-bottom: 1px solid var(--border);
+.ls-asset[data-kind='coin'] { font-variant-numeric: tabular-nums; }
+.ls-asset[data-kind='nft'] {
+  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
+  color: var(--brand);
+}
+.ls-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ── Moves ──────────────────────────────────────────────────────────── */
+
+.ls-moves {
+  display: flex; flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 8px 20px; border-top: 1px solid var(--border);
   background: var(--background);
 }
-.ls-panel-title { font-family: var(--font-mono); font-size: 12px; color: var(--muted-foreground); }
-
-.ls-status {
-  font-family: var(--font-sans); font-size: 11.5px; font-weight: 600;
-  padding: 3px 10px; border-radius: 999px;
-  border: 1px solid var(--border); background: var(--card);
+.ls-moves-key {
+  font-family: var(--font-sans); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-foreground);
 }
-.ls-status[data-tone='open'] { color: var(--brand); border-color: color-mix(in oklab, var(--brand) 40%, var(--border)); }
-.ls-status[data-tone='good'] { color: var(--positive); border-color: color-mix(in oklab, var(--positive) 40%, var(--border)); }
-.ls-status[data-tone='bad'] { color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 40%, var(--border)); }
+.ls-move { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); }
 
-/* ── Action bar ─────────────────────────────────────────────────────── */
+/* ── Steps ──────────────────────────────────────────────────────────── */
 
-.ls-bars { display: flex; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
-.ls-bar { flex: 1 1 0; background: var(--card); padding: 12px 16px; min-width: 0; }
-.ls-bar-label {
-  display: block; font-family: var(--font-sans); font-size: 12px;
+.ls-steps { list-style: none; margin: 0; padding: 0; }
+.ls-step { padding: 0 0 88px; }
+
+.ls-inner { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 48px; align-items: start; }
+.ls-text { position: sticky; top: 132px; }
+
+.ls-step-num {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
   color: var(--muted-foreground);
 }
-.ls-bar-value {
-  display: block; margin-top: 3px; font-family: var(--font-mono);
-  font-size: 19px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+.ls-step-title {
+  font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.25;
+  letter-spacing: -0.015em; margin: 8px 0 12px; font-weight: 600;
 }
-.ls-bar-sub { display: block; margin-top: 3px; font-size: 12px; color: var(--muted-foreground); }
+.ls-step-body { margin: 0; color: var(--muted-foreground); line-height: 1.65; }
 
-.ls-action {
-  display: block; width: calc(100% - 32px); margin: 14px 16px 0;
-  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
-  padding: 9px 14px; border-radius: var(--radius);
-  border: 1px solid var(--border); background: var(--background);
+/* Only once mounted: prerendered, every step is at full contrast, because
+   dimming four of five with no way to scroll them back is worse than not. */
+.ls[data-mounted='true'] .ls-step { opacity: 0.45; transition: opacity 0.3s ease; }
+.ls[data-mounted='true'] .ls-step[data-active='true'] { opacity: 1; }
+
+/* ── Scene ──────────────────────────────────────────────────────────── */
+
+.ls-scene { display: flex; flex-direction: column; gap: 16px; }
+
+.ls-tx {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); padding: 14px 16px;
+}
+.ls-tx-head {
+  margin: 0 0 10px; font-family: var(--font-mono); font-size: 10.5px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground);
+}
+.ls-tx-beats { margin: 0; padding: 0; list-style: none; counter-reset: beat; display: flex; flex-direction: column; gap: 7px; }
+.ls-tx-beats li {
+  counter-increment: beat; display: flex; align-items: baseline; gap: 10px;
+  font-size: 14px;
+}
+.ls-tx-beats li::before {
+  content: counter(beat);
+  font-family: var(--font-mono); font-size: 10px; flex: none;
+  width: 17px; height: 17px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--foreground); color: var(--background);
+}
+
+.ls-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; padding: 4px 0; }
+.ls-cards-slot { position: relative; min-width: 0; }
+
+/* The word sits in the gutter between the two cards and says what the first
+   one does to the second. */
+.ls-link {
+  position: absolute; left: -40px; top: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted-foreground); white-space: nowrap;
+}
+
+.ls-card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); padding: 14px 16px; height: 100%;
+}
+.ls-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ls-card-title { font-family: var(--font-sans); font-size: 14px; font-weight: 650; }
+
+.ls-chip {
+  font-family: var(--font-sans); font-size: 10.5px; font-weight: 600;
+  padding: 2px 8px; border-radius: 999px;
+  background: var(--foreground); color: var(--background); white-space: nowrap;
+}
+.ls-chip[data-tone='muted'] { background: var(--muted-foreground); }
+.ls-chip[data-tone='good'] { background: var(--positive); }
+.ls-chip[data-tone='bad'] { background: var(--destructive); }
+
+.ls-card-by {
+  margin: 4px 0 12px; font-family: var(--font-mono); font-size: 11px;
   color: var(--muted-foreground);
-  /* Disabled on purpose: this page is a figure, not the playground. */
-  cursor: not-allowed;
+}
+.ls-card-rows { margin: 0; display: flex; flex-direction: column; gap: 7px; }
+.ls-card-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 10px; }
+.ls-card-row dt { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+.ls-card-row dd { margin: 0; font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+
+.ls-note {
+  margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--muted-foreground);
+  max-width: 46ch;
 }
 
-/* ── Blocks ─────────────────────────────────────────────────────────── */
+/* ── Mobile ─────────────────────────────────────────────────────────── */
 
-.ls-block { padding: 16px; }
-.ls-block + .ls-block { border-top: 1px solid var(--border); }
-.ls-block-label {
-  margin: 0 0 12px; font-family: var(--font-sans); font-size: 11px;
-  font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--muted-foreground);
+/*
+ * Every row in the design's mobile board becomes a column: the actor's holdings
+ * drop under their name, the moves stack, text and scene stack, cards stack.
+ */
+@media (max-width: 60rem) {
+  .ls { padding: 32px 14px 96px; }
+  .ls-title { font-size: 1.75rem; }
+
+  .ls-strip { gap: 6px; padding: 10px 12px; }
+  /* Stacked, and no longer mirrored: with one actor per column the left/right
+     reading that made the mirror meaningful is gone. */
+  .ls-col,
+  .ls-col[data-who='bob'] { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; }
+  .ls-col[data-who='pinkwhale'] { flex: 1 1 0; }
+  .ls-col-face { width: 22px; height: 22px; }
+  .ls-col-holds { align-items: flex-start; }
+  .ls-asset { font-size: 11px; padding: 2px 7px; }
+
+  .ls-moves { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 12px; }
+
+  .ls-inner { grid-template-columns: 1fr; gap: 16px; }
+  .ls-text { position: static; }
+  .ls-step { padding-bottom: 56px; }
+
+  .ls-cards { grid-template-columns: 1fr; gap: 14px; }
+  /* No gutter to sit in once the cards stack; it becomes a label above. */
+  .ls-link {
+    position: static; transform: none; display: block;
+    margin: 0 0 8px; text-align: left;
+  }
+
+  /* Each step carries its own scene down here, so dimming the others only makes
+     them harder to read on the way past. */
+  .ls[data-mounted='true'] .ls-step { opacity: 1; }
 }
 
-/* ── Actors ─────────────────────────────────────────────────────────── */
-
-.ls-actors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.ls-actor { display: flex; align-items: center; gap: 11px; padding: 6px 0; }
-.ls-actor-face {
-  width: 26px; height: 26px; border-radius: 50%; flex: none;
-  background: var(--muted); box-shadow: inset 0 0 0 1px var(--border);
-}
-/* The design's own actor tints, kept because they identify a person rather than
-   decorate a row. */
-.ls-actor[data-tint='alice'] .ls-actor-face { background: #ffbad1; }
-.ls-actor[data-tint='bob'] .ls-actor-face { background: #94dff7; }
-.ls-actor[data-tint='pinkwhale'] .ls-actor-face { background: var(--brand); }
-
-.ls-actor-who { display: flex; flex-direction: column; min-width: 0; }
-.ls-actor-name { font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
-.ls-actor-role { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
-
-.ls-actor-holds {
-  margin-left: auto; display: flex; flex-direction: column; align-items: flex-end;
-  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
-}
-.ls-actor-usdc { font-size: 13.5px; }
-.ls-actor-nft { font-size: 11px; color: var(--muted-foreground); }
-
-/* ── Orders ─────────────────────────────────────────────────────────── */
-
-.ls-orders { display: flex; flex-direction: column; }
-.ls-orders-head, .ls-order-row {
-  display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
-}
-.ls-orders-head { padding-bottom: 9px; border-bottom: 1px solid var(--border); }
-.ls-order-title {
-  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
-  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
-}
-.ls-order-state {
-  font-family: var(--font-mono); font-size: 10px; font-weight: 400;
-  letter-spacing: 0.04em; text-transform: uppercase;
-  padding: 1px 6px; border-radius: 999px; border: 1px solid var(--border);
-  color: var(--muted-foreground);
-}
-.ls-order-title[data-state='filled'] .ls-order-state,
-.ls-order-title[data-state='active'] .ls-order-state {
-  color: var(--positive); border-color: color-mix(in oklab, var(--positive) 40%, var(--border));
-}
-.ls-order-title[data-state='cancelled'] .ls-order-state,
-.ls-order-title[data-state='expired'] .ls-order-state {
-  color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 40%, var(--border));
-}
-/* A resolved order is still readable but no longer competing for attention. */
-.ls-order-title[data-state='cancelled'], .ls-order-title[data-state='expired'] { opacity: 0.55; }
-
-.ls-order-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
-.ls-order-row:last-child { border-bottom: 0; }
-.ls-order-label {
-  font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground);
-  padding-top: 1px;
-}
-.ls-order-cell { display: flex; flex-direction: column; min-width: 0; }
-.ls-order-line { font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; }
-.ls-order-sub { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
-
-/* ── Caption ────────────────────────────────────────────────────────── */
-
-.ls-caption {
-  margin: 48px 0 0; font-size: 13px; color: var(--muted-foreground);
-  font-style: italic; max-width: 42rem;
+@media (prefers-reduced-motion: reduce) {
+  .ls[data-mounted='true'] .ls-step { transition: none; }
 }
