@@ -1,7 +1,14 @@
 'use client';
 
 import {Blobatar} from '@blobatar/react';
-import {useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type RefObject
+} from 'react';
 
 import {Chip} from './Chip';
 import {ArrowLeft, ArrowRight, Info, Zap} from './icons';
@@ -19,6 +26,36 @@ import {HOLDERS, STEPS, movedInto, type AssetId, type OrderCard, type Step} from
 
 /** A step takes over once its top crosses this fraction of the viewport. */
 const ACTIVATION_LINE = 0.55;
+
+/**
+ * Publish the nav's real height so the strip can come to rest exactly under it.
+ *
+ * It was a hard-coded 56px before and the nav is not 56px, so the strip spent
+ * every scroll partly hidden. Nothing here should be guessing a number that the
+ * browser already knows and will happily recompute when the nav wraps, the font
+ * loads, or someone adds a link to it.
+ */
+const useNavHeight = () => {
+  useEffect(() => {
+    const nav = document.querySelector('.nav');
+
+    if (!nav) return;
+
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        '--nav-height',
+        `${Math.round(nav.getBoundingClientRect().height)}px`
+      );
+
+    publish();
+
+    const observer = new ResizeObserver(publish);
+
+    observer.observe(nav);
+
+    return () => observer.disconnect();
+  }, []);
+};
 
 const pad = (index: number) => String(index + 1).padStart(2, '0');
 
@@ -84,29 +121,33 @@ const useAssetFlip = (active: number) => {
     if (node) chips.current.set(id, node);
   };
 
-  return {register, strip};
+  return {register, stripRef: strip};
 };
 
-/** The balances bar. Rendered per step; only the active one registers its chips
- *  for animation, so four copies of the ape cannot fight over one position. */
+/**
+ * The balances bar — one for the page, not one per step.
+ *
+ * The hi-fi draws a copy above every step, which is how a static board has to
+ * show four different states. Here there is only ever one, because the assets
+ * have to be able to travel: a chip that is replaced by a copy of itself in
+ * another element has not moved anywhere, it has been redrawn.
+ */
 const Strip = ({
   step,
   index,
-  live,
   register,
   stripRef
 }: {
   step: Step;
   index: number;
-  live: boolean;
   register: (id: AssetId) => (node: HTMLElement | null) => void;
-  stripRef: (node: HTMLDivElement | null) => void;
+  stripRef: RefObject<HTMLDivElement | null>;
 }) => {
   const moved = movedInto(index);
 
   return (
     <div className="ls-balances">
-      <div className="ls-strip" ref={live ? stripRef : undefined}>
+      <div className="ls-strip" ref={stripRef}>
         {HOLDERS.map((holder) => (
           <div className="ls-col" key={holder.id} data-who={holder.id}>
             <span className="ls-col-face">
@@ -121,12 +162,7 @@ const Strip = ({
                 <span className="ls-empty">holds nothing</span>
               ) : (
                 step.holdings[holder.id].map((id) => (
-                  <Chip
-                    key={id}
-                    id={id}
-                    moved={live && moved.has(id)}
-                    innerRef={live ? register(id) : undefined}
-                  />
+                  <Chip key={id} id={id} moved={moved.has(id)} innerRef={register(id)} />
                 ))
               )}
             </span>
@@ -209,7 +245,9 @@ export const LoanStory = () => {
   const [active, setActive] = useState(0);
   const stepsRef = useRef<(HTMLElement | null)[]>([]);
   const mounted = useSyncExternalStore(NEVER_CHANGES, onClient, onServer);
-  const {register, strip} = useAssetFlip(active);
+  const {register, stripRef} = useAssetFlip(active);
+
+  useNavHeight();
 
   useEffect(() => {
     // Geometry rather than IntersectionObserver, as in cudo's tour: an observer
@@ -251,6 +289,13 @@ export const LoanStory = () => {
 
   return (
     <section className="ls" data-mounted={mounted ? 'true' : 'false'}>
+      <Strip
+        step={STEPS[active] ?? STEPS[0]!}
+        index={active}
+        register={register}
+        stripRef={stripRef}
+      />
+
       <ol className="ls-steps">
         {STEPS.map((entry, index) => (
           <li
@@ -261,16 +306,6 @@ export const LoanStory = () => {
               stepsRef.current[index] = node;
             }}
           >
-            <Strip
-              step={entry}
-              index={index}
-              live={index === active}
-              register={register}
-              stripRef={(node) => {
-                strip.current = node;
-              }}
-            />
-
             <div className="ls-inner">
               <div className="ls-text">
                 <span className="ls-step-num">{pad(index)}</span>

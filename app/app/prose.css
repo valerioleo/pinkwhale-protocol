@@ -8,15 +8,16 @@
 
 /* ── Chrome ─────────────────────────────────────────────────────────── */
 
-/* Declared rather than emergent, because the loan story's own sticky strip has
-   to come to rest exactly below it. */
+/* A starting value for the first paint only. The loan story measures the nav and
+   overwrites it, because the height that matters is whatever the browser arrives
+   at once the fonts have loaded and the links have laid out — not a number typed
+   here that the nav is then forced to agree with. */
 :root { --nav-height: 56px; }
 
 .nav {
   position: sticky; top: 0; z-index: 20;
-  height: var(--nav-height); box-sizing: border-box;
-  display: flex; align-items: center; gap: 22px;
-  padding: 0 22px;
+  display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+  padding: 14px 22px;
   background: color-mix(in oklab, var(--background) 88%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
