@@ -354,6 +354,14 @@ export const LoanStory = () => {
           </li>
         ))}
       </ol>
+
+      {/* Room for the last step to climb.
+
+          A step activates when its top reaches the strip, which the final one can
+          never do if the document ends just below it — it would sit there unplayed
+          however hard you scrolled. A viewport of tail gives every step, including
+          the last, the same distance to travel. */}
+      <div className="ls-tail" aria-hidden="true" />
     </section>
   );
 };

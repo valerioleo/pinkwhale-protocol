@@ -210,6 +210,11 @@ main:has(.ls) { max-width: none; padding: 0; }
 }
 .ls-note svg { flex: none; margin-top: 1px; color: var(--ink-soft); }
 
+/* One viewport, so the last step can be scrolled fully under the strip like any
+   other. Sized in vh rather than pixels because what it has to outrun is the
+   window. */
+.ls-tail { min-height: 100vh; }
+
 /* ── Mobile (390) ───────────────────────────────────────────────────── */
 
 @media (max-width: 60rem) {
