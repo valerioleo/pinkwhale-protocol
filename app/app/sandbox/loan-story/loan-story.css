@@ -1,0 +1,230 @@
+/*
+ * ────────────────────────────────────────────────────────────────────────
+ * FIG. 1 — THE LOAN STORY
+ * Sandbox. Structure follows the Pencil design; colour comes from the app's
+ * tokens so it can move into the article without a second palette.
+ * ────────────────────────────────────────────────────────────────────────
+ */
+
+/*
+ * The layout wraps every page in a 42rem <main> because every other page is
+ * prose. This one is a figure: two order columns beside a label column, next to a
+ * column of text. Released from the measure rather than moved out of the layout,
+ * so the nav and the tokens still come from the same place.
+ */
+main:has(.ls) { max-width: none; padding: 0; }
+
+.ls {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 56px 28px 140px;
+}
+
+/* ── Heading ────────────────────────────────────────────────────────── */
+
+.ls-head { max-width: 42rem; margin-bottom: 56px; }
+.ls-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.ls-kicker-num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  background: var(--foreground); color: var(--background);
+  padding: 2px 7px; border-radius: 6px;
+}
+.ls-kicker-label {
+  font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--muted-foreground);
+}
+.ls-title {
+  font-size: 2.125rem; line-height: 1.15; letter-spacing: -0.02em;
+  margin: 0 0 12px; font-weight: 600;
+}
+.ls-sub { color: var(--muted-foreground); margin: 0; font-size: 17px; }
+
+/* ── Grid ───────────────────────────────────────────────────────────── */
+
+.ls-grid { display: grid; grid-template-columns: minmax(0, 27rem) minmax(0, 1fr); gap: 64px; align-items: start; }
+.ls-steps { list-style: none; margin: 0; padding: 0; }
+.ls-sticky { position: sticky; top: 76px; }
+
+/* One column below the point where two stop fitting: the panel cannot follow
+   along, so each step carries its own copy instead. */
+@media (max-width: 64rem) {
+  .ls-grid { grid-template-columns: 1fr; gap: 0; }
+  .ls-sticky { display: none; }
+}
+@media (min-width: 64.0625rem) {
+  .ls-step-panel { display: none; }
+
+  /* A screen of scroll per step, which is what gives the panel time to change
+     and the clock step somewhere to run. Only where there is a panel to follow:
+     in one column the step carries its own, and the runway would be dead space. */
+  .ls-step { min-height: 78vh; }
+}
+.ls-step-panel { margin-top: 24px; }
+
+/* ── Steps ──────────────────────────────────────────────────────────── */
+
+.ls-step {
+  padding: 0 0 72px;
+  display: flex; flex-direction: column; align-items: flex-start;
+}
+.ls-step-num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  color: var(--muted-foreground); letter-spacing: 0.06em;
+}
+.ls-step-title {
+  font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.25;
+  letter-spacing: -0.015em; margin: 10px 0 12px; font-weight: 600;
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.ls-step-day {
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 400;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+}
+.ls-step-body { margin: 0; color: var(--muted-foreground); line-height: 1.65; }
+
+.ls-step-meta {
+  margin: 18px 0 0; display: flex; align-items: center; gap: 9px;
+  font-family: var(--font-mono); font-size: 12px;
+}
+.ls-step-meta-label { color: var(--muted-foreground); }
+.ls-step-meta-value {
+  color: var(--foreground); border: 1px solid var(--border);
+  border-radius: 999px; padding: 2px 9px;
+}
+
+/*
+ * Only once mounted. Prerendered, every step is at full contrast — dimming
+ * four of five with no way to scroll them back would be worse than not dimming
+ * at all.
+ */
+@media (min-width: 64.0625rem) {
+  .ls[data-mounted='true'] .ls-step { opacity: 0.42; transition: opacity 0.25s ease; }
+  .ls[data-mounted='true'] .ls-step[data-active='true'] { opacity: 1; }
+}
+
+/* ── Panel ──────────────────────────────────────────────────────────── */
+
+.ls-panel {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); overflow: hidden;
+}
+.ls-panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 13px 16px; border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+.ls-panel-title { font-family: var(--font-mono); font-size: 12px; color: var(--muted-foreground); }
+
+.ls-status {
+  font-family: var(--font-sans); font-size: 11.5px; font-weight: 600;
+  padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card);
+}
+.ls-status[data-tone='open'] { color: var(--brand); border-color: color-mix(in oklab, var(--brand) 40%, var(--border)); }
+.ls-status[data-tone='good'] { color: var(--positive); border-color: color-mix(in oklab, var(--positive) 40%, var(--border)); }
+.ls-status[data-tone='bad'] { color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 40%, var(--border)); }
+
+/* ── Action bar ─────────────────────────────────────────────────────── */
+
+.ls-bars { display: flex; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+.ls-bar { flex: 1 1 0; background: var(--card); padding: 12px 16px; min-width: 0; }
+.ls-bar-label {
+  display: block; font-family: var(--font-sans); font-size: 12px;
+  color: var(--muted-foreground);
+}
+.ls-bar-value {
+  display: block; margin-top: 3px; font-family: var(--font-mono);
+  font-size: 19px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
+.ls-bar-sub { display: block; margin-top: 3px; font-size: 12px; color: var(--muted-foreground); }
+
+.ls-action {
+  display: block; width: calc(100% - 32px); margin: 14px 16px 0;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  padding: 9px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--background);
+  color: var(--muted-foreground);
+  /* Disabled on purpose: this page is a figure, not the playground. */
+  cursor: not-allowed;
+}
+
+/* ── Blocks ─────────────────────────────────────────────────────────── */
+
+.ls-block { padding: 16px; }
+.ls-block + .ls-block { border-top: 1px solid var(--border); }
+.ls-block-label {
+  margin: 0 0 12px; font-family: var(--font-sans); font-size: 11px;
+  font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ── Actors ─────────────────────────────────────────────────────────── */
+
+.ls-actors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ls-actor { display: flex; align-items: center; gap: 11px; padding: 6px 0; }
+.ls-actor-face {
+  width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: var(--muted); box-shadow: inset 0 0 0 1px var(--border);
+}
+/* The design's own actor tints, kept because they identify a person rather than
+   decorate a row. */
+.ls-actor[data-tint='alice'] .ls-actor-face { background: #ffbad1; }
+.ls-actor[data-tint='bob'] .ls-actor-face { background: #94dff7; }
+.ls-actor[data-tint='pinkwhale'] .ls-actor-face { background: var(--brand); }
+
+.ls-actor-who { display: flex; flex-direction: column; min-width: 0; }
+.ls-actor-name { font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
+.ls-actor-role { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+
+.ls-actor-holds {
+  margin-left: auto; display: flex; flex-direction: column; align-items: flex-end;
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.ls-actor-usdc { font-size: 13.5px; }
+.ls-actor-nft { font-size: 11px; color: var(--muted-foreground); }
+
+/* ── Orders ─────────────────────────────────────────────────────────── */
+
+.ls-orders { display: flex; flex-direction: column; }
+.ls-orders-head, .ls-order-row {
+  display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
+}
+.ls-orders-head { padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+.ls-order-title {
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.ls-order-state {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 400;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 999px; border: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+.ls-order-title[data-state='filled'] .ls-order-state,
+.ls-order-title[data-state='active'] .ls-order-state {
+  color: var(--positive); border-color: color-mix(in oklab, var(--positive) 40%, var(--border));
+}
+.ls-order-title[data-state='cancelled'] .ls-order-state,
+.ls-order-title[data-state='expired'] .ls-order-state {
+  color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 40%, var(--border));
+}
+/* A resolved order is still readable but no longer competing for attention. */
+.ls-order-title[data-state='cancelled'], .ls-order-title[data-state='expired'] { opacity: 0.55; }
+
+.ls-order-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.ls-order-row:last-child { border-bottom: 0; }
+.ls-order-label {
+  font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground);
+  padding-top: 1px;
+}
+.ls-order-cell { display: flex; flex-direction: column; min-width: 0; }
+.ls-order-line { font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; }
+.ls-order-sub { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+
+/* ── Caption ────────────────────────────────────────────────────────── */
+
+.ls-caption {
+  margin: 48px 0 0; font-size: 13px; color: var(--muted-foreground);
+  font-style: italic; max-width: 42rem;
+}
