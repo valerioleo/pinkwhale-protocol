@@ -19,18 +19,54 @@ export type Holder = 'alice' | 'pinkwhale' | 'bob';
  */
 export type AssetId = 'ape' | 'principal' | 'repayment';
 
-export const ASSETS: Record<AssetId, {readonly label: string; readonly kind: 'nft' | 'coin'}> = {
-  ape: {label: 'BAYC #8817', kind: 'nft'},
-  principal: {label: '100 USDC', kind: 'coin'},
-  repayment: {label: '110 USDC', kind: 'coin'}
+export const ASSETS: Record<
+  AssetId,
+  {readonly label: string; readonly kind: 'nft' | 'coin'; readonly icon: string}
+> = {
+  ape: {label: 'BAYC #8817', kind: 'nft', icon: '/tokens/bayc.png'},
+  principal: {label: '100 USDC', kind: 'coin', icon: '/tokens/usdc.png'},
+  repayment: {label: '110 USDC', kind: 'coin', icon: '/tokens/usdc.png'}
 };
 
-export const HOLDERS: readonly {readonly id: Holder; readonly name: string; readonly role: string}[] =
-  [
-    {id: 'alice', name: 'Alice', role: 'borrower'},
-    {id: 'pinkwhale', name: 'Pinkwhale', role: 'custody'},
-    {id: 'bob', name: 'Bob', role: 'lender'}
-  ];
+/** `hue` is an OKLCh angle, which is what blobatar builds its palette in — the
+ *  hi-fi's pink and blue faces, read back as angles. */
+export const HOLDERS: readonly {
+  readonly id: Holder;
+  readonly name: string;
+  readonly role: string;
+  readonly hue: number;
+}[] = [
+  {id: 'alice', name: 'Alice', role: 'borrower', hue: 5},
+  {id: 'pinkwhale', name: 'Pinkwhale', role: 'custody', hue: 350},
+  {id: 'bob', name: 'Bob', role: 'lender', hue: 230}
+];
+
+/**
+ * What changed hands on the way into this step, as asset ids.
+ *
+ * Derived rather than declared: the `moves` strings are prose for the reader and
+ * would drift the moment a holding changed. This is the same diff the animation
+ * runs on, so the green ring can never mark something that did not move.
+ */
+export const movedInto = (index: number): ReadonlySet<AssetId> => {
+  const step = STEPS[index];
+  const before = STEPS[index - 1];
+
+  if (!step || !before) return new Set();
+
+  const owner = (holdings: Holdings) =>
+    new Map(
+      (Object.keys(holdings) as Holder[]).flatMap((holder) =>
+        holdings[holder].map((asset) => [asset, holder] as const)
+      )
+    );
+
+  const was = owner(before.holdings);
+
+  return new Set(
+    [...owner(step.holdings)].filter(([asset, holder]) => was.get(asset) !== holder).map(([asset]) => asset)
+  );
+};
 
 export type Holdings = Readonly<Record<Holder, readonly AssetId[]>>;
 

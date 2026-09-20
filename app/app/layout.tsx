@@ -4,9 +4,9 @@ import type {ReactNode} from 'react';
 import './globals.css';
 import './prose.css';
 import '../components/article/pinkwhale.css';
+import './essay.css';
 import {Nav} from '../components/Nav';
-import {fontMono, fontSans, fontSerif} from '../lib/fonts';
-import {Providers} from './providers';
+import {fontGeist, fontGeistMono, fontMono, fontSans, fontSerif} from '../lib/fonts';
 
 const BASE_URL = 'https://pinkwhale.valeriohq.com';
 
@@ -55,12 +55,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: ReactNode}) {
   return (
-    <html lang="en" className={`${fontSerif.variable} ${fontSans.variable} ${fontMono.variable}`}>
+    <html lang="en" className={`${fontSerif.variable} ${fontSans.variable} ${fontMono.variable} ${fontGeist.variable} ${fontGeistMono.variable}`}>
       <body>
-        <Providers>
-          <Nav />
-          <main>{children}</main>
-        </Providers>
+        <a className="skip-link" href="#main-content">Skip to content</a>
+        <Nav />
+        <main id="main-content">{children}</main>
+        <footer className="site-footer">
+          <a href="https://valeriohq.com">An experiment by Valerio Leo ↗</a>
+          <span>Built on Seaport. Shared in the open.</span>
+          <a href="https://github.com/valerioleo/pinkwhale-protocol">Source code ↗</a>
+        </footer>
       </body>
     </html>
   );

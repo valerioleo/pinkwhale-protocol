@@ -1,222 +1,241 @@
 /*
  * ────────────────────────────────────────────────────────────────────────
  * THE LOAN STORY — sandbox
- * Structure from the Pencil hi-fi; colour from the app's tokens, which the
- * design was already borrowing from (#24201e is --foreground).
+ *
+ * The hi-fi's own palette and type, not the article's. A figure being judged
+ * should look like the thing that was drawn; porting it onto the article's warm
+ * paper and Petrona is a decision for when it moves into the article.
  * ────────────────────────────────────────────────────────────────────────
  */
 
-/* The layout caps every page at the prose measure because every other page is
-   prose. This one is a figure. */
 main:has(.ls) { max-width: none; padding: 0; }
 
-.ls { max-width: 82rem; margin: 0 auto; padding: 48px 24px 140px; }
+.ls {
+  --ink: #0a0a0a;
+  --ink-soft: #666666;
+  --line: #e6e6e6;
+  --paper: #ffffff;
+  --well: #f7f7f8;
+  --go: #0f7b3e;
+  --stop: #e5484d;
+  --lift: 0 1px 2px 0 #0000000a;
+  --lift-card: 0 1px 2px 0 #00000014, 0 8px 24px 0 #0000000a;
 
-.ls-head { max-width: 40rem; margin-bottom: 28px; }
-.ls-title {
-  font-size: 2.125rem; line-height: 1.15; letter-spacing: -0.02em;
-  margin: 0 0 10px; font-weight: 600;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist), system-ui, sans-serif;
+  /* The page sets its own ground, so it has to cover the article's. */
+  margin: 0; padding: 0 0 120px;
+  min-height: 100vh;
 }
-.ls-sub { color: var(--muted-foreground); margin: 0; font-size: 17px; }
+
+/* ── Steps ──────────────────────────────────────────────────────────── */
+
+.ls-steps { list-style: none; margin: 0; padding: 0; }
+.ls-step {
+  display: flex; flex-direction: column; gap: 24px;
+  padding: 0 0 112px;
+  border-top: 1px solid var(--line);
+}
+.ls-step:first-child { border-top: 0; }
 
 /* ── The strip ──────────────────────────────────────────────────────── */
 
 /*
- * Sticky for the whole page rather than per step. It is the one thing that
- * persists while the steps scroll past, and an asset has to be able to travel
- * between two columns that never move.
+ * One per step, sticky below the nav. Per step rather than one for the page so
+ * the balances on screen are always the ones the prose beside them describes.
  */
 .ls-balances {
-  position: sticky; top: 0; z-index: 10;
-  margin-bottom: 40px;
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: color-mix(in oklab, var(--card) 92%, transparent);
+  position: sticky; top: var(--nav-height); z-index: 5;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
   backdrop-filter: blur(10px);
-  overflow: hidden;
+  border-bottom: 1px solid var(--line);
 }
 
 /*
- * Not three equal columns. Alice is pinned left, Bob right, Pinkwhale sized to
- * its content in the middle — and Bob's column is mirrored, so both actors hold
- * their assets on the side nearest custody. Every movement in the story is then
- * a short horizontal trip toward or away from the centre, which is the reason the
- * chips animate at all.
+ * Not three equal columns. Alice pinned left, Bob right and mirrored, Pinkwhale
+ * sized to its content between them, so every movement is a short trip toward or
+ * away from custody.
  */
-.ls-strip { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 12px 20px; }
-
-.ls-col { display: flex; flex-direction: row; align-items: center; gap: 12px; min-width: 0; }
+.ls-strip { display: flex; align-items: center; gap: 8px; padding: 12px 20px; }
+.ls-col { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .ls-col[data-who='alice'] { flex: 1 1 0; justify-content: flex-start; }
 .ls-col[data-who='pinkwhale'] { flex: 0 0 auto; justify-content: center; }
 /* `flex-start` with row-reverse is the right-hand edge: the axis is flipped, so
    the two properties have to be read together. */
 .ls-col[data-who='bob'] { flex: 1 1 0; flex-direction: row-reverse; justify-content: flex-start; }
-.ls-col-face { width: 30px; height: 30px; border-radius: 50%; flex: none; }
-/* The design's actor tints: they identify a person, not decorate a row. */
-.ls-col[data-who='alice'] .ls-col-face { background: #ffbad1; }
-.ls-col[data-who='pinkwhale'] .ls-col-face { background: var(--brand); }
-.ls-col[data-who='bob'] .ls-col-face { background: #94dff7; }
 
+.ls-col-face { display: inline-flex; flex: none; border-radius: 50%; overflow: hidden; }
 .ls-col-who { display: flex; flex-direction: column; min-width: 0; }
-.ls-col-name { font-family: var(--font-sans); font-size: 14px; font-weight: 600; line-height: 1.2; }
-.ls-col-role { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+.ls-col-name { font-size: 13px; font-weight: 600; line-height: 1.25; }
+.ls-col-role { font-size: 10px; color: var(--ink-soft); }
+.ls-col-holds { display: flex; align-items: center; gap: 6px; }
+.ls-empty { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11px; color: var(--ink-soft); }
 
-.ls-col-holds { display: flex; flex-direction: row; align-items: center; gap: 6px; flex-wrap: wrap; }
+/* ── Asset chips ────────────────────────────────────────────────────── */
 
-.ls-asset {
-  font-family: var(--font-mono); font-size: 12px; white-space: nowrap;
-  padding: 3px 9px; border-radius: 999px;
-  border: 1px solid var(--border); background: var(--background);
-  /* Held above its column so a chip in flight is never clipped by a neighbour. */
+.ls-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 10px 5px 6px; border-radius: 999px;
+  background: var(--paper); box-shadow: var(--lift);
+  outline: 1px solid var(--line); outline-offset: -0.5px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px; white-space: nowrap;
+  /* Above its neighbours so a chip in flight is never clipped. */
   position: relative; z-index: 1;
 }
-.ls-asset[data-kind='coin'] { font-variant-numeric: tabular-nums; }
-.ls-asset[data-kind='nft'] {
-  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
-  color: var(--brand);
+.ls-chip-mark { display: block; }
+.ls-chip-mark[data-kind='nft'] { border-radius: 5px; outline: 1px solid var(--line); outline-offset: -0.5px; }
+.ls-chip-mark[data-kind='coin'] { border-radius: 50%; }
+
+/* What just changed hands, marked for as long as its step is being read. */
+.ls-chip[data-moved='true'] {
+  outline: 1.5px solid var(--go);
+  box-shadow: 0 0 0 3px #0f7b3e22;
 }
-.ls-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); }
 
 /* ── Moves ──────────────────────────────────────────────────────────── */
 
 .ls-moves {
-  display: flex; flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap;
-  padding: 8px 20px; border-top: 1px solid var(--border);
-  background: var(--background);
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 8px 20px; border-top: 1px solid var(--line);
 }
 .ls-moves-key {
-  font-family: var(--font-sans); font-size: 10px; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-foreground);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft);
 }
-.ls-move { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); }
-
-/* ── Steps ──────────────────────────────────────────────────────────── */
-
-.ls-steps { list-style: none; margin: 0; padding: 0; }
-.ls-step { padding: 0 0 88px; }
-
-.ls-inner { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 48px; align-items: start; }
-.ls-text { position: sticky; top: 132px; }
-
-.ls-step-num {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
-  color: var(--muted-foreground);
+.ls-move {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11.5px; color: var(--ink);
 }
-.ls-step-title {
-  font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.25;
-  letter-spacing: -0.015em; margin: 8px 0 12px; font-weight: 600;
-}
-.ls-step-body { margin: 0; color: var(--muted-foreground); line-height: 1.65; }
+.ls-move svg { color: var(--ink-soft); flex: none; }
 
-/* Only once mounted: prerendered, every step is at full contrast, because
-   dimming four of five with no way to scroll them back is worse than not. */
-.ls[data-mounted='true'] .ls-step { opacity: 0.45; transition: opacity 0.3s ease; }
-.ls[data-mounted='true'] .ls-step[data-active='true'] { opacity: 1; }
+/* ── Text ───────────────────────────────────────────────────────────── */
+
+.ls-inner {
+  display: grid; grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 48px; align-items: start;
+  padding: 0 64px;
+}
+.ls-text { position: sticky; top: calc(var(--nav-height) + 92px); }
+.ls-step-num { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11px; color: var(--ink-soft); }
+/* Stated, not inherited: prose.css sets a serif on `main h2`, and any matching
+   rule beats an inherited value however specific the inheritance looks. */
+.ls-step-title { font-family: var(--font-geist), system-ui, sans-serif; font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; margin: 10px 0 14px; font-weight: 600; }
+.ls-step-body { margin: 0; font-size: 14.5px; line-height: 1.6; color: #444444; }
 
 /* ── Scene ──────────────────────────────────────────────────────────── */
 
-.ls-scene { display: flex; flex-direction: column; gap: 16px; }
+.ls-scene { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
-.ls-tx {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--card); padding: 14px 16px;
+.ls-tx { position: relative; margin-top: 12px; }
+/* The pill straddles the top edge of the well, as in the hi-fi. */
+.ls-tx-pill {
+  position: absolute; top: -11px; left: 16px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: 0.04em; white-space: nowrap;
+  /* No uppercasing: the label carries a method name, and `matchOrders` is not
+     the same word as MATCHORDERS. */
 }
-.ls-tx-head {
-  margin: 0 0 10px; font-family: var(--font-mono); font-size: 10.5px;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground);
+.ls-tx-beats {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0; padding: 22px 0 0; list-style: none; counter-reset: beat;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+  box-shadow: var(--lift);
+  overflow: hidden;
 }
-.ls-tx-beats { margin: 0; padding: 0; list-style: none; counter-reset: beat; display: flex; flex-direction: column; gap: 7px; }
 .ls-tx-beats li {
-  counter-increment: beat; display: flex; align-items: baseline; gap: 10px;
-  font-size: 14px;
+  counter-increment: beat;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; font-size: 13.5px;
+  border-left: 1px solid var(--line);
 }
+.ls-tx-beats li:first-child { border-left: 0; }
 .ls-tx-beats li::before {
   content: counter(beat);
-  font-family: var(--font-mono); font-size: 10px; flex: none;
-  width: 17px; height: 17px; border-radius: 50%;
+  font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 10px;
+  flex: none; width: 18px; height: 18px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--foreground); color: var(--background);
+  background: var(--ink); color: var(--paper);
 }
 
-.ls-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; padding: 4px 0; }
+.ls-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
 .ls-cards-slot { position: relative; min-width: 0; }
-
-/* The word sits in the gutter between the two cards and says what the first
-   one does to the second. */
 .ls-link {
-  position: absolute; left: -40px; top: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted-foreground); white-space: nowrap;
+  position: absolute; left: -20px; top: 50%; transform: translate(-50%, -50%) rotate(-90deg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); white-space: nowrap;
 }
 
 .ls-card {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--card); padding: 14px 16px; height: 100%;
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--paper); box-shadow: var(--lift-card);
+  height: 100%; overflow: hidden;
 }
-.ls-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.ls-card-title { font-family: var(--font-sans); font-size: 14px; font-weight: 650; }
-
-.ls-chip {
-  font-family: var(--font-sans); font-size: 10.5px; font-weight: 600;
-  padding: 2px 8px; border-radius: 999px;
-  background: var(--foreground); color: var(--background); white-space: nowrap;
+.ls-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px 0;
 }
-.ls-chip[data-tone='muted'] { background: var(--muted-foreground); }
-.ls-chip[data-tone='good'] { background: var(--positive); }
-.ls-chip[data-tone='bad'] { background: var(--destructive); }
+.ls-card-title { font-size: 15px; font-weight: 600; }
+.ls-badge {
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px; white-space: nowrap;
+}
+.ls-badge[data-tone='muted'] { background: var(--ink-soft); }
+.ls-badge[data-tone='good'] { background: var(--go); }
+.ls-badge[data-tone='bad'] { background: var(--stop); }
 
 .ls-card-by {
-  margin: 4px 0 12px; font-family: var(--font-mono); font-size: 11px;
-  color: var(--muted-foreground);
+  margin: 4px 0 12px; padding: 0 16px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px; color: var(--ink-soft);
 }
-.ls-card-rows { margin: 0; display: flex; flex-direction: column; gap: 7px; }
-.ls-card-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 10px; }
-.ls-card-row dt { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
-.ls-card-row dd { margin: 0; font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+.ls-card-rows { margin: 0; }
+.ls-card-row {
+  display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 10px;
+  padding: 11px 16px; border-top: 1px solid var(--line);
+}
+.ls-card-row dt { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11px; color: var(--ink-soft); }
+.ls-card-row dd { margin: 0; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 12.5px; overflow-wrap: anywhere; }
 
 .ls-note {
-  margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--muted-foreground);
-  max-width: 46ch;
+  display: flex; align-items: flex-start; gap: 10px;
+  margin: 0; padding: 13px 16px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--well);
+  font-size: 13px; line-height: 1.55; color: #444444;
 }
+.ls-note svg { flex: none; margin-top: 1px; color: var(--ink-soft); }
 
-/* ── Mobile ─────────────────────────────────────────────────────────── */
+/* ── Mobile (390) ───────────────────────────────────────────────────── */
 
-/*
- * Every row in the design's mobile board becomes a column: the actor's holdings
- * drop under their name, the moves stack, text and scene stack, cards stack.
- */
 @media (max-width: 60rem) {
-  .ls { padding: 32px 14px 96px; }
-  .ls-title { font-size: 1.75rem; }
+  .ls-step { gap: 16px; padding-bottom: 64px; }
 
-  .ls-strip { gap: 6px; padding: 10px 12px; }
-  /* Stacked, and no longer mirrored: with one actor per column the left/right
+  .ls-strip { gap: 6px; padding: 10px 12px; align-items: flex-start; }
+  /* Stacked, and no longer mirrored: with one actor per column the left-to-right
      reading that made the mirror meaningful is gone. */
   .ls-col,
   .ls-col[data-who='bob'] { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; }
   .ls-col[data-who='pinkwhale'] { flex: 1 1 0; }
-  .ls-col-face { width: 22px; height: 22px; }
-  .ls-col-holds { align-items: flex-start; }
-  .ls-asset { font-size: 11px; padding: 2px 7px; }
-
+  .ls-col-holds { flex-direction: column; align-items: flex-start; }
   .ls-moves { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 12px; }
 
-  .ls-inner { grid-template-columns: 1fr; gap: 16px; }
+  .ls-inner { grid-template-columns: 1fr; gap: 16px; padding: 0 12px; }
   .ls-text { position: static; }
-  .ls-step { padding-bottom: 56px; }
+  .ls-step-title { font-size: 22px; }
+
+  .ls-tx-beats { grid-template-columns: 1fr; }
+  .ls-tx-beats li { border-left: 0; border-top: 1px solid var(--line); }
+  .ls-tx-beats li:first-child { border-top: 0; }
 
   .ls-cards { grid-template-columns: 1fr; gap: 14px; }
   /* No gutter to sit in once the cards stack; it becomes a label above. */
-  .ls-link {
-    position: static; transform: none; display: block;
-    margin: 0 0 8px; text-align: left;
-  }
-
-  /* Each step carries its own scene down here, so dimming the others only makes
-     them harder to read on the way past. */
-  .ls[data-mounted='true'] .ls-step { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ls[data-mounted='true'] .ls-step { transition: none; }
+  .ls-link { position: static; transform: none; display: block; margin: 0 0 8px; }
 }

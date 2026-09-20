@@ -1,21 +1,20 @@
 'use client';
 
+import {Blobatar} from '@blobatar/react';
 import {useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 
-import {ASSETS, HOLDERS, STEPS, type AssetId, type OrderCard, type Step} from './story';
+import {Chip} from './Chip';
+import {ArrowLeft, ArrowRight, Info, Zap} from './icons';
+import {HOLDERS, STEPS, movedInto, type AssetId, type OrderCard, type Step} from './story';
 
 /**
  * The loan, told by moving three assets between three columns.
  *
- * The strip is the constant: Alice, Pinkwhale, Bob, always in that order, always
- * on screen. Each step below it describes one movement between two of those
- * columns, and as the step arrives the asset actually travels — the chip is the
- * same DOM node throughout, so it slides from where it was to where it now
- * belongs rather than disappearing here and reappearing there.
- *
- * That is the whole argument the page is making. A loan is not a new kind of
- * object; it is an ape and some USDC changing hands under rules two signatures
- * already agreed.
+ * Each step carries its own strip, sticky at the top while that step is being
+ * read, so the balances are always the ones the prose beside them is talking
+ * about. As a step arrives its assets travel: the chip is measured before and
+ * after and animated across the gap, and whatever changed hands wears a ring for
+ * as long as the step is on screen.
  */
 
 /** A step takes over once its top crosses this fraction of the viewport. */
@@ -30,10 +29,11 @@ const onServer = () => false;
 /**
  * FLIP, for the one thing on the page that has to feel physical.
  *
- * React moves a keyed chip into its new column and the browser paints it there
- * immediately; this reads both positions, puts the chip back where it was with a
- * transform, and then releases it in the next frame. The alternative — fading one
- * copy out and another in — says two assets existed. There is only ever one ape.
+ * A crossfade would say two assets existed; there is only ever one ape. Positions
+ * are taken against the strip rather than the viewport because the strip is
+ * sticky — while it is settling its viewport coordinates move under us, and a
+ * step changing during those few hundred pixels would animate the page's scroll
+ * instead of the asset's journey.
  */
 const useAssetFlip = (active: number) => {
   const chips = useRef(new Map<AssetId, HTMLElement>());
@@ -45,16 +45,11 @@ const useAssetFlip = (active: number) => {
 
     if (!frame) return;
 
-    // Measured against the strip, not the viewport. The strip is sticky, so while
-    // it is still scrolling into place its viewport coordinates move under us —
-    // and a step that changed during those few hundred pixels would animate the
-    // page's scroll rather than the asset's journey.
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // An asset that changes column changes parent, so React unmounts the old chip
-    // and mounts a new one rather than moving the node. Pruning by `isConnected`
-    // rather than by a ref cleanup means this does not depend on whether React
-    // happens to call the detaching ref before or after the attaching one.
+    // An asset that changes column changes parent, so React mounts a new chip
+    // rather than moving the node. Pruning on `isConnected` keeps this from
+    // depending on whether the detaching ref fires before the attaching one.
     chips.current.forEach((node, id) => {
       if (!node.isConnected) chips.current.delete(id);
     });
@@ -74,15 +69,12 @@ const useAssetFlip = (active: number) => {
       // Sub-pixel drift is not movement; animating it only costs a repaint.
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
 
-      node.animate(
-        [{transform: `translate(${dx}px, ${dy}px)`}, {transform: 'translate(0, 0)'}],
-        {duration: 620, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)'}
-      );
+      node.animate([{transform: `translate(${dx}px, ${dy}px)`}, {transform: 'none'}], {
+        duration: 620,
+        easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)'
+      });
     });
 
-    // An asset that has left the strip should not animate in from a stale
-    // position if it comes back: step 04 rewinds the world, and by then the ape
-    // has been in three different columns.
     previous.current.forEach((_position, id) => {
       if (!chips.current.has(id)) previous.current.delete(id);
     });
@@ -95,11 +87,75 @@ const useAssetFlip = (active: number) => {
   return {register, strip};
 };
 
+/** The balances bar. Rendered per step; only the active one registers its chips
+ *  for animation, so four copies of the ape cannot fight over one position. */
+const Strip = ({
+  step,
+  index,
+  live,
+  register,
+  stripRef
+}: {
+  step: Step;
+  index: number;
+  live: boolean;
+  register: (id: AssetId) => (node: HTMLElement | null) => void;
+  stripRef: (node: HTMLDivElement | null) => void;
+}) => {
+  const moved = movedInto(index);
+
+  return (
+    <div className="ls-balances">
+      <div className="ls-strip" ref={live ? stripRef : undefined}>
+        {HOLDERS.map((holder) => (
+          <div className="ls-col" key={holder.id} data-who={holder.id}>
+            <span className="ls-col-face">
+              <Blobatar name={holder.name} size={26} hue={holder.hue} />
+            </span>
+            <span className="ls-col-who">
+              <span className="ls-col-name">{holder.name}</span>
+              <span className="ls-col-role">{holder.role}</span>
+            </span>
+            <span className="ls-col-holds">
+              {step.holdings[holder.id].length === 0 ? (
+                <span className="ls-empty">holds nothing</span>
+              ) : (
+                step.holdings[holder.id].map((id) => (
+                  <Chip
+                    key={id}
+                    id={id}
+                    moved={live && moved.has(id)}
+                    innerRef={live ? register(id) : undefined}
+                  />
+                ))
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {step.moves.length > 0 ? (
+        <div className="ls-moves">
+          <span className="ls-moves-key">On scroll</span>
+          {step.moves.map((move, order) => (
+            <span key={move} className="ls-move">
+              {/* Alternating direction, as the hi-fi draws it: the arrow says
+                  which way across the strip to look. */}
+              {order % 2 === 0 ? <ArrowRight /> : <ArrowLeft />}
+              {move}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const Card = ({card}: {card: OrderCard}) => (
-  <div className="ls-card" data-tone={card.tone}>
+  <div className="ls-card">
     <div className="ls-card-head">
       <span className="ls-card-title">{card.title}</span>
-      <span className="ls-chip" data-tone={card.tone}>
+      <span className="ls-badge" data-tone={card.tone}>
         {card.status}
       </span>
     </div>
@@ -119,7 +175,10 @@ const Scene = ({scene}: {scene: Step['scene']}) => (
   <div className="ls-scene">
     {scene.tx ? (
       <div className="ls-tx">
-        <p className="ls-tx-head">{scene.tx.header}</p>
+        <span className="ls-tx-pill">
+          <Zap />
+          {scene.tx.header}
+        </span>
         <ol className="ls-tx-beats">
           {scene.tx.beats.map((beat) => (
             <li key={beat}>{beat}</li>
@@ -137,7 +196,12 @@ const Scene = ({scene}: {scene: Step['scene']}) => (
       ))}
     </div>
 
-    {scene.note ? <p className="ls-note">{scene.note}</p> : null}
+    {scene.note ? (
+      <p className="ls-note">
+        <Info />
+        <span>{scene.note}</span>
+      </p>
+    ) : null}
   </div>
 );
 
@@ -151,7 +215,7 @@ export const LoanStory = () => {
     // Geometry rather than IntersectionObserver, as in cudo's tour: an observer
     // only reports crossings it happens to see, so a fling that carries a step
     // past a thin trigger band between two frames leaves the strip holding assets
-    // where they no longer are. This recomputes from scratch on every event.
+    // where they no longer are.
     const compute = () => {
       const line = window.innerHeight * ACTIVATION_LINE;
 
@@ -185,60 +249,8 @@ export const LoanStory = () => {
     };
   }, []);
 
-  const step = STEPS[active] ?? STEPS[0]!;
-
   return (
     <section className="ls" data-mounted={mounted ? 'true' : 'false'}>
-      <header className="ls-head">
-        <h1 className="ls-title">One loan, four states</h1>
-        <p className="ls-sub">
-          Three assets, three columns. Everything below is one of them changing hands.
-        </p>
-      </header>
-
-      {/* One strip for the whole page, not one per step: it is the thing that
-          persists while the steps scroll past it. */}
-      <div className="ls-balances">
-        <div className="ls-strip" ref={strip}>
-          {HOLDERS.map((holder) => (
-            <div className="ls-col" key={holder.id} data-who={holder.id}>
-              <span className="ls-col-face" aria-hidden="true" />
-              <span className="ls-col-who">
-                <span className="ls-col-name">{holder.name}</span>
-                <span className="ls-col-role">{holder.role}</span>
-              </span>
-              <span className="ls-col-holds">
-                {step.holdings[holder.id].length === 0 ? (
-                  <span className="ls-empty">holds nothing</span>
-                ) : (
-                  step.holdings[holder.id].map((id) => (
-                    <span
-                      key={id}
-                      ref={register(id)}
-                      className="ls-asset"
-                      data-kind={ASSETS[id].kind}
-                    >
-                      {ASSETS[id].label}
-                    </span>
-                  ))
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {step.moves.length > 0 ? (
-          <div className="ls-moves">
-            <span className="ls-moves-key">On scroll</span>
-            {step.moves.map((move) => (
-              <span key={move} className="ls-move">
-                {move}
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </div>
-
       <ol className="ls-steps">
         {STEPS.map((entry, index) => (
           <li
@@ -249,6 +261,16 @@ export const LoanStory = () => {
               stepsRef.current[index] = node;
             }}
           >
+            <Strip
+              step={entry}
+              index={index}
+              live={index === active}
+              register={register}
+              stripRef={(node) => {
+                strip.current = node;
+              }}
+            />
+
             <div className="ls-inner">
               <div className="ls-text">
                 <span className="ls-step-num">{pad(index)}</span>

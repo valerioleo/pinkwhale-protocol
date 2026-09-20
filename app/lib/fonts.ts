@@ -1,4 +1,4 @@
-import {IBM_Plex_Mono, Instrument_Sans, Petrona} from 'next/font/google';
+import {Geist, Geist_Mono, IBM_Plex_Mono, Instrument_Sans, Petrona} from 'next/font/google';
 
 /**
  * The same trio as valeriohq: serif to read, sans for the interface, mono for
@@ -26,4 +26,24 @@ export const fontMono = IBM_Plex_Mono({
   variable: '--font-plex-mono',
   display: 'swap',
   weight: ['400', '500']
+});
+
+/**
+ * Geist, for the sandbox only.
+ *
+ * The article is set in the valeriohq trio above. The hi-fi the loan story is
+ * built from is set in Geist, and a figure being evaluated should look like the
+ * thing that was drawn — porting it onto the article's type is a decision for
+ * when it moves into the article, not before.
+ */
+export const fontGeist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap'
+});
+
+export const fontGeistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap'
 });
