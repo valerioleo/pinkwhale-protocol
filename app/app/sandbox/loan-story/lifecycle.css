@@ -1,0 +1,310 @@
+/*
+ * ────────────────────────────────────────────────────────────────────────
+ * FIG. 1 — THE LOAN LIFECYCLE (sandbox)
+ * The hi-fi's own palette and type: Inter over IBM Plex Mono, three bands of
+ * ground. A figure being judged should look like the thing that was drawn.
+ * ────────────────────────────────────────────────────────────────────────
+ */
+
+main:has(.lc) { max-width: none; padding: 0; }
+
+.lc {
+  --ink: #111214;
+  --ink-2: #24262b;
+  --ink-3: #303238;
+  --paper: #ffffff;
+  --paper-2: #fafafb;
+  --paper-3: #f4f4f5;
+  --line: #dadde4;
+  --line-2: #eceef2;
+  --muted: #7b7d85;
+  --muted-2: #92959e;
+
+  /* Repayment is green the whole way through: lane, badge, diff. Claim is amber,
+     and never both at once — the figure's entire argument is that exactly one of
+     the two can happen. */
+  --go: #1b9c61;
+  --go-dim: #8abdab;
+  --go-rail: #486258;
+  --claim: #d6aa72;
+  --claim-rail: #705d43;
+  --brand: #ff5fa2;
+
+  font-family: var(--font-inter), system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  margin: 0;
+  padding: 0 0 80px;
+}
+
+.lc p { margin: 0; }
+
+/* Stated once for every heading in the figure. prose.css sets a serif on `main
+   h1`–`h4`, and a matching rule beats an inherited value however specific the
+   inheritance looks — so .lc's own font-family never reaches them. */
+.lc h1, .lc h2, .lc h3, .lc h4 { font-family: var(--font-inter), system-ui, sans-serif; }
+
+/* And the same for inline code, which the prose gives a tinted chip. */
+.lc code { background: none; padding: 0; font-size: inherit; }
+
+/* ── Heading ────────────────────────────────────────────────────────── */
+
+.lc-head { padding: 80px 64px 40px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+.lc-kicker {
+  grid-column: 1 / -1;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+}
+.lc-title { margin: 14px 0 0; font-size: 46px; line-height: 1.06; letter-spacing: -0.035em; font-weight: 600; }
+.lc-context { font-size: 13.5px; color: var(--muted); text-align: right; line-height: 1.55; }
+.lc-context span { display: block; }
+
+/* ── Bands ──────────────────────────────────────────────────────────── */
+
+.lc-band { border-top: 1px solid var(--line); }
+.lc-band--open {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px;
+  padding: 40px 64px 64px; background: var(--paper-2);
+}
+.lc-step-head { margin: 0 0 14px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 11px; }
+.lc-step-num { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: var(--brand); font-weight: 400; }
+.lc-step-caption { font-size: 13.5px; line-height: 1.62; color: #4a4d55; max-width: 52ch; }
+.lc-step-caption + .lc-step-caption { margin-top: 14px; }
+
+/* ── 01 Agree ───────────────────────────────────────────────────────── */
+
+.lc-orders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 44px; }
+.lc-order {
+  border: 1px solid var(--line-2); border-radius: 10px; background: var(--paper);
+  box-shadow: 0 1px 2px #00000008; overflow: hidden;
+}
+.lc-order-head { padding: 13px 15px 12px; }
+.lc-order-kind {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; color: var(--muted);
+}
+.lc-order-glyph {
+  width: 15px; height: 15px; border-radius: 4px; flex: none;
+  background: linear-gradient(135deg, #b9a6ff, #8f7bf0);
+}
+.lc-order-signer { display: block; margin-top: 12px; font-size: 11.5px; color: var(--muted); }
+.lc-order-title { margin: 2px 0 10px; font-size: 16px; font-weight: 600; letter-spacing: -0.015em; }
+.lc-order-pair { display: flex; align-items: center; gap: 8px; }
+.lc-order-token {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: var(--muted);
+}
+.lc-order-token img { border-radius: 50%; }
+.lc-order-token img[data-token='BAYC'] { border-radius: 4px; }
+.lc-order-swap { color: var(--muted-2); margin-right: 2px; }
+
+.lc-order-fields {
+  padding: 9px 15px; border-top: 1px solid var(--line-2);
+  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: var(--muted-2);
+}
+.lc-order-fields code { font: inherit; }
+
+/* The diff is the whole point of the card: everything above it is an ordinary
+   swap, and these six rows are all Pinkwhale adds. */
+.lc-diff {
+  margin: 0; padding: 10px 0; border-top: 1px solid var(--line-2);
+  background: #eefaf2; border-left: 2px solid var(--go);
+  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; line-height: 1.75;
+  color: #1c5c3d; overflow-x: auto;
+}
+.lc-diff-row { display: block; padding: 0 13px; white-space: pre; }
+.lc-diff-sign { color: var(--go); margin-right: 7px; }
+
+/* ── 02 Exchange ────────────────────────────────────────────────────── */
+
+.lc-exchange {
+  margin-top: 44px; border-radius: 12px; background: var(--ink);
+  padding: 26px 28px; display: flex; flex-direction: column; gap: 22px;
+}
+.lc-transfer {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px;
+  align-items: end;
+}
+.lc-transfer + .lc-transfer { border-top: 1px solid #ffffff14; padding-top: 22px; }
+.lc-transfer-label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8d96;
+}
+.lc-transfer-label { grid-column: 1; }
+.lc-transfer-value {
+  grid-column: 1; display: flex; align-items: center; gap: 12px; margin-top: 10px;
+  color: var(--paper);
+}
+.lc-transfer-value img { border-radius: 50%; flex: none; }
+.lc-transfer-value img[data-asset='ape'] { border-radius: 6px; }
+.lc-transfer-value strong { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; }
+.lc-transfer-value span {
+  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: #8a8d96;
+  align-self: flex-end; padding-bottom: 5px;
+}
+/* On the value's row, not spanning both: `1 / -1` has no explicit rows to
+   span here, so it collapsed to the first one. */
+.lc-transfer-route { grid-column: 2; grid-row: 2; align-self: end; text-align: right; font-size: 12.5px; color: var(--paper); }
+.lc-transfer-route span {
+  display: block; font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8d96; margin-bottom: 5px;
+}
+
+/* ── 03 Resolve ─────────────────────────────────────────────────────── */
+
+.lc-band--resolve {
+  display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 56px;
+  padding: 72px 64px 80px; background: var(--ink); color: var(--paper); border-top: 0;
+}
+.lc-band--resolve .lc-step-caption { color: #9a9da5; }
+.lc-band--resolve .lc-step-head { margin-bottom: 0; }
+.lc-resolve-text { align-self: center; }
+.lc-resolve-title { font-size: 34px; font-weight: 600; letter-spacing: -0.03em; margin: 4px 0 18px; }
+
+.lc-origin { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: #9a9da5; }
+.lc-origin strong { color: var(--paper); font-weight: 600; }
+.lc-origin-mark { width: 20px; height: 14px; border-radius: 7px 9px 9px 7px; background: var(--brand); flex: none; }
+
+.lc-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 22px 0 16px; }
+.lc-playback {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8d96;
+}
+.lc-scenarios { display: flex; padding: 3px; border-radius: 8px; background: #ffffff0f; }
+.lc-scenario {
+  border: 0; background: transparent; cursor: pointer;
+  padding: 6px 16px; border-radius: 6px;
+  font-family: inherit; font-size: 12.5px; font-weight: 500; color: #9a9da5;
+}
+.lc-scenario[data-on='true'] { background: var(--ink-3); color: var(--paper); }
+
+.lc-stage { border: 1px solid #ffffff14; border-radius: 12px; padding: 24px 26px 26px; background: #16181c; }
+
+.lc-readout { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.lc-readout-label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8d96;
+}
+.lc-amount { display: flex; align-items: center; gap: 11px; margin-top: 10px; }
+.lc-amount img { border-radius: 50%; flex: none; }
+.lc-amount strong { font-size: 42px; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.lc-amount span {
+  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 12px;
+  color: #8a8d96; align-self: flex-end; padding-bottom: 8px;
+}
+.lc-clock { text-align: right; }
+.lc-day { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.lc-day-note { font-size: 12px; color: #8a8d96; margin-top: 2px; }
+
+/* The two lanes are one timeline. Their widths are the days they cover, so the
+   deadline sits where it actually falls rather than in the middle. */
+.lc-lanes { display: flex; gap: 14px; margin-top: 26px; }
+.lc-lane { min-width: 0; }
+.lc-lane-label {
+  display: block; margin-bottom: 8px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.lc-lane[data-tone='repayment'] .lc-lane-label { color: var(--go-dim); }
+.lc-lane[data-tone='claim'] .lc-lane-label { color: var(--claim); }
+
+.lc-lane-track { position: relative; display: block; height: 3px; border-radius: 2px; }
+.lc-lane[data-tone='repayment'] .lc-lane-track { background: var(--go-rail); }
+.lc-lane[data-tone='claim'] .lc-lane-track { background: var(--claim-rail); }
+.lc-lane-fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; transition: width 120ms linear; }
+.lc-lane[data-tone='repayment'] .lc-lane-fill { background: var(--go-dim); }
+.lc-lane[data-tone='claim'] .lc-lane-fill { background: var(--claim); }
+.lc-lane-dot {
+  position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%;
+  transform: translate(-50%, -50%); transition: left 120ms linear;
+}
+.lc-lane[data-tone='repayment'] .lc-lane-dot { background: var(--go-dim); box-shadow: 0 0 0 3px #16181c; }
+.lc-lane[data-tone='claim'] .lc-lane-dot { background: var(--claim); box-shadow: 0 0 0 3px #16181c; }
+
+.lc-ticks {
+  display: flex; justify-content: space-between; margin-top: 10px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 9.5px; letter-spacing: 0.1em; color: #6d7079;
+}
+
+.lc-exits { display: grid; grid-template-columns: 1fr 22rem; gap: 16px; margin-top: 24px; }
+.lc-exit { border: 1px solid #ffffff14; border-radius: 10px; padding: 16px 18px; background: #1b1e22; }
+.lc-exit[data-tinted='true'] { background: #241d12; border-color: #5c4a2e; }
+
+.lc-exit-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.1em; color: #8a8d96;
+}
+.lc-exit-badge[data-mark='live'] { color: var(--go); }
+.lc-exit-badge[data-mark='filled'] { color: var(--go); }
+.lc-exit[data-tinted='true'] .lc-exit-badge[data-mark='filled'] { color: var(--claim); }
+
+.lc-exit-title { margin: 9px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+.lc-exit-amount { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.lc-exit-amount img { border-radius: 50%; }
+.lc-exit-amount strong { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.lc-exit-amount span { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 10.5px; color: #8a8d96; }
+.lc-exit-note { margin-top: 10px; font-size: 12.5px; color: #9a9da5; line-height: 1.5; }
+
+.lc-routes { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.lc-routes li { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
+.lc-routes img { border-radius: 50%; flex: none; }
+.lc-routes img[data-asset='ape'] { border-radius: 4px; }
+/* Still listed, because they are still what the order says. Just no longer
+   things that are going to happen. */
+.lc-routes[data-spent='true'] { color: #6d7079; }
+.lc-routes[data-spent='true'] img { opacity: 0.45; }
+
+.lc-player-caption { margin-top: 18px; text-align: center; font-size: 12.5px; color: #8a8d96; }
+
+.lc-beats { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.lc-beats-head {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.14em; color: var(--brand); margin-bottom: 3px;
+}
+.lc-beats li { display: flex; gap: 14px; font-size: 13px; color: #9a9da5; }
+.lc-beat-num { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 10.5px; color: var(--brand); padding-top: 2px; }
+
+/* ── Motion notes ───────────────────────────────────────────────────── */
+
+.lc-band--notes { padding: 34px 64px 0; border-top: 0; }
+.lc-notes-head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+.lc-notes-title, .lc-notes-rule {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.lc-notes-title { color: var(--brand); }
+.lc-notes-rule { color: var(--muted-2); }
+
+.lc-cues { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 26px; }
+.lc-cue-id {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px;
+}
+.lc-cue-text { font-size: 12.5px; line-height: 1.6; color: #4a4d55; }
+
+/* ── Narrow ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 64rem) {
+  .lc-head { grid-template-columns: 1fr; padding: 48px 20px 28px; }
+  .lc-title { font-size: 34px; }
+  .lc-context { text-align: left; }
+
+  .lc-band--open { grid-template-columns: 1fr; gap: 48px; padding: 28px 20px 48px; }
+  .lc-orders { grid-template-columns: 1fr; gap: 16px; margin-top: 28px; }
+  .lc-exchange { margin-top: 28px; }
+  .lc-transfer { grid-template-columns: 1fr; gap: 10px; }
+  .lc-transfer-route { grid-column: 1; grid-row: auto; text-align: left; }
+
+  .lc-band--resolve { grid-template-columns: 1fr; gap: 32px; padding: 48px 20px 56px; }
+  .lc-resolve-title { font-size: 28px; }
+  .lc-amount strong { font-size: 32px; }
+  .lc-exits { grid-template-columns: 1fr; }
+  .lc-controls { flex-wrap: wrap; }
+
+  .lc-band--notes { padding: 28px 20px 0; }
+  .lc-cues { grid-template-columns: 1fr; gap: 22px; }
+  .lc-notes-head { flex-direction: column; gap: 6px; }
+}

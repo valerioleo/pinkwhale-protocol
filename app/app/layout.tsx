@@ -6,7 +6,7 @@ import './prose.css';
 import '../components/article/pinkwhale.css';
 import './essay.css';
 import {Nav} from '../components/Nav';
-import {fontGeist, fontGeistMono, fontMono, fontSans, fontSerif} from '../lib/fonts';
+import {fontInter, fontMono, fontSans, fontSerif} from '../lib/fonts';
 
 const BASE_URL = 'https://pinkwhale.valeriohq.com';
 
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: ReactNode}) {
   return (
-    <html lang="en" className={`${fontSerif.variable} ${fontSans.variable} ${fontMono.variable} ${fontGeist.variable} ${fontGeistMono.variable}`}>
+    <html lang="en" className={`${fontSerif.variable} ${fontSans.variable} ${fontMono.variable} ${fontInter.variable}`}>
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>
         <Nav />

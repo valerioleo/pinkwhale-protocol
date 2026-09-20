@@ -1,15 +1,15 @@
 import type {Metadata} from 'next';
 
-import {LoanStory} from '../../../components/sandbox/LoanStory';
-import './loan-story.css';
+import {Lifecycle} from '../../../components/sandbox/Lifecycle';
+import './lifecycle.css';
 
 export const metadata: Metadata = {
-  title: 'Loan story',
-  description: 'A sandbox for the scroll-driven view of the four orders a loan is made of.',
+  title: 'Loan lifecycle',
+  description: 'A sandbox for the figure: agree, exchange, resolve.',
   // A sandbox is for looking at, not for indexing.
   robots: {index: false, follow: false}
 };
 
-export default function LoanStoryPage() {
-  return <LoanStory />;
+export default function LifecyclePage() {
+  return <Lifecycle />;
 }

@@ -1,4 +1,4 @@
-import {Geist, Geist_Mono, IBM_Plex_Mono, Instrument_Sans, Petrona} from 'next/font/google';
+import {IBM_Plex_Mono, Inter, Instrument_Sans, Petrona} from 'next/font/google';
 
 /**
  * The same trio as valeriohq: serif to read, sans for the interface, mono for
@@ -29,21 +29,15 @@ export const fontMono = IBM_Plex_Mono({
 });
 
 /**
- * Geist, for the sandbox only.
+ * Inter, for the sandbox only.
  *
- * The article is set in the valeriohq trio above. The hi-fi the loan story is
- * built from is set in Geist, and a figure being evaluated should look like the
- * thing that was drawn — porting it onto the article's type is a decision for
- * when it moves into the article, not before.
+ * The article is set in the valeriohq trio above. The hi-fi the lifecycle figure
+ * is drawn in is set in Inter over IBM Plex Mono, and a figure being judged should
+ * look like the thing that was drawn. Plex is already here, so only the sans is
+ * new.
  */
-export const fontGeist = Geist({
+export const fontInter = Inter({
   subsets: ['latin'],
-  variable: '--font-geist',
-  display: 'swap'
-});
-
-export const fontGeistMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-geist-mono',
+  variable: '--font-inter',
   display: 'swap'
 });
