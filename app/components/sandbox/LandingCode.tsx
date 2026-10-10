@@ -96,7 +96,9 @@ const cut = (lines: readonly string[], until: string | undefined) => {
 };
 
 const highlight = (excerpt: Excerpt): Promise<CodeTab> => {
-  const source = readFileSync(resolve(ROOT, excerpt.file), 'utf8');
+  // Read at build time only: the home page is prerendered, so nothing here needs
+  // tracing into the server bundle.
+  const source = readFileSync(resolve(/*turbopackIgnore: true*/ ROOT, excerpt.file), 'utf8');
   const code = cut(dedent(region(source, excerpt.region)), excerpt.until).join('\n').trim();
 
   return codeToHtml(code, {lang: 'solidity', theme: 'github-light-high-contrast'}).then(html => ({
