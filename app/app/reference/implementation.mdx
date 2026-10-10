@@ -1,0 +1,202 @@
+import {Pill} from '../../components/article/Pill'
+
+## Execution, step by step
+
+### 1. Loan execution
+
+The lender signs an order offering money and asking for the collateral. The borrower signs the
+mirror image. Both are EIP-712 signatures made in a wallet, off chain, costing nothing.
+
+Then anyone at all, the lender, the borrower, or even a bot, submits both to `executeLoan`,
+which hands them to `seaport.matchAdvancedOrders`. One transaction, and either all of it
+happens or none of it does.
+
+The repayment terms are passed to `executeLoan` **separately**, as ordinary calldata, because
+a Seaport order has nowhere to carry arbitrary data. What it does carry is an arbitrary hash,
+`zoneHash`, fixed at the moment the order is signed and free for the zone to define. So the
+terms travel alongside, and the order commits to their hash.
+
+Which is why `executeLoan` checks that the two match:
+
+```solidity title="contracts/Pinkwhale/Pinkwhale.sol" {16-21}
+// [!include ~/contracts/Pinkwhale/Pinkwhale.sol:assert-terms]
+```
+
+Lines 16 to 21 are the pair that matters. Rehash the terms that were handed in, compare
+against what each signer committed to, and revert if they differ. Whoever submits the
+transaction can rewrite the calldata all they like; they cannot make it hash to something
+somebody else signed.
+
+The rest of the function is the same idea applied to the rest of the deal: the collateral must
+be directed at Pinkwhale, the borrower cannot ask for a longer term than the lender offered,
+and both sides must describe the same repayment item for item.
+
+### 2. The collateral lands in escrow
+
+Seaport does the moving. The principal goes from the lender straight to the borrower, and the
+<Pill token="bayc">ape</Pill> goes to Pinkwhale, because that is what the lender's
+consideration item says and step 1 made sure of it.
+
+Pinkwhale is now holding collateral, and the borrower is holding money.
+
+### 3. Pinkwhale writes both futures
+
+Still inside the same transaction, Pinkwhale builds two new orders and puts them on Seaport:
+
+```solidity title="contracts/Pinkwhale/Utils/SeaportUtils.sol" {29}
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:create-resolution-orders]
+```
+
+`seaport.validate` on line 29 is the whole reason this works. It marks an order as valid **on
+chain**, which lets a contract be an offerer without ever producing a signature. Pinkwhale has
+no private key, and does not need one.
+
+Both orders are built straight from the terms that were checked in step 1, **including any
+interest**. The lender's consideration is copied in verbatim, `startAmount` and `endAmount`
+included, and Seaport interpolates every item linearly across the order's window. So a lender
+who signed "100 now, 110 at expiry" has expressed a rate that accrues by the second; equal
+amounts give a flat fee instead. Either way **Pinkwhale contains no interest code at all**.
+
+#### Locking each order to one caller
+
+The other thing decided here is *who* is allowed to fulfil each order, and this is the part
+worth slowing down for.
+
+Both orders are `FULL_RESTRICTED`, which means Seaport will not settle them without calling
+their zone first:
+
+```solidity title="seaport-core/src/lib/ZoneInteraction.sol"
+// OrderType 2-3 requires zone to call or approve via authorizeOrder.
+if (
+    _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
+) {
+    // ...encode the `authorizeOrder` call...
+
+    // Perform call and ensure a corresponding magic value was returned.
+    _callAndCheckStatus(parameters.zone, orderHash, callData, size);
+}
+```
+
+That is Seaport's own code, and it is the hinge of the whole design. Any restricted order
+hands control to `parameters.zone` before settling, and the zone can refuse.
+
+So Pinkwhale writes a `zoneHash` into each order naming the one address allowed to fulfil it,
+then checks it when the call comes back:
+
+```solidity title="contracts/Pinkwhale/PinkwhaleZone.sol" {11}
+// [!include ~/contracts/Pinkwhale/PinkwhaleZone.sol:authorize-order]
+```
+
+Seaport hands the zone a `ZoneParameters` struct, and two of its fields matter: `zoneHash`,
+copied straight off the order, and **`fulfiller`, which is whoever called
+`fulfillAdvancedOrder`**. Pinkwhale hashes the caller the same way it built the hash in the
+first place and compares. A mismatch is `ZoneHashMismatch`, thrown before a single token has
+moved.
+
+No allowlist, no mapping of loans to borrowers, no storage at all. The permission rides along
+inside the order, and Seaport is the one that tells the zone who is knocking.
+
+From here the loan can end two ways, and both of them are now sitting on Seaport, waiting.
+
+
+
+The two windows never overlap. The default order opens one second after the repayment window
+shuts.
+
+### 4. The borrower repays
+
+The repayment order offers the <Pill token="bayc">BAYC #8817</Pill> back and asks for whatever
+the loan terms say is owed. The borrower fulfils it like any other Seaport order, and the ape
+goes home.
+
+Its `zoneHash` is `keccak256(bytes32(0), borrower)`, so by the mechanism above **only the
+borrower** can do this. A stranger who tries to pay the money and take the ape is turned away
+by the zone.
+
+```solidity title="contracts/Pinkwhale/Utils/SeaportUtils.sol" {3-6}
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:repayment-order]
+```
+
+### 5. Or the lender claims
+
+If the window closes with the loan unpaid, the default order opens one second later.
+
+It offers the same <Pill token="bayc">BAYC #8817</Pill> and asks for **nothing at all**, so it
+costs nothing to fill. That is the entire liquidation engine: no auction, no oracle, no keeper.
+
+Its `zoneHash` is `keccak256(repaymentOrderHash, lender)`, so **only the lender** can fulfil
+it. But the hash commits to a second thing: the repayment order it was derived from. The
+lender has to hand that hash back in `extraData`, and the zone uses it for one more check:
+
+```solidity title="contracts/Pinkwhale/Utils/SeaportUtils.sol" {5-11}
+// [!include ~/contracts/Pinkwhale/Utils/SeaportUtils.sol:assert-order-execution]
+```
+
+`getOrderStatus` is Seaport's own record of what has been filled. If the repayment order named
+here has been filled, the borrower paid the loan off and the claim is refused with
+`UpstreamOrderAlreadyFulfilled`.
+
+This is why repaying makes the default order unfillable. Nothing cancelled it. It is
+still a perfectly valid Seaport order. It just can no longer answer the question the zone asks
+it.
+
+
+## The half that isn't on chain
+
+Pinkwhale settles loans. It does not find them. Everything above happens once two signed orders
+reach the same transaction, and the protocol has no opinion whatsoever about how they got there.
+
+Seaport doesn't either, and this is the gap worth naming. **A signed order is a JSON object and a
+signature, and until someone submits it, it lives nowhere.** Storing orders before they settle is
+the one piece of infrastructure a Pinkwhale marketplace cannot avoid building.
+
+Nearly everything after that is already on chain. `LoanExecuted` carries the collateral, the
+principal, the repayment and the expiry, indexed by loan, lender and borrower. Seaport emits its
+own `OrderValidated` with the **full `OrderParameters`** of both resolution orders, which is
+exactly the struct `fulfillAdvancedOrder` wants back. So a client can rebuild every open loan,
+and both ways to close it, out of `eth_getLogs`.
+
+### A minimal live demo
+
+The smallest thing that lets a stranger take out a loan end to end:
+
+| Piece | What it is |
+| --- | --- |
+| Contracts on a testnet | `pnpm deploy:sepolia`, already here |
+| A faucet | `ERC20Token.mint` and `ERC721Token.mintNext` are unpermissioned. Two buttons, no server |
+| A table of signed orders | one row each: parameters, signature, terms. Any KV store does |
+| A frontend | signs orders with [`scripts/lib/orders.ts`](https://github.com/valerioleo/pinkwhale-protocol/blob/main/scripts/lib/orders.ts), calls `executeLoan`, reads loans back from logs |
+
+That is the whole list. No indexer, no matching engine, no oracle, no keeper, no server-side
+signing. The table is the only stateful thing in it, and every row in it is a signature its
+author can cancel on chain or simply replace.
+
+The flow is symmetrical. A borrower signs an order offering collateral and asking for principal;
+a lender signs the mirror. Either can go first, because whichever order is already in the table
+is enough for the other side to derive its mirror and execute. Whoever moves second pays the gas.
+
+### What a real one adds
+
+- **Spam and staleness.** Signing is free, so anyone can flood the table with orders they cannot
+honour. Every row needs its balance, approval and Seaport counter checked before it is shown, and
+rechecked when `OrderCancelled` or `CounterIncremented` fires. Nothing on chain announces that a
+stored order has gone bad, so the table has to go and look.
+
+- **Search and ranking.** An offer is a duration, a principal and a repayment amount, and none of
+those sort usefully on their own. APR comes from `startAmount`, `endAmount` and the window; LTV
+needs a floor price. That is where an oracle finally enters this design, and not to liquidate
+anything: only to order a list.
+
+- **Standing offers, and the shape they force.** A lender's order names no borrower: its
+consideration is collateral addressed to Pinkwhale, and the lender is named only inside the
+repayment terms. Point it at `ERC721_WITH_CRITERIA` and it becomes a standing offer against a
+whole collection that any borrower can take. But `executeLoan` requires both sides to describe
+the same repayment item for item, and the only slack is duration, where a borrower may ask for
+less than the lender allowed. **So the book never crosses on price.** A marketplace here is a
+listing board where the taker signs the maker's exact terms, and the matching engine is client
+code deriving one order from the other.
+
+- **Telling people.** Nothing forces a lender to claim a defaulted loan and nothing warns a
+borrower that the window is closing. The expiry is in `LoanExecuted`, so the reminder is a cron
+over the logs, but somebody has to run it.
+
