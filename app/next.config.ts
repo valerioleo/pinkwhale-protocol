@@ -47,9 +47,9 @@ const withMDX = createMDX({
       [
         'rehype-pretty-code',
         {
-          // One theme per scheme, switched in CSS rather than JS, so code is the
-          // right colour in the first paint.
-          theme: {light: 'github-light', dark: 'github-dark'},
+          // The high-contrast light theme: plain github-light's orange and red
+          // tokens fall under 4.5:1 on the code card.
+          theme: {light: 'github-light-high-contrast', dark: 'github-dark-high-contrast'},
           defaultLang: 'text'
         }
       ]

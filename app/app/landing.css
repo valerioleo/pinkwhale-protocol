@@ -21,9 +21,9 @@ body:has(.ld) { background: #fff; }
 .ld {
   --sans: var(--font-inter), system-ui, sans-serif;
   --mono: var(--font-plex-mono), system-ui, sans-serif;
-  --ink: #24252a;
-  --body: #4a505a;
-  --muted: #71737a;
+  --ink: #111111;
+  --body: #333333;
+  --muted: #555555;
   --rule: #e5e7eb;
   --plum: #88516d;
 
@@ -139,7 +139,7 @@ body:has(.ld) { background: #fff; }
 .ld-code-block .line { display: inline-block; padding-right: 24px; }
 .ld-code-block .line::before {
   counter-increment: ld-line; content: counter(ld-line);
-  display: inline-block; width: 3ch; margin: 0 18px 0 20px; text-align: right; color: #b4b8c0;
+  display: inline-block; width: 3ch; margin: 0 18px 0 20px; text-align: right; color: #767676;
 }
 .ld .ld-code-file {
   display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--muted); text-decoration: none;
@@ -153,7 +153,7 @@ body:has(.ld) { background: #fff; }
 /* The playground page: a shorter hero, then the live demo in the same column. */
 .ld-play-hero { padding-bottom: 40px; }
 .ld-play-stage { width: 100%; max-width: 904px; margin: 0 auto; padding: 0 32px; }
-.ld-play-loading { margin-top: 28px; padding: 18px 20px; border: 1px solid #e5e7eb; border-radius: 8px; font: 14px/1.5 var(--font-inter), system-ui, sans-serif; color: #71737a; }
+.ld-play-loading { margin-top: 28px; padding: 18px 20px; border: 1px solid #e5e7eb; border-radius: 8px; font: 14px/1.5 var(--font-inter), system-ui, sans-serif; color: #555555; }
 .ld .ld-note { margin-top: 18px; font-size: 13px; color: var(--muted); }
 
 /* ── Foot ───────────────────────────────────────────────────────────── */

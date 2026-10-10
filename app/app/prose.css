@@ -136,11 +136,8 @@ figure[data-rehype-pretty-code-figure] pre {
 }
 figure[data-rehype-pretty-code-figure] code { background: none; padding: 0; }
 
-/* shiki writes both themes as custom properties on every span; this picks one. */
+/* shiki writes both themes as custom properties on every span; the site is light only. */
 [data-rehype-pretty-code-figure] span { color: var(--shiki-light); }
-@media (prefers-color-scheme: dark) {
-  [data-rehype-pretty-code-figure] span { color: var(--shiki-dark); }
-}
 
 figure[data-rehype-pretty-code-figure] [data-line] { padding: 0 14px; }
 

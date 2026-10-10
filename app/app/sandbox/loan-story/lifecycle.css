@@ -14,14 +14,15 @@ main:has(.lc) { max-width: none; padding: 0; }
   --sans: var(--font-inter), system-ui, sans-serif;
   --mono: var(--font-plex-mono), system-ui, sans-serif;
 
-  --ink: #24252a;
-  --title: #262b33;
-  --body: #343a43;
-  --muted: #737b87;
-  --label: #7b838f;
-  --quiet: #92959e;
-  --code: #59616e;
-  --faint: #89909a;
+  /* Text greys all clear 4.5:1 on white and on --ground. */
+  --ink: #111111;
+  --title: #111111;
+  --body: #333333;
+  --muted: #555555;
+  --label: #555555;
+  --quiet: #595959;
+  --code: #444444;
+  --faint: #595959;
   --line: #d5d9df;
   --border: #e5e7eb;
   --row-rule: #eceef1;
@@ -32,12 +33,12 @@ main:has(.lc) { max-width: none; padding: 0; }
      lit at once — the figure's entire argument is that only one can happen. */
   --go-bar: #8abdab;
   --go-ahead: #d6e9e2;
-  --go-text: #4f8a75;
+  --go-text: #2b6650;
   --go-border: #bfdcd0;
   --go-spent: #c9d6d1;
   --claim-bar: #d9cbb6;
   --claim-marker: #c2a987;
-  --claim-text: #8c7456;
+  --claim-text: #6b5232;
   --claim-border: #e3d6c2;
   --dead: #eef1f3;
 
@@ -71,9 +72,9 @@ main:has(.lc) { max-width: none; padding: 0; }
 
 .lc-head { display: flex; justify-content: space-between; align-items: flex-end; padding: 8px 0 48px; }
 .lc-head-main { display: flex; flex-direction: column; gap: 10px; }
-.lc .lc-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; color: #777a83; white-space: nowrap; }
+.lc .lc-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; color: #555555; white-space: nowrap; }
 .lc .lc-title { font-size: 56px; line-height: 59px; font-weight: 500; letter-spacing: -2.5px; color: var(--ink); white-space: nowrap; }
-.lc .lc-context { font-size: 14px; line-height: 22px; color: #70737c; white-space: nowrap; }
+.lc .lc-context { font-size: 14px; line-height: 22px; color: #555555; white-space: nowrap; }
 
 /* ── The band ───────────────────────────────────────────────────────── */
 
@@ -198,7 +199,13 @@ main:has(.lc) { max-width: none; padding: 0; }
 .lc-card[data-tone='repayment'][data-variant='live'] { outline-color: var(--go-border); box-shadow: 0 6px 20px #4f8a7514; }
 .lc-card[data-tone='claim'][data-variant='live'] { outline-color: var(--claim-border); box-shadow: 0 6px 20px #8c74561a; }
 .lc-card:is([data-variant='pending'], [data-variant='void']) { background: #fafafb00; outline-color: var(--pending); box-shadow: 0 6px 20px #1d223000; }
-.lc-card[data-variant='void'] { opacity: 0.4; }
+.lc-card[data-variant='void'] { background: #f2f2f2; }
+/* Spent and void orders go grey by colour, not by opacity: faded to 40% their text
+   fell to about 2:1. The marks and token images still recede. */
+.lc .lc-card[data-variant='void'] *,
+.lc .lc-player[data-matched='true'] .lc-signed .lc-card * { color: #595959; }
+.lc-card[data-variant='void'] :is(img, svg),
+.lc-player[data-matched='true'] .lc-signed .lc-card :is(img, svg) { opacity: 0.45; }
 
 .lc-card-head {
   height: 101px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 5px;
@@ -289,7 +296,7 @@ main:has(.lc) { max-width: none; padding: 0; }
 .lc-player[data-ready='true'] .lc-result-inner { overflow: visible; }
 
 /* Matched, the signed orders are spent: they have become the loan. */
-.lc-player[data-matched='true'] .lc-signed .lc-card { opacity: 0.4; }
+.lc-player[data-matched='true'] .lc-signed .lc-card { background: #f2f2f2; }
 
 /* ── Motion ─────────────────────────────────────────────────────────── */
 

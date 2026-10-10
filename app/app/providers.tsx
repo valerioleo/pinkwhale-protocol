@@ -24,7 +24,7 @@ const CDP_CONFIG: Config = {
   ethereum: {createOnLogin: 'eoa'}
 };
 
-// CSS variables also follow system dark mode inside the SDK's modal portal.
+// The SDK's modal portal reads the same CSS variables as the page.
 const CDP_THEME: Partial<Theme> = {
   'colors-bg-default': 'var(--card)',
   'colors-bg-alternate': 'var(--background)',

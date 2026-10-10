@@ -1,24 +1,28 @@
 /*
  * ────────────────────────────────────────────────────────────────────────
- * DESIGN TOKENS — carried over from valeriohq.
- * Warm paper (light) / deep teal (dark), near-monochrome, one accent: rust
- * on paper, lifted to apricot on teal.
+ * DESIGN TOKENS — plain and light, on purpose.
+ * One scheme only: black on white, greys that clear WCAG AA (4.5:1) for body
+ * text on every surface here, and one blue accent. There is no dark variant —
+ * half the site set its own light grounds, and a dark token set under them put
+ * pale text on white.
  * ────────────────────────────────────────────────────────────────────────
  */
 :root {
+  color-scheme: light;
+
   --radius: 0.25rem;
 
-  --background: #eee6e5;
-  --foreground: #24201e;
-  --card: #f3edec;
-  --muted: #dacfcb;
-  --muted-foreground: #6b615d;
-  --border: #d8cdcb;
-  --destructive: #b4442f;
-  --positive: #4a6a3f;
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #f7f7f7;
+  --muted: #ececec;
+  --muted-foreground: #555555;
+  --border: #d4d4d4;
+  --destructive: #b3261e;
+  --positive: #1e6b34;
 
-  --brand: #9a4a22;
-  --brand-foreground: #f6f1ef;
+  --brand: #0645ad;
+  --brand-foreground: #ffffff;
 
   /* Opaque, so an avatar ring cut out of it hides whatever is behind. */
   --tint: color-mix(in srgb, var(--brand) 11%, var(--card));
@@ -26,22 +30,6 @@
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-petrona), ui-serif, Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #022331;
-    --foreground: #e7eef0;
-    --card: #06303f;
-    --muted: #0e4353;
-    --muted-foreground: #8aa3ac;
-    --border: #0e3b4a;
-    --destructive: #e5705a;
-    --positive: #8fbf7f;
-
-    --brand: #e0906a;
-    --brand-foreground: #022331;
-  }
 }
 
 * { box-sizing: border-box; }
