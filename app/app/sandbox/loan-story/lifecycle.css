@@ -1,310 +1,460 @@
 /*
  * ────────────────────────────────────────────────────────────────────────
  * FIG. 1 — THE LOAN LIFECYCLE (sandbox)
- * The hi-fi's own palette and type: Inter over IBM Plex Mono, three bands of
- * ground. A figure being judged should look like the thing that was drawn.
+ * Every number here is the hi-fi's: a 1440 frame with 64 of margin, Inter over
+ * IBM Plex Mono, one band of ground holding one player. A figure being judged
+ * should look like the thing that was drawn, so nothing is rounded to the
+ * site's scale.
  * ────────────────────────────────────────────────────────────────────────
  */
 
 main:has(.lc) { max-width: none; padding: 0; }
 
 .lc {
-  --ink: #111214;
-  --ink-2: #24262b;
-  --ink-3: #303238;
-  --paper: #ffffff;
-  --paper-2: #fafafb;
-  --paper-3: #f4f4f5;
-  --line: #dadde4;
-  --line-2: #eceef2;
-  --muted: #7b7d85;
-  --muted-2: #92959e;
+  --sans: var(--font-inter), system-ui, sans-serif;
+  --mono: var(--font-plex-mono), system-ui, sans-serif;
 
-  /* Repayment is green the whole way through: lane, badge, diff. Claim is amber,
-     and never both at once — the figure's entire argument is that exactly one of
-     the two can happen. */
-  --go: #1b9c61;
-  --go-dim: #8abdab;
-  --go-rail: #486258;
-  --claim: #d6aa72;
-  --claim-rail: #705d43;
-  --brand: #ff5fa2;
+  --ink: #24252a;
+  --title: #262b33;
+  --body: #343a43;
+  --muted: #737b87;
+  --label: #7b838f;
+  --quiet: #92959e;
+  --code: #59616e;
+  --faint: #89909a;
+  --line: #d5d9df;
+  --border: #e5e7eb;
+  --row-rule: #eceef1;
+  --pending: #dadde2;
+  --ground: #fafafb;
 
-  font-family: var(--font-inter), system-ui, sans-serif;
+  /* Repayment is green the whole way through, claim is tan, and they are never
+     lit at once — the figure's entire argument is that only one can happen. */
+  --go-bar: #8abdab;
+  --go-ahead: #d6e9e2;
+  --go-text: #4f8a75;
+  --go-border: #bfdcd0;
+  --go-spent: #c9d6d1;
+  --claim-bar: #d9cbb6;
+  --claim-marker: #c2a987;
+  --claim-text: #8c7456;
+  --claim-border: #e3d6c2;
+  --dead: #eef1f3;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  background: #fff;
   color: var(--ink);
-  background: var(--paper);
-  margin: 0;
-  padding: 0 0 80px;
+  font-family: var(--sans);
+  line-height: normal;
+
+  /* The hi-fi is drawn with the platform's own smoothing; the site thins its
+     type, and thinned Inter at 10px is not the weight that was approved. */
+  -webkit-font-smoothing: auto;
+  text-rendering: auto;
 }
 
-.lc p { margin: 0; }
+.lc-frame { max-width: 1440px; margin: 0 auto; padding: 64px; display: flex; flex-direction: column; }
 
-/* Stated once for every heading in the figure. prose.css sets a serif on `main
-   h1`–`h4`, and a matching rule beats an inherited value however specific the
-   inheritance looks — so .lc's own font-family never reaches them. */
-.lc h1, .lc h2, .lc h3, .lc h4 { font-family: var(--font-inter), system-ui, sans-serif; }
+/* Stated once for everything the prose styles by element: `main p`, `main h2`
+   and the rest carry margins, a serif and a size of their own, and a matching
+   rule beats an inherited value however specific the inheritance looks. */
+.lc :is(p, h1, h2, h3, ul, li, dl, dt, dd, figure, em) {
+  margin: 0; padding: 0; font: inherit; letter-spacing: inherit; list-style: none;
+  text-wrap: wrap; scroll-margin-top: 0;
+}
+.lc img { display: block; flex: none; }
 
-/* And the same for inline code, which the prose gives a tinted chip. */
-.lc code { background: none; padding: 0; font-size: inherit; }
+.lc-sys { font-family: system-ui, sans-serif; }
 
 /* ── Heading ────────────────────────────────────────────────────────── */
 
-.lc-head { padding: 80px 64px 40px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
-.lc-kicker {
-  grid-column: 1 / -1;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
-}
-.lc-title { margin: 14px 0 0; font-size: 46px; line-height: 1.06; letter-spacing: -0.035em; font-weight: 600; }
-.lc-context { font-size: 13.5px; color: var(--muted); text-align: right; line-height: 1.55; }
-.lc-context span { display: block; }
+.lc-head { display: flex; justify-content: space-between; align-items: flex-end; padding: 8px 0 48px; }
+.lc-head-main { display: flex; flex-direction: column; gap: 10px; }
+.lc .lc-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; color: #777a83; white-space: nowrap; }
+.lc .lc-title { font-size: 56px; line-height: 59px; font-weight: 500; letter-spacing: -2.5px; color: var(--ink); white-space: nowrap; }
+.lc .lc-context { font-size: 14px; line-height: 22px; color: #70737c; white-space: nowrap; }
 
-/* ── Bands ──────────────────────────────────────────────────────────── */
+/* ── The band ───────────────────────────────────────────────────────── */
 
-.lc-band { border-top: 1px solid var(--line); }
-.lc-band--open {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px;
-  padding: 40px 64px 64px; background: var(--paper-2);
-}
-.lc-step-head { margin: 0 0 14px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 11px; }
-.lc-step-num { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: var(--brand); font-weight: 400; }
-.lc-step-caption { font-size: 13.5px; line-height: 1.62; color: #4a4d55; max-width: 52ch; }
-.lc-step-caption + .lc-step-caption { margin-top: 14px; }
+.lc-band { display: flex; flex-direction: column; align-items: center; gap: 32px; padding: 56px 64px; background: var(--ground); }
+.lc-band-head { width: 100%; max-width: 840px; display: flex; flex-direction: column; gap: 16px; }
+.lc .lc-band-title { font-size: 40px; font-weight: 500; letter-spacing: -1.5px; color: var(--ink); }
+.lc .lc-band-text { font-size: 15px; line-height: 24px; color: var(--muted); }
 
-/* ── 01 Agree ───────────────────────────────────────────────────────── */
+/* ── The player ─────────────────────────────────────────────────────── */
 
-.lc-orders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 44px; }
-.lc-order {
-  border: 1px solid var(--line-2); border-radius: 10px; background: var(--paper);
-  box-shadow: 0 1px 2px #00000008; overflow: hidden;
-}
-.lc-order-head { padding: 13px 15px 12px; }
-.lc-order-kind {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 11.5px; color: var(--muted);
-}
-.lc-order-glyph {
-  width: 15px; height: 15px; border-radius: 4px; flex: none;
-  background: linear-gradient(135deg, #b9a6ff, #8f7bf0);
-}
-.lc-order-signer { display: block; margin-top: 12px; font-size: 11.5px; color: var(--muted); }
-.lc-order-title { margin: 2px 0 10px; font-size: 16px; font-weight: 600; letter-spacing: -0.015em; }
-.lc-order-pair { display: flex; align-items: center; gap: 8px; }
-.lc-order-token {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: var(--muted);
-}
-.lc-order-token img { border-radius: 50%; }
-.lc-order-token img[data-token='BAYC'] { border-radius: 4px; }
-.lc-order-swap { color: var(--muted-2); margin-right: 2px; }
-
-.lc-order-fields {
-  padding: 9px 15px; border-top: 1px solid var(--line-2);
-  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: var(--muted-2);
-}
-.lc-order-fields code { font: inherit; }
-
-/* The diff is the whole point of the card: everything above it is an ordinary
-   swap, and these six rows are all Pinkwhale adds. */
-.lc-diff {
-  margin: 0; padding: 10px 0; border-top: 1px solid var(--line-2);
-  background: #eefaf2; border-left: 2px solid var(--go);
-  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; line-height: 1.75;
-  color: #1c5c3d; overflow-x: auto;
-}
-.lc-diff-row { display: block; padding: 0 13px; white-space: pre; }
-.lc-diff-sign { color: var(--go); margin-right: 7px; }
-
-/* ── 02 Exchange ────────────────────────────────────────────────────── */
-
-.lc-exchange {
-  margin-top: 44px; border-radius: 12px; background: var(--ink);
-  padding: 26px 28px; display: flex; flex-direction: column; gap: 22px;
-}
-.lc-transfer {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px;
-  align-items: end;
-}
-.lc-transfer + .lc-transfer { border-top: 1px solid #ffffff14; padding-top: 22px; }
-.lc-transfer-label {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8d96;
-}
-.lc-transfer-label { grid-column: 1; }
-.lc-transfer-value {
-  grid-column: 1; display: flex; align-items: center; gap: 12px; margin-top: 10px;
-  color: var(--paper);
-}
-.lc-transfer-value img { border-radius: 50%; flex: none; }
-.lc-transfer-value img[data-asset='ape'] { border-radius: 6px; }
-.lc-transfer-value strong { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; }
-.lc-transfer-value span {
-  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 11px; color: #8a8d96;
-  align-self: flex-end; padding-bottom: 5px;
-}
-/* On the value's row, not spanning both: `1 / -1` has no explicit rows to
-   span here, so it collapsed to the first one. */
-.lc-transfer-route { grid-column: 2; grid-row: 2; align-self: end; text-align: right; font-size: 12.5px; color: var(--paper); }
-.lc-transfer-route span {
-  display: block; font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8d96; margin-bottom: 5px;
+.lc .lc-player {
+  position: relative; width: 100%; max-width: 840px; display: flex; flex-direction: column; padding: 28px;
+  background: #fff; border-radius: 12px; outline: 1px solid var(--border); outline-offset: -0.5px;
+  box-shadow: 0 10px 32px #1d22300a;
 }
 
-/* ── 03 Resolve ─────────────────────────────────────────────────────── */
+.lc-narrow-only { display: none; }
 
-.lc-band--resolve {
-  display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 56px;
-  padding: 72px 64px 80px; background: var(--ink); color: var(--paper); border-top: 0;
+/* Drawn from measured card centres, over everything and under nothing. */
+.lc-links { position: absolute; inset: 0 auto auto 0; overflow: visible; pointer-events: none; }
+.lc-links path { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 0; }
+
+.lc-signed { display: flex; gap: 14px; }
+.lc-signed .lc-card { flex: 1 1 0; }
+.lc-matches { display: none; }
+
+/* Room for the lines: the merge's elbow sits a stem above the pill, the branch's
+   a stem below it. */
+.lc-merge { height: 36px; }
+.lc-branch { height: 32px; }
+.lc-stem { display: none; width: 1px; background: var(--line); }
+
+.lc-origin { display: flex; justify-content: space-between; align-items: center; }
+.lc-origin-balance { flex: 1 1 0; }
+
+.lc .lc-pill {
+  flex: none; display: flex; align-items: center; padding: 12px 20px; background: #fff;
+  border-radius: 999px; outline: 1px solid var(--border); outline-offset: -0.5px;
 }
-.lc-band--resolve .lc-step-caption { color: #9a9da5; }
-.lc-band--resolve .lc-step-head { margin-bottom: 0; }
-.lc-resolve-text { align-self: center; }
-.lc-resolve-title { font-size: 34px; font-weight: 600; letter-spacing: -0.03em; margin: 4px 0 18px; }
+.lc-pill .lc-whale { width: 24px; height: 21px; margin-right: 10px; }
+.lc-pill-label { font-size: 15px; font-weight: 500; color: var(--body); white-space: nowrap; }
 
-.lc-origin { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: #9a9da5; }
-.lc-origin strong { color: var(--paper); font-weight: 600; }
-.lc-origin-mark { width: 20px; height: 14px; border-radius: 7px 9px 9px 7px; background: var(--brand); flex: none; }
-
-.lc-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 22px 0 16px; }
-.lc-playback {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8d96;
+/* "| [ape] held by Pinkwhale" folds away when the loan ends: the ape has left. */
+.lc-custody {
+  display: grid; grid-template-columns: 1fr; opacity: 1;
+  transition: grid-template-columns 250ms var(--ease), opacity 250ms var(--ease);
 }
-.lc-scenarios { display: flex; padding: 3px; border-radius: 8px; background: #ffffff0f; }
-.lc-scenario {
-  border: 0; background: transparent; cursor: pointer;
-  padding: 6px 16px; border-radius: 6px;
-  font-family: inherit; font-size: 12.5px; font-weight: 500; color: #9a9da5;
+.lc-custody-inner { min-width: 0; overflow: hidden; display: flex; align-items: center; gap: 10px; padding-left: 10px; }
+.lc-player:not([data-outcome='running']) .lc-custody { grid-template-columns: 0fr; opacity: 0; }
+.lc-pill-divider { width: 1px; height: 18px; flex: none; background: var(--border); }
+.lc-custody img { width: 24px; height: 24px; border-radius: 5px; }
+.lc-pill-detail { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+.lc-clock { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.lc .lc-day { font-size: 20px; font-weight: 500; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lc .lc-day-note { font-size: 11px; color: var(--quiet); white-space: nowrap; transition: color 250ms var(--ease); }
+.lc .lc-day-note[data-outcome='repaid'] { color: var(--go-text); }
+.lc .lc-day-note[data-outcome='claimed'] { color: var(--claim-text); }
+
+/* ── The two exit orders, each on its stretch of time ───────────────── */
+
+/* One grid for the cards and the timeline under them, so each card sits exactly
+   on its own zone: the columns are the drawing's 470 and 300. */
+.lc-exits {
+  position: relative; display: grid; column-gap: 14px;
+  grid-template-columns: minmax(0, 470fr) minmax(0, 300fr);
+  grid-template-areas:
+    'rcard  ccard'
+    'rphase cphase'
+    'rtrack ctrack'
+    'rdates cdates';
 }
-.lc-scenario[data-on='true'] { background: var(--ink-3); color: var(--paper); }
+.lc-exit[data-tone='repayment'] { grid-area: rcard; }
+.lc-exit[data-tone='claim'] { grid-area: ccard; }
+.lc-phase[data-zone='repayment'] { grid-area: rphase; }
+.lc-phase[data-zone='claim'] { grid-area: cphase; }
+.lc-track[data-zone='repayment'] { grid-area: rtrack; }
+.lc-track[data-zone='claim'] { grid-area: ctrack; }
+.lc-dates[data-zone='repayment'] { grid-area: rdates; }
+.lc-dates[data-zone='claim'] { grid-area: cdates; }
+.lc-label-rail, .lc-deadline, .lc-curtain { display: none; }
 
-.lc-stage { border: 1px solid #ffffff14; border-radius: 12px; padding: 24px 26px 26px; background: #16181c; }
+.lc .lc-phase { margin-top: 18px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.8px; white-space: nowrap; }
+.lc .lc-phase[data-zone='repayment'] { color: var(--go-text); }
+.lc .lc-phase[data-zone='claim'] { color: var(--claim-text); }
 
-.lc-readout { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
-.lc-readout-label {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8d96;
+.lc-track { position: relative; height: 14px; margin-top: 8px; }
+.lc-track > span { position: absolute; transition: background-color 300ms var(--ease); }
+.lc-track-done, .lc-track-ahead, .lc-track-rail { top: 5px; height: 4px; border-radius: 2px; }
+.lc-track-done { left: 0; width: calc(var(--p) * 100%); background: var(--go-bar); }
+.lc-track-ahead { left: calc(var(--p) * 100%); right: 0; background: var(--go-ahead); }
+.lc-track-rail { left: 0; right: 0; background: linear-gradient(90deg, var(--claim-bar), #d9cbb600); }
+.lc-marker {
+  top: 0; left: calc(var(--p) * 100% - 7px); width: 14px; height: 14px; border-radius: 7px;
+  background: var(--go-bar); outline: 3px solid #fff; outline-offset: -1.5px;
+  box-shadow: 0 0 8px #4f8a7555; z-index: 1;
 }
-.lc-amount { display: flex; align-items: center; gap: 11px; margin-top: 10px; }
-.lc-amount img { border-radius: 50%; flex: none; }
-.lc-amount strong { font-size: 42px; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
-.lc-amount span {
-  font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 12px;
-  color: #8a8d96; align-self: flex-end; padding-bottom: 8px;
+.lc-track[data-zone='claim'] .lc-marker { left: 18px; background: var(--claim-marker); box-shadow: 0 0 8px #8c745555; }
+
+/* Only the repayment clock can be moved, and only while the loan is open. */
+.lc-player[data-outcome='running'] .lc-track[data-zone='repayment'] { cursor: pointer; touch-action: none; }
+.lc-player[data-outcome='running'] .lc-track[data-zone='repayment'] .lc-marker { cursor: grab; }
+.lc-player[data-outcome='running'] .lc-track[data-zone='repayment']:active .lc-marker { cursor: grabbing; }
+.lc-marker:focus-visible { outline-color: var(--go-text); }
+
+/* Repaid: what was left of the window is no longer time anybody has. Claimed:
+   the whole of it was spent, and the claim lane is where the clock stands. */
+.lc-player[data-outcome='repaid'] :is(.lc-track-ahead, .lc-track-rail) { background: var(--dead); }
+.lc-player[data-outcome='claimed'] :is(.lc-track-done, .lc-track-ahead) { background: var(--go-spent); }
+
+.lc .lc-dates { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.8px; color: var(--quiet); white-space: nowrap; }
+.lc-dates[data-zone='repayment'] span:last-child { color: var(--code); }
+
+/* ── A Seaport order ────────────────────────────────────────────────── */
+
+.lc-card {
+  min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff;
+  border-radius: 10px; outline: 1px solid var(--border); outline-offset: -0.5px;
+  box-shadow: 0 6px 20px #1d223007;
+  transition: background-color 250ms var(--ease), outline-color 250ms var(--ease), box-shadow 250ms var(--ease), opacity 300ms var(--ease);
 }
-.lc-clock { text-align: right; }
-.lc-day { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
-.lc-day-note { font-size: 12px; color: #8a8d96; margin-top: 2px; }
+.lc-card[data-tone='repayment'][data-variant='live'] { outline-color: var(--go-border); box-shadow: 0 6px 20px #4f8a7514; }
+.lc-card[data-tone='claim'][data-variant='live'] { outline-color: var(--claim-border); box-shadow: 0 6px 20px #8c74561a; }
+.lc-card:is([data-variant='pending'], [data-variant='void']) { background: #fafafb00; outline-color: var(--pending); box-shadow: 0 6px 20px #1d223000; }
+.lc-card[data-variant='void'] { opacity: 0.4; }
 
-/* The two lanes are one timeline. Their widths are the days they cover, so the
-   deadline sits where it actually falls rather than in the middle. */
-.lc-lanes { display: flex; gap: 14px; margin-top: 26px; }
-.lc-lane { min-width: 0; }
-.lc-lane-label {
-  display: block; margin-bottom: 8px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+.lc-card-head {
+  height: 101px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 5px;
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
 }
-.lc-lane[data-tone='repayment'] .lc-lane-label { color: var(--go-dim); }
-.lc-lane[data-tone='claim'] .lc-lane-label { color: var(--claim); }
+.lc-card-identity { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lc .lc-card-kind { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--quiet); white-space: nowrap; }
+.lc-card-kind img { object-fit: contain; }
+.lc .lc-card-status { font-size: 9px; font-weight: 500; letter-spacing: 0.8px; color: var(--quiet); white-space: nowrap; animation: lc-fade 250ms var(--ease); }
+.lc-card[data-tone='repayment']:not([data-variant='void']) .lc-card-status { color: var(--go-text); }
+.lc-card[data-tone='claim']:not([data-variant='void']) .lc-card-status { color: var(--claim-text); }
+.lc .lc-card-title { font-size: 20px; font-weight: 500; color: var(--title); white-space: nowrap; }
 
-.lc-lane-track { position: relative; display: block; height: 3px; border-radius: 2px; }
-.lc-lane[data-tone='repayment'] .lc-lane-track { background: var(--go-rail); }
-.lc-lane[data-tone='claim'] .lc-lane-track { background: var(--claim-rail); }
-.lc-lane-fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; transition: width 120ms linear; }
-.lc-lane[data-tone='repayment'] .lc-lane-fill { background: var(--go-dim); }
-.lc-lane[data-tone='claim'] .lc-lane-fill { background: var(--claim); }
-.lc-lane-dot {
-  position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%;
-  transform: translate(-50%, -50%); transition: left 120ms linear;
+.lc-card-row { height: 48px; display: flex; }
+.lc-card-row + .lc-card-row { border-top: 1px solid var(--row-rule); }
+.lc .lc-card-row dt { width: 112px; flex: none; display: flex; align-items: center; padding: 12px 16px; font-size: 11px; color: var(--label); white-space: nowrap; }
+.lc .lc-card-row dd { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 12px 16px 12px 0; white-space: nowrap; }
+
+.lc-value { display: flex; align-items: center; gap: 8px; }
+.lc-value[data-kind='time'] { gap: 6px; }
+.lc-value[data-kind='terms'] { gap: 4px; }
+.lc-value img { border-radius: 10px; }
+.lc-value img[data-asset='bayc'] { border-radius: 4px; }
+.lc-value-text { font-size: 12px; font-weight: 500; color: var(--body); font-variant-numeric: tabular-nums; }
+.lc-value-none { font-size: 12px; color: var(--faint); }
+.lc-value-mono { font-family: var(--mono); font-size: 11px; color: var(--code); }
+.lc-term { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 4px; background: #f2f3f5; font-size: 11px; font-weight: 500; color: var(--body); }
+
+.lc-glyph { display: block; width: 14px; height: 14px; flex: none; }
+.lc-value .lc-glyph { width: 12px; height: 12px; color: var(--code); }
+.lc-whale { display: block; flex: none; color: #ff5fa2; overflow: visible; }
+.lc-value .lc-whale { width: 18px; height: 16px; }
+.lc-avatar { display: block; flex: none; width: 18px; height: 18px; overflow: visible; }
+
+.lc-recipient { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: var(--body); }
+.lc-recipient .lc-sys { font-size: 12px; font-weight: 400; color: var(--faint); }
+.lc-recipient .lc-whale { width: 18px; height: 16px; }
+.lc-recipient .lc-avatar { width: 16px; height: 16px; }
+
+/* ── Controls ───────────────────────────────────────────────────────── */
+
+.lc-controls { display: flex; align-items: center; gap: 10px; padding-top: 24px; }
+.lc-controls-clock { display: none; }
+.lc-actions { flex: 1 1 auto; display: flex; align-items: center; gap: 10px; }
+.lc-actions[data-ended='true'] { justify-content: space-between; }
+.lc .lc-hint { order: 2; font-family: var(--mono); font-size: 9px; letter-spacing: 0.8px; color: var(--quiet); white-space: nowrap; }
+
+.lc-button {
+  margin: 0; border: 0; display: flex; justify-content: center; align-items: center; gap: 6px; padding: 9px 14px;
+  border-radius: 8px; background: #fff; outline: 1px solid var(--pending); outline-offset: -0.5px; cursor: pointer;
+  font: 500 13px/normal var(--sans); color: var(--body); white-space: nowrap;
+  transition: background-color 160ms var(--ease), opacity 160ms var(--ease), transform 160ms var(--ease);
 }
-.lc-lane[data-tone='repayment'] .lc-lane-dot { background: var(--go-dim); box-shadow: 0 0 0 3px #16181c; }
-.lc-lane[data-tone='claim'] .lc-lane-dot { background: var(--claim); box-shadow: 0 0 0 3px #16181c; }
+.lc-button:hover { background: #f5f6f7; }
+.lc-button:active:not(:disabled) { transform: scale(0.97); }
+.lc-button[data-primary='true'] { background: var(--ink); color: #fff; outline: 0; }
+.lc-button[data-primary='true']:hover { background: #3a3b42; }
+.lc-button:disabled { opacity: 0.4; cursor: default; }
+.lc-button:focus-visible { outline: 2px solid var(--go-text); outline-offset: 2px; }
+.lc-rotate { transition: transform 300ms var(--ease); }
+.lc-button:active .lc-rotate { transform: rotate(-90deg); }
 
-.lc-ticks {
-  display: flex; justify-content: space-between; margin-top: 10px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 9.5px; letter-spacing: 0.1em; color: #6d7079;
+.lc .lc-chip {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #fff;
+  border-radius: 999px; outline: 1px solid var(--go-border); outline-offset: -0.5px;
+  font-size: 13px; white-space: nowrap; animation: lc-fade 250ms var(--ease);
+}
+.lc .lc-chip[data-owner='bob'] { outline-color: var(--claim-border); }
+.lc-chip img { border-radius: 5px; }
+.lc-chip-label { color: var(--muted); }
+.lc-chip-name { font-weight: 500; color: var(--ink); }
+
+.lc-announce { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── Before and after the match ─────────────────────────────────────── */
+
+/* Until the orders match there is no loan: no clock, no pill, and nothing under
+   the orders but the button that matches them. What execution leaves behind is
+   folded away, and unfolds when there has been one. */
+.lc-origin { min-height: 48px; }
+.lc-player[data-matched='false'] :is(.lc-clock, .lc-matches, .lc-merge .lc-stem) { visibility: hidden; }
+
+.lc-result { display: grid; grid-template-rows: 1fr; }
+.lc-player[data-matched='false'] .lc-result { grid-template-rows: 0fr; }
+.lc-result-inner { min-height: 0; overflow: hidden; }
+/* Unclipped once it has opened, so card shadows and the marker's ring can reach
+   past its edges. */
+.lc-player[data-ready='true'] .lc-result-inner { overflow: visible; }
+
+/* Matched, the signed orders are spent: they have become the loan. */
+.lc-player[data-matched='true'] .lc-signed .lc-card { opacity: 0.4; }
+
+/* ── Motion ─────────────────────────────────────────────────────────── */
+
+/*
+ * On first view the signed orders rise in and the button appears under them.
+ * On the match: the orders fade as the lines draw into the pill, the ape flies
+ * from Alice's order into custody, the lines branch out as the result unfolds,
+ * the exit orders arrive as pending, and the timeline fades in under them. Then
+ * the clock starts. Everything ends on exactly the frame above.
+ */
+@keyframes lc-fade { from { opacity: 0; } }
+@keyframes lc-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes lc-draw { from { stroke-dashoffset: 1; } }
+@keyframes lc-grow { from { transform: scaleY(0); } }
+@keyframes lc-lift { to { transform: scaleY(0); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lc-player {
+    --t-pill: 150ms; --t-open: 300ms; --t-branch: 450ms; --t-exits: 700ms; --t-time: 1050ms;
+  }
+
+  .lc-player[data-entered='false'] :is(.lc-signed > .lc-card, .lc-match) { opacity: 0; }
+  .lc-player[data-entered='true'] .lc-signed > .lc-card { animation: lc-rise 300ms var(--ease) backwards; }
+  .lc-player[data-entered='true'] .lc-signed > .lc-card:last-child { animation-delay: 80ms; }
+  .lc-player[data-entered='true'] .lc-match { animation: lc-fade 250ms var(--ease) 300ms backwards; }
+
+  .lc-player[data-matched='true'] .lc-links path[data-link='merge'] { animation: lc-draw 300ms linear backwards; }
+  .lc-player[data-matched='true'] :is(.lc-pill, .lc-clock) { animation: lc-fade 200ms var(--ease) var(--t-pill) backwards; }
+  .lc-player[data-matched='true'] .lc-result { transition: grid-template-rows 400ms var(--ease) var(--t-open); }
+  .lc-player[data-matched='true'] .lc-links path[data-link='branch'] { animation: lc-draw 300ms linear var(--t-branch) backwards; }
+  .lc-player[data-matched='true'] .lc-exit { animation: lc-fade 250ms var(--ease) var(--t-exits) backwards; }
+  .lc-player[data-matched='true'] .lc-exit[data-tone='claim'] { animation-delay: calc(var(--t-exits) + 80ms); }
+  .lc-player[data-matched='true'] :is(.lc-phase, .lc-track, .lc-dates, .lc-controls) { animation: lc-fade 250ms var(--ease) var(--t-time) backwards; }
 }
 
-.lc-exits { display: grid; grid-template-columns: 1fr 22rem; gap: 16px; margin-top: 24px; }
-.lc-exit { border: 1px solid #ffffff14; border-radius: 10px; padding: 16px 18px; background: #1b1e22; }
-.lc-exit[data-tinted='true'] { background: #241d12; border-color: #5c4a2e; }
-
-.lc-exit-badge {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 0.1em; color: #8a8d96;
+/* Under reduced motion there is no sequence: each state crossfades in whole. */
+@media (prefers-reduced-motion: reduce) {
+  .lc-player[data-entered='false'] { opacity: 0; }
+  .lc-player[data-entered='true'] { animation: lc-fade 150ms ease backwards; }
+  .lc-player[data-matched='true'] .lc-result { transition: grid-template-rows 150ms ease; }
+  .lc-player[data-matched='true'] :is(.lc-pill, .lc-clock, .lc-exit, .lc-phase, .lc-track, .lc-dates, .lc-controls) { animation: lc-fade 150ms ease backwards; }
+  .lc-card, .lc-custody, .lc-track > span, .lc .lc-day-note { transition-duration: 150ms; }
 }
-.lc-exit-badge[data-mark='live'] { color: var(--go); }
-.lc-exit-badge[data-mark='filled'] { color: var(--go); }
-.lc-exit[data-tinted='true'] .lc-exit-badge[data-mark='filled'] { color: var(--claim); }
 
-.lc-exit-title { margin: 9px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
-.lc-exit-amount { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.lc-exit-amount img { border-radius: 50%; }
-.lc-exit-amount strong { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.lc-exit-amount span { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 10.5px; color: #8a8d96; }
-.lc-exit-note { margin-top: 10px; font-size: 12.5px; color: #9a9da5; line-height: 1.5; }
+/* ── Narrower than the drawing ──────────────────────────────────────── */
 
-.lc-routes { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
-.lc-routes li { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
-.lc-routes img { border-radius: 50%; flex: none; }
-.lc-routes img[data-asset='ape'] { border-radius: 4px; }
-/* Still listed, because they are still what the order says. Just no longer
-   things that are going to happen. */
-.lc-routes[data-spent='true'] { color: #6d7079; }
-.lc-routes[data-spent='true'] img { opacity: 0.45; }
-
-.lc-player-caption { margin-top: 18px; text-align: center; font-size: 12.5px; color: #8a8d96; }
-
-.lc-beats { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
-.lc-beats-head {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 0.14em; color: var(--brand); margin-bottom: 3px;
+@media (max-width: 1240px) {
+  .lc-frame { padding: 40px 32px; }
+  .lc-band { padding: 48px 32px; }
 }
-.lc-beats li { display: flex; gap: 14px; font-size: 13px; color: #9a9da5; }
-.lc-beat-num { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 10.5px; color: var(--brand); padding-top: 2px; }
 
-/* ── Motion notes ───────────────────────────────────────────────────── */
-
-.lc-band--notes { padding: 34px 64px 0; border-top: 0; }
-.lc-notes-head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
-.lc-notes-title, .lc-notes-rule {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+@media (max-width: 1080px) {
+  .lc-band { padding: 40px 24px; }
 }
-.lc-notes-title { color: var(--brand); }
-.lc-notes-rule { color: var(--muted-2); }
 
-.lc-cues { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 26px; }
-.lc-cue-id {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10.5px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px;
-}
-.lc-cue-text { font-size: 12.5px; line-height: 1.6; color: #4a4d55; }
+/*
+ * Stacked: the rail is the timeline. Each exit order sits beside its own stretch
+ * of rail, the deadline is the rule between them, and the controls ride along the
+ * bottom of the screen for as long as the orders are on it.
+ */
+@media (max-width: 859px) {
+  .lc-frame { padding: 28px 0 0; }
+  .lc-head { flex-direction: column; align-items: flex-start; gap: 20px; padding: 0 20px 32px; }
+  .lc .lc-title { font-size: 38px; line-height: 41px; letter-spacing: -1.6px; }
+  .lc .lc-context { white-space: normal; }
 
-/* ── Narrow ─────────────────────────────────────────────────────────── */
+  .lc-band { padding: 28px 20px 32px; gap: 28px; }
+  .lc .lc-band-title { font-size: 28px; letter-spacing: -0.8px; }
 
-@media (max-width: 64rem) {
-  .lc-head { grid-template-columns: 1fr; padding: 48px 20px 28px; }
-  .lc-title { font-size: 34px; }
-  .lc-context { text-align: left; }
+  .lc-narrow-only { display: inline; }
+  .lc-wide-only { display: none; }
 
-  .lc-band--open { grid-template-columns: 1fr; gap: 48px; padding: 28px 20px 48px; }
-  .lc-orders { grid-template-columns: 1fr; gap: 16px; margin-top: 28px; }
-  .lc-exchange { margin-top: 28px; }
-  .lc-transfer { grid-template-columns: 1fr; gap: 10px; }
-  .lc-transfer-route { grid-column: 1; grid-row: auto; text-align: left; }
+  .lc .lc-player { max-width: 560px; padding: 0; background: none; outline: 0; border-radius: 0; box-shadow: none; }
+  .lc-links { display: none; }
+  .lc-stem { display: block; }
 
-  .lc-band--resolve { grid-template-columns: 1fr; gap: 32px; padding: 48px 20px 56px; }
-  .lc-resolve-title { font-size: 28px; }
-  .lc-amount strong { font-size: 32px; }
-  .lc-exits { grid-template-columns: 1fr; }
-  .lc-controls { flex-wrap: wrap; }
+  .lc-signed { flex-direction: column; gap: 0; }
+  .lc-signed .lc-card { flex: none; }
+  .lc-matches { display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.8px; color: var(--quiet); }
+  .lc-matches .lc-stem { height: 10px; }
 
-  .lc-band--notes { padding: 28px 20px 0; }
-  .lc-cues { grid-template-columns: 1fr; gap: 22px; }
-  .lc-notes-head { flex-direction: column; gap: 6px; }
+  .lc-merge, .lc-branch { height: 16px; display: flex; justify-content: center; }
+  .lc-merge .lc-stem, .lc-branch .lc-stem { height: 16px; }
+
+  .lc-origin { justify-content: center; }
+  .lc-origin-balance, .lc-clock { display: none; }
+  .lc .lc-pill { padding: 10px 16px; }
+  .lc-pill .lc-whale { width: 22px; height: 19px; margin-right: 8px; }
+  .lc-pill-label { font-size: 14px; }
+  .lc-custody-inner { gap: 8px; padding-left: 8px; }
+  .lc-custody img { width: 22px; height: 22px; }
+  .lc-pill-detail { font-size: 12px; }
+
+  .lc-card-head { height: 84px; padding: 12px 16px; }
+  .lc .lc-card-title { font-size: 17px; }
+
+  .lc-exits {
+    column-gap: 12px; grid-template-columns: 16px minmax(0, 1fr);
+    grid-template-rows: 20px auto auto 20px auto;
+    grid-template-areas:
+      'rrail  rphase'
+      'rtrack rcard'
+      'dead   dead'
+      'crail  cphase'
+      'ctrack ccard';
+  }
+  .lc-label-rail { display: block; justify-self: center; width: 4px; transition: background-color 300ms var(--ease); }
+  .lc-label-rail[data-zone='repayment'] { grid-area: rrail; background: var(--go-bar); }
+  .lc-label-rail[data-zone='claim'] { grid-area: crail; background: var(--claim-bar); }
+  .lc .lc-dates { display: none; }
+
+  .lc .lc-phase { margin: 0; padding-bottom: 8px; }
+
+  /* The rail is as tall as the card beside it, whatever the card's height. */
+  .lc-track { height: auto; margin: 0; }
+  .lc-track-done, .lc-track-ahead, .lc-track-rail { top: auto; left: 6px; width: 4px; height: auto; }
+  .lc-track-done { top: 0; right: auto; height: calc(var(--p) * 100%); border-radius: 0; }
+  .lc-track-ahead { top: calc(var(--p) * 100%); bottom: 0; right: auto; border-radius: 0 0 2px 2px; }
+  .lc-track-rail { top: 0; bottom: 0; right: auto; border-radius: 0; background: linear-gradient(180deg, var(--claim-bar), #d9cbb600); }
+  .lc-marker { left: 1px; top: calc(var(--p) * 100% - 7px); outline-color: var(--ground); }
+  .lc-track[data-zone='claim'] .lc-marker { left: 1px; top: 5px; }
+  .lc-player[data-outcome='running'] .lc-track[data-zone='repayment'] { cursor: auto; touch-action: auto; }
+  .lc-player[data-outcome='running'] .lc-track[data-zone='repayment'] .lc-marker { cursor: auto; }
+
+  .lc-player[data-outcome='repaid'] .lc-label-rail[data-zone='claim'] { background: var(--dead); }
+  .lc-player[data-outcome='repaid'] .lc-track-rail { background: linear-gradient(180deg, var(--dead), #eef1f300); }
+  .lc-player[data-outcome='claimed'] .lc-label-rail[data-zone='repayment'] { background: var(--go-spent); }
+
+  .lc-deadline { grid-area: dead; display: flex; align-items: center; gap: 12px; padding: 14px 0; }
+  .lc-deadline-tick { width: 16px; display: flex; justify-content: center; }
+  .lc-deadline-tick::before { content: ''; width: 12px; height: 1px; background: var(--code); }
+  .lc-deadline-day { font-family: var(--mono); font-size: 9px; letter-spacing: 0.8px; color: var(--code); white-space: nowrap; }
+  .lc-deadline-line { flex: 1 1 0; height: 1px; background: var(--border); }
+  .lc .lc-deadline em { font-size: 13px; font-style: italic; color: var(--quiet); }
+
+  /* The controls stick to the bottom of the screen while the orders are on it,
+     and come to rest under them at the end of the figure. */
+  .lc-controls {
+    position: sticky; bottom: 0; z-index: 2; margin: 20px -20px 0; padding: 20px 20px calc(16px + env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'clock hint' 'actions actions';
+    align-items: end; row-gap: 12px; background: var(--ground); border-top: 1px solid var(--border);
+  }
+  .lc-controls-clock { grid-area: clock; display: flex; align-items: flex-end; gap: 6px; }
+  .lc-controls-clock .lc-day-note { font-size: 12px; padding-bottom: 3px; }
+  .lc .lc-hint { grid-area: hint; padding-bottom: 4px; }
+  .lc-actions { grid-area: actions; }
+  .lc-actions:not([data-ended]) .lc-button { flex: 1 1 0; }
+  .lc-button { min-height: 44px; padding: 11px 14px; }
+  .lc .lc-chip { min-height: 44px; }
+
+  .lc-origin { min-height: 44px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lc-player { --t-pill: 250ms; --t-rail: 600ms; --t-exits: 950ms; --t-time: 950ms; }
+
+    .lc-player[data-matched='true'] .lc-matches { animation: lc-fade 200ms var(--ease) backwards; }
+    .lc-player[data-matched='true'] .lc-merge .lc-stem { transform-origin: top; animation: lc-grow 150ms linear 150ms backwards; }
+    .lc-player[data-matched='true'] .lc-branch .lc-stem { transform-origin: top; animation: lc-grow 150ms linear var(--t-branch) backwards; }
+    .lc-player[data-matched='true'] .lc-track { animation: none; }
+
+    /* The rail grows downward: a curtain in the ground colour lifts off it. */
+    .lc-curtain {
+      display: block; grid-column: 1; grid-row: 1 / -1; z-index: 2; margin: -8px -2px 0; background: var(--ground);
+      transform-origin: bottom; pointer-events: none;
+    }
+    .lc-player[data-matched='true'] .lc-curtain { animation: lc-lift 400ms linear var(--t-rail) forwards; }
+  }
 }

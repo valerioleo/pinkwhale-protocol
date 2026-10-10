@@ -1,12 +1,11 @@
 /**
- * The loan lifecycle, as the figure tells it: agree, exchange, resolve.
+ * The loan, as the figure tells it: two orders match, and execution leaves two
+ * new orders in their place, each owning its stretch of time.
  *
- * Only the third step moves under its own power. The first two are pictures that
- * assemble themselves on arrival; the third is a small machine with a clock, and
- * the one thing worth getting right about it is that the clock drives everything
- * else. Amount, phase, which order is fillable and which is dead are all read off
- * the day — there is no second copy of the loan's state to fall out of step with
- * the first.
+ * The one thing worth getting right is that the clock drives everything else.
+ * Interest, which order is fillable and which is dead are all read off the day and
+ * the outcome — there is no second copy of the loan's state to fall out of step
+ * with the first.
  */
 
 export const PRINCIPAL = 100;
@@ -15,190 +14,170 @@ export const INTEREST = 10;
 
 export const TERM_DAYS = 30;
 
-/** How far past the deadline the claim lane runs, in days. For drawing only. */
-export const CLAIM_DAYS = 5;
+/** The day Bob's claim lands, the first after the deadline. */
+export const CLAIM_DAY = TERM_DAYS + 1;
 
 /**
  * Seaport interpolates linearly between the two endpoints and stops at the
- * second, which is why the figure can say "amount at deadline" and mean it: past
- * day 30 the debt does not keep climbing, it stops being payable.
+ * second: past day 30 the debt does not keep climbing, it stops being payable.
  */
-export const owedOn = (day: number) =>
-  PRINCIPAL + (INTEREST * Math.min(day, TERM_DAYS)) / TERM_DAYS;
+export const interestOn = (day: number) =>
+  (PRINCIPAL * (INTEREST / 100) * Math.min(day, TERM_DAYS)) / TERM_DAYS;
 
-export type Scenario = 'repay' | 'default';
+/** Running until one of the two exit orders is filled. */
+export type Outcome = 'running' | 'repaid' | 'claimed';
 
-/** Where a scenario comes to rest. Everything before it is the clock running. */
-export const SETTLES_ON: Record<Scenario, number> = {repay: 15, default: TERM_DAYS + 1};
+export type Variant = 'live' | 'pending' | 'void';
 
-export type Phase = 'idle' | 'accruing' | 'settled';
+export type Person = 'alice' | 'bob';
 
-export type Transfer = {readonly asset: 'usdc' | 'ape'; readonly route: string};
+export type Mark = Person | 'pinkwhale';
 
-export type ExitOrder = {
-  readonly title: string;
-  readonly badge: string;
-  /** Drives both the glyph and the colour: they are one decision, not two. */
-  readonly mark: 'live' | 'locked' | 'filled' | 'void' | 'expired';
-  readonly note: string;
-  readonly amount?: string;
-  readonly transfers: readonly Transfer[];
-  /** A filled claim is the one card the figure tints. */
-  readonly tinted?: boolean;
-  /** Routes that can no longer happen are still shown, greyed. */
-  readonly spent?: boolean;
+export type Asset = 'bayc' | 'usdc';
+
+export type OrderRow = {
+  readonly label: string;
+  readonly value:
+    | {readonly kind: 'asset'; readonly asset: Asset; readonly text: string}
+    | {readonly kind: 'party'; readonly mark: Mark; readonly text: string}
+    | {readonly kind: 'none'}
+    | {readonly kind: 'time'; readonly text: string}
+    | {readonly kind: 'terms'; readonly length: string; readonly rate: string};
+  /** Where the consideration goes, when it is not the offerer. */
+  readonly recipient?: {readonly mark: Mark; readonly text: string};
 };
 
-const REPAYMENT_ROUTES: readonly Transfer[] = [
-  {asset: 'usdc', route: 'Alice → Bob'},
-  {asset: 'ape', route: 'Pinkwhale → Alice'}
-];
+export type Order = {
+  readonly title: string;
+  readonly status: string;
+  readonly variant: Variant;
+  /** Whose colours a live card wears. */
+  readonly tone: 'neutral' | 'repayment' | 'claim';
+  readonly rows: readonly OrderRow[];
+};
 
-const CLAIM_ROUTES: readonly Transfer[] = [{asset: 'ape', route: 'Pinkwhale → Bob'}];
+const two = (value: number) => value.toFixed(2);
 
-/** The two exit orders, read at whatever moment the player is showing. */
-export const exitOrders = (
-  scenario: Scenario,
-  phase: Phase,
-  day: number
-): readonly [ExitOrder, ExitOrder] => {
-  const settled = phase === 'settled';
-  const owed = String(Math.round(owedOn(day)));
+const zone: OrderRow = {label: 'zone', value: {kind: 'party', mark: 'pinkwhale', text: 'Pinkwhale'}};
 
-  if (scenario === 'repay') {
-    return [
-      {
-        title: 'Repayment',
-        badge: settled ? `FILLED · DAY ${day}` : 'FILLABLE NOW',
-        mark: settled ? 'filled' : 'live',
-        note: settled ? 'Paid before the deadline.' : 'Pay now to return the NFT.',
-        amount: owed,
-        transfers: REPAYMENT_ROUTES
-      },
-      {
-        title: 'Default',
-        badge: settled ? 'VOID' : 'TIME-LOCKED',
-        mark: settled ? 'void' : 'locked',
-        note: settled
-          ? 'Repayment makes this order unfillable.'
-          : `Claim after day ${TERM_DAYS} only if unpaid.`,
-        transfers: CLAIM_ROUTES,
-        spent: true
-      }
-    ];
-  }
+/**
+ * The two signed orders. They differ only in which way their bounds face, which
+ * is the whole reason they can meet: her ceiling and his floor are the same number.
+ * Until the reader matches them they are only signed.
+ */
+export const signedOrders = (matched: boolean): readonly [Order, Order] => {
+  const status = matched ? 'MATCHED' : 'SIGNED';
 
   return [
     {
-      title: 'Repayment',
-      badge: settled ? 'EXPIRED' : 'FILLABLE NOW',
-      mark: settled ? 'expired' : 'live',
-      note: settled ? 'Window closed without repayment.' : 'Pay now to return the NFT.',
-      amount: settled ? undefined : owed,
-      transfers: REPAYMENT_ROUTES,
-      spent: settled
+      title: 'Alice - Borrower',
+      status,
+      variant: 'live',
+      tone: 'neutral',
+      rows: [
+        {label: 'Offer', value: {kind: 'asset', asset: 'bayc', text: 'BAYC'}},
+        {label: 'Consideration', value: {kind: 'asset', asset: 'usdc', text: `${PRINCIPAL} USDC`}},
+        zone,
+        {label: 'zoneHash', value: {kind: 'terms', length: `≥ ${TERM_DAYS} days`, rate: `≤ ${INTEREST}%`}}
+      ]
     },
     {
-      title: 'Default',
-      badge: settled ? `FILLED · DAY ${day}` : 'TIME-LOCKED',
-      mark: settled ? 'filled' : 'locked',
-      note: settled
-        ? 'Bob claims after the deadline.'
-        : `Claim after day ${TERM_DAYS} only if unpaid.`,
-      transfers: CLAIM_ROUTES,
-      tinted: settled,
-      spent: !settled
+      title: 'Bob - Lender',
+      status,
+      variant: 'live',
+      tone: 'neutral',
+      rows: [
+        {label: 'Offer', value: {kind: 'asset', asset: 'usdc', text: `${PRINCIPAL} USDC`}},
+        {
+          label: 'Consideration',
+          value: {kind: 'asset', asset: 'bayc', text: 'BAYC'},
+          recipient: {mark: 'pinkwhale', text: 'Pinkwhale'}
+        },
+        zone,
+        {label: 'zoneHash', value: {kind: 'terms', length: `≤ ${TERM_DAYS} days`, rate: `≥ ${INTEREST}%`}}
+      ]
     }
   ];
 };
 
-/** The words around the figure, which change with the moment it is showing. */
-export const playerCopy = (scenario: Scenario, phase: Phase) => ({
-  playback:
-    phase === 'idle' ? 'AUTO PLAY' : phase === 'accruing' ? 'ACCRUING' : 'SCENARIO COMPLETE',
-  amountLabel:
-    phase !== 'settled'
-      ? 'AMOUNT TO REPAY NOW'
-      : scenario === 'repay'
-        ? 'REPAYMENT AMOUNT'
-        : 'AMOUNT AT DEADLINE',
-  dayNote:
-    phase !== 'settled'
-      ? 'Loan still open'
-      : scenario === 'repay'
-        ? `of ${TERM_DAYS} days`
-        : 'Window closed',
-  claimLane:
-    phase !== 'settled' ? 'CLAIM · LOCKED' : scenario === 'repay' ? 'CLAIM · VOID' : 'CLAIM',
-  caption:
-    phase !== 'settled'
-      ? 'No repayment yet. Interest accrues; the NFT remains in Pinkwhale custody.'
-      : scenario === 'repay'
-        ? 'Repay: fill one order, void the other. Default: pass the deadline, then claim.'
-        : 'Deadline passes → claim becomes available → Bob claims.'
-});
+/**
+ * The repayment order dies with the deadline, not with the claim: Seaport stops
+ * filling an order at its endTime, which is the same second the default's
+ * startTime opens.
+ */
+export const windowClosed = (day: number) => day >= TERM_DAYS;
 
-/** The beats listed under the figure, for whichever scenario is showing. */
-export const BEATS: Record<Scenario, readonly string[]> = {
-  repay: [
-    `Day 0 → ${TERM_DAYS} · amount rises from ${PRINCIPAL} to ${PRINCIPAL + INTEREST} USDC`,
-    `Day ${SETTLES_ON.repay} · Alice fills Repayment before the deadline`,
-    'NFT returns to Alice · Default becomes unfillable'
-  ],
-  default: [
-    `Day 0 → ${TERM_DAYS} · amount rises from ${PRINCIPAL} to ${PRINCIPAL + INTEREST} USDC`,
-    `Day ${SETTLES_ON.default} · repayment closes, Claim becomes available`,
-    'Bob claims · NFT moves to Bob, loan closes'
-  ]
+/**
+ * The two exit orders, read at whatever moment the player is showing. `waiting`
+ * is the figure before its clock has started: both orders exist, neither is yet
+ * the one that matters.
+ */
+export const exitOrders = (outcome: Outcome, day: number, waiting: boolean): readonly [Order, Order] => {
+  const closed = windowClosed(day);
+
+  return [
+    {
+      title: 'Repayment',
+      status:
+        outcome === 'repaid'
+          ? 'FILLED'
+          : outcome === 'claimed'
+            ? 'VOID'
+            : closed
+              ? 'EXPIRED'
+              : 'FILLABLE NOW',
+      variant:
+        outcome === 'repaid'
+          ? 'live'
+          : outcome === 'claimed'
+            ? 'void'
+            : closed || waiting
+              ? 'pending'
+              : 'live',
+      tone: 'repayment',
+      rows: [
+        {label: 'Offer', value: {kind: 'asset', asset: 'bayc', text: 'BAYC'}},
+        {
+          label: 'Consideration',
+          value: {
+            kind: 'asset',
+            asset: 'usdc',
+            // A claimed loan was never repaid, so there is no one figure to show.
+            text: `${PRINCIPAL} + ${outcome === 'claimed' ? 'interest' : two(interestOn(day))}`
+          },
+          recipient: {mark: 'bob', text: 'Bob'}
+        },
+        {label: 'Authorized filler', value: {kind: 'party', mark: 'alice', text: 'Alice'}},
+        {label: 'endTime', value: {kind: 'time', text: `day ${TERM_DAYS}`}}
+      ]
+    },
+    {
+      title: 'Default',
+      status:
+        outcome === 'repaid'
+          ? 'VOID'
+          : outcome === 'claimed'
+            ? 'FILLED'
+            : closed
+              ? 'FILLABLE NOW'
+              : `OPENS DAY ${TERM_DAYS}`,
+      variant: outcome === 'repaid' ? 'void' : outcome === 'claimed' || closed ? 'live' : 'pending',
+      tone: 'claim',
+      rows: [
+        {label: 'Offer', value: {kind: 'asset', asset: 'bayc', text: 'BAYC'}},
+        {label: 'Consideration', value: {kind: 'none'}},
+        {label: 'Authorized filler', value: {kind: 'party', mark: 'bob', text: 'Bob'}},
+        {label: 'startTime', value: {kind: 'time', text: `day ${TERM_DAYS}`}}
+      ]
+    }
+  ];
 };
 
-/** The two signed orders in step 01, as a diff against a plain Seaport order. */
-export const AGREEMENT = [
-  {
-    signer: 'Alice',
-    title: `Borrow ${PRINCIPAL} USDC`,
-    pair: ['BAYC', 'USDC'] as const,
-    added: [
-      'zone: Pinkwhale',
-      'zoneHash: hash(',
-      'maxInterest = 10%,',
-      'minLength = 30',
-      ')',
-      'recipient: Pinkwhale'
-    ]
-  },
-  {
-    signer: 'Bob',
-    title: `Lend ${PRINCIPAL} USDC`,
-    pair: ['USDC', 'BAYC'] as const,
-    added: [
-      'zone: Pinkwhale',
-      'zoneHash: hash(',
-      'minInterest = 10%,',
-      'maxLength = 30',
-      ')',
-      'recipient: Pinkwhale'
-    ]
-  }
-] as const;
+/** What is announced once the orders match and the ape is in custody. */
+export const MATCHED_ANNOUNCEMENT = 'Orders matched. BAYC held by Pinkwhale.';
 
-export const MOTION_CUES = [
-  {
-    id: '01 / AGREE',
-    text:
-      'Diff rows appear. The shared zone highlights, then compatible interest and duration ' +
-      'bounds resolve to 10% and 30 days.'
-  },
-  {
-    id: '02 / EXCHANGE',
-    text:
-      "Two transfer lanes play together: Alice's BAYC enters custody as Bob's USDC arrives " +
-      'with Alice.'
-  },
-  {
-    id: '03 / RESOLVE',
-    text:
-      'Create two exit orders at opening. Advance time and amount together. Fill repayment—or ' +
-      "unlock the lender's claim after expiry."
-  }
-] as const;
+/** Who holds the ape once the loan has ended, and the line announced when it does. */
+export const ENDINGS = {
+  repaid: {owner: 'alice', name: 'Alice', subtitle: 'Repaid', announce: 'Repaid. BAYC owned by Alice.'},
+  claimed: {owner: 'bob', name: 'Bob', subtitle: 'Claimed', announce: 'Claimed. BAYC owned by Bob.'}
+} as const;
