@@ -48,8 +48,8 @@ const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
  * The two orders Pinkwhale minted, read from the point of view of whoever is
  * allowed to fill them: what they pay, what they get, and how long they have.
  *
- * The default order is *cancelled* once the repayment order is filled, not merely
- * closed. Its zoneHash commits to the repayment order, and the zone checks that
+ * The default order becomes unfillable once the repayment order is filled. Its
+ * zoneHash commits to the repayment order, and the zone checks that
  * order's status before letting a claim through — so a repaid loan makes the
  * claim unfillable forever, whatever the clock says.
  */
@@ -107,7 +107,7 @@ const Orders = ({loan, now, personas}: {loan: Loan; now: bigint; personas: Perso
   const defaultWindow = loan.claimed
     ? 'Filled — the collateral was claimed'
     : loan.repaid
-      ? 'Cancelled — the repayment order was filled first'
+      ? 'Blocked — the repayment order was filled first'
       : expired
         ? 'Open, never expires'
         : 'Opens after the repayment order closes, and never expires';

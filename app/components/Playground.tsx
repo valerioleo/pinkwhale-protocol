@@ -64,7 +64,7 @@ export const Playground = () => {
   const resolveTxs = useTransactions('resolve');
 
   return (
-    <section className="playground" id="playground">
+    <section className="playground">
       <header className="masthead">
         <div>
           <h2>Pinkwhale playground</h2>
@@ -149,9 +149,9 @@ export const Playground = () => {
           ) : (
             <>
               <p className="hint">
-                These are two canonical Seaport orders. The only particular part about them is
-                the <code>zoneHash</code> specified as the Pinkwhale address, to guarantee they
-                can be used only to create loans via Pinkwhale.
+                These are two canonical Seaport orders. Their <code>zone</code> points at
+                Pinkwhale, and their <code>zoneHash</code> commits to the repayment terms
+                each party signed.
               </p>
               <p className="hint">
                 These orders are created here together for convenience, but they would normally

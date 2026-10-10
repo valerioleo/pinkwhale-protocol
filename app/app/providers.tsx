@@ -1,6 +1,6 @@
 'use client';
 
-import {CDPReactProvider, type Config} from '@coinbase/cdp-react';
+import {CDPReactProvider, type Config, type Theme} from '@coinbase/cdp-react';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools';
 import {useState, type ReactNode} from 'react';
@@ -24,13 +24,36 @@ const CDP_CONFIG: Config = {
   ethereum: {createOnLogin: 'eoa'}
 };
 
+// CSS variables also follow system dark mode inside the SDK's modal portal.
+const CDP_THEME: Partial<Theme> = {
+  'colors-bg-default': 'var(--card)',
+  'colors-bg-alternate': 'var(--background)',
+  'colors-bg-primary': 'var(--brand)',
+  'colors-bg-secondary': 'var(--muted)',
+  'colors-fg-default': 'var(--foreground)',
+  'colors-fg-muted': 'var(--muted-foreground)',
+  'colors-fg-primary': 'var(--brand)',
+  'colors-fg-onPrimary': 'var(--brand-foreground)',
+  'colors-fg-onSecondary': 'var(--foreground)',
+  'colors-fg-positive': 'var(--positive)',
+  'colors-fg-negative': 'var(--destructive)',
+  'colors-fg-warning': 'var(--brand)',
+  'colors-line-default': 'var(--border)',
+  'colors-line-heavy': 'var(--muted-foreground)',
+  'font-family-sans': 'var(--font-sans)',
+  'font-family-mono': 'var(--font-mono)',
+  'borderRadius-cta': 'var(--radius)',
+  'borderRadius-input': 'var(--radius)',
+  'borderRadius-modal': 'var(--radius)'
+};
+
 export const Providers = ({children}: {children: ReactNode}) => {
   // Created once per mount rather than at module scope, so a client is never
   // shared between requests on the server.
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <CDPReactProvider config={CDP_CONFIG}>
+    <CDPReactProvider config={CDP_CONFIG} theme={CDP_THEME}>
       <QueryClientProvider client={queryClient}>
         {children}
         {process.env.NODE_ENV === 'development' ? (
