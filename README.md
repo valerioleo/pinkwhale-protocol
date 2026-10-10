@@ -164,12 +164,17 @@ the article's widgets import.
 pnpm dev
 ```
 
-An interactive walkthrough: an order anatomy inspector, a lifecycle scrubber, and a red-team
-console where every attack links to the test that proves it. Solidity snippets are pulled from
-the real `.sol` files at build time, so the article cannot drift from the repo.
+An interactive essay: follow the collateral through a loan, move the clock, inspect the four
+orders, and explore the guards that stop an old claim from taking new collateral. These
+experiments run locally without a wallet. `pnpm test:article` checks the simulated loan's
+expiry boundary, settlement, and replay behavior.
 
-At the foot of it is a playground running against Base Sepolia, where two wallets created on
-sign-in open, repay and default on a real loan.
+The technical reference keeps the full execution walkthrough and infrastructure notes.
+Solidity snippets are pulled from the real `.sol` files at build time.
+
+At the foot of the essay is an optional Base Sepolia playground. Opening it loads the wallet
+providers; signing in creates two funded actors that can open, repay, and default on a real
+testnet loan. The article and its simulations work independently of that service.
 
 ## Known limitations
 

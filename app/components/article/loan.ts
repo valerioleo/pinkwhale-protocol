@@ -21,6 +21,7 @@ import {
   type OfferItem
 } from '../../../scripts/lib/orders';
 import type {TokenKind} from './icons';
+import {PRINCIPAL_USDC, INTEREST_USDC, TERM} from './lifecycle';
 
 export {ItemType, OrderType, getBorrowerTermsHash, getLenderTermsHash, getZoneHash};
 export type {ConsiderationItem, OfferItem};
@@ -55,9 +56,9 @@ export const USDC: Address = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 export const BAYC: Address = '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D';
 
 export const TOKEN_ID = 8817n;
-export const PRINCIPAL = 100_000000n; // USDC has 6 decimals
-export const INTEREST = 10_000000n;
-export const DURATION = 30n * 24n * 60n * 60n;
+export const PRINCIPAL = BigInt(PRINCIPAL_USDC * 1e6); // USDC has 6 decimals
+export const INTEREST = BigInt(INTEREST_USDC * 1e6);
+export const DURATION = BigInt(TERM);
 
 /** A fixed t0, so the numbers on the page hold still between renders. */
 export const T0 = 1_760_000_000n;
@@ -122,7 +123,7 @@ export type OrderView = {
   fields: Field[];
 };
 
-const short = (hex: string) => `${hex.slice(0, 10)}...${hex.slice(-8)}`;
+const short = (hex: string) => `${hex.slice(0, 6)}…${hex.slice(-4)}`;
 const usdc = (amount: bigint) => `${Number(amount) / 1e6} USDC`;
 
 const zoneField = (): Field => ({
@@ -204,7 +205,7 @@ export const ORDERS: Record<OrderKind, OrderView> = {
     considerationSubtitle: 'what the borrower takes away',
     offer: [
       collateralOfferItem(
-        '**The collateral.** Swap the itemType for `ERC721_WITH_CRITERIA` and this same field becomes a collection offer or a bundle, because criteria items are a Seaport feature Pinkwhale gets for free.'
+        '**The collateral.** Criteria can let a borrower choose which token fills a collateral slot. Adding more items makes a bundle. **Those are separate Seaport features, and they compose.**'
       )
     ],
     consideration: [

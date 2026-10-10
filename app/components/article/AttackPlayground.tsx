@@ -120,6 +120,8 @@ export const AttackPlayground = () => {
               <li key={attack.id} className={isOpen ? 'pw-attack pw-attack--open' : 'pw-attack'}>
                 <button
                   className="pw-attack__head"
+                  aria-expanded={isOpen}
+                  aria-controls={`attack-${attack.id}`}
                   onClick={() => setOpen(isOpen ? null : attack.id)}
                 >
                   <span className="pw-attack__title">{attack.title}</span>
@@ -130,7 +132,7 @@ export const AttackPlayground = () => {
                 </button>
 
                 {isOpen ? (
-                  <div className="pw-attack__body">
+                  <div className="pw-attack__body" id={`attack-${attack.id}`}>
                     <p>{attack.detail}</p>
                     <p className="pw-attack__meta">
                       raised by <strong>{attack.raisedBy}</strong>, proven by{' '}

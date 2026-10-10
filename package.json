@@ -16,6 +16,7 @@
     "generate": "deployoor generate",
     "site:build": "pnpm --filter @pinkwhale/app build",
     "test": "forge test",
+    "test:article": "tsx --test app/components/article/lifecycle.test.mjs",
     "test:e2e": "tsx test/e2e/loanLifecycle.ts",
     "typecheck": "tsc --noEmit"
   },

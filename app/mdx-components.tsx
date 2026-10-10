@@ -1,8 +1,14 @@
 import type {MDXComponents} from 'mdx/types';
+import type {ComponentProps} from 'react';
 
 /**
- * Required by `@next/mdx` at the app root. Element styling lives in the stylesheet
- * rather than here, so this stays a passthrough until a tag actually needs a
- * component behind it.
+ * Keep wide reference tables inside a keyboard-scrollable region so they never
+ * widen the reading surface on a phone.
  */
-export const useMDXComponents = (components: MDXComponents): MDXComponents => components;
+const Table = (props: ComponentProps<'table'>) => (
+  <div className="table-scroll" role="region" aria-label="Scrollable table" tabIndex={0}>
+    <table {...props} />
+  </div>
+);
+
+export const useMDXComponents = (components: MDXComponents): MDXComponents => ({table: Table, ...components});

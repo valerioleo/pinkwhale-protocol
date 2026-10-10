@@ -1,173 +1,79 @@
-'use client';
+"use client";
 
-import './pinkwhale.css';
-
-import {useMemo, useState} from 'react';
-
+import {useId, useState, type ReactNode, type KeyboardEvent} from 'react';
 import {TokenIcon} from './icons';
-import {ORDERS, ORDER_KINDS, type Item, type OrderKind} from './loan';
+import {ORDERS, ORDER_KINDS, type OrderKind} from './loan';
 import {RichText} from './RichText';
 
-type Selection = {note: string; title: string} | null;
+const EMPTY_NOTE = '**The lender pays nothing.** An empty consideration array expresses the entire collateral claim. The order can only be filled by the lender, after expiry, if the loan has not been repaid.';
+const TAB_LABELS = ['Lender', 'Borrower', 'Repayment', 'Default'];
+const SUMMARIES: Record<OrderKind, string> = {
+  'lender-creation': 'The lender offers money. The collateral goes to Pinkwhale.',
+  'borrower-creation': 'The borrower offers the ape. The money goes straight to them.',
+  repayment: 'Pinkwhale offers the ape back, in exchange for repayment to the lender.',
+  default: 'The same ape. The same custodian. Nothing to pay.'
+};
 
-/**
- * The four orders a loan is made of, laid out field by field. Switching tabs
- * marks what changed, because what moves between them is the lesson.
- */
-export const OrderAnatomy = () => {
+type Row = {name: string; label: string; value: ReactNode; note: string; primary?: boolean};
+
+export function OrderAnatomy() {
+  const id = useId();
   const [kind, setKind] = useState<OrderKind>('lender-creation');
   const [previous, setPrevious] = useState<OrderKind>('lender-creation');
-  const [selected, setSelected] = useState<Selection>(null);
-
+  const [selected, setSelected] = useState('consideration');
   const order = ORDERS[kind];
-  const previousOrder = ORDERS[previous];
-
-  const changed = useMemo(() => {
-    const before = new Map(previousOrder.fields.map((f) => [f.name, f.value]));
-    return new Set(order.fields.filter((f) => before.get(f.name) !== f.value).map((f) => f.name));
-  }, [order, previousOrder]);
-
-  const select = (next: OrderKind) => {
-    setPrevious(kind);
-    setKind(next);
-    setSelected(null);
+  const rows: Row[] = [
+    ...(['offer', 'consideration'] as const).map((name) => ({
+      name, label: name, primary: true,
+      value: order[name].length ? <>{order[name].map((item) => <span className="anatomy-item" key={item.index}>
+        {item.icon && <TokenIcon kind={item.icon} />}<strong>{item.amount}</strong>
+        {item.recipient && <small>to {item.recipient.label}</small>}
+      </span>)}</> : <span className="anatomy-empty"><code>[ ]</code> Nothing. It is free.</span>,
+      note: order[name].map((item) => item.note).join('\n\n') || EMPTY_NOTE
+    })),
+    ...order.fields.map((field) => ({name: field.name, label: field.name, value: <span className="anatomy-value">{field.icon && <TokenIcon kind={field.icon} />}{field.value}</span>, note: field.note}))
+  ];
+  const chosen = rows.find((row) => row.name === selected) ?? rows[0];
+  const change = (next: OrderKind) => {setPrevious(kind); setKind(next); setSelected('consideration');};
+  const keyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let next: number;
+    if (event.key === 'ArrowRight') next = (index + 1) % ORDER_KINDS.length;
+    else if (event.key === 'ArrowLeft') next = (index + ORDER_KINDS.length - 1) % ORDER_KINDS.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = ORDER_KINDS.length - 1;
+    else return;
+    event.preventDefault();
+    change(ORDER_KINDS[next]);
+    document.getElementById(`${id}-tab-${next}`)?.focus();
   };
+  const note = (row: Row) => <><span className="eyebrow">Why this field matters</span><h3>{row.label}</h3>{row.note.split('\n\n').map((paragraph, index) => <p key={index}><RichText>{paragraph}</RichText></p>)}</>;
 
-  const pick = (title: string, note: string) =>
-    setSelected(selected?.title === title ? null : {title, note});
-
-  return (
-    <div className="pw-widget">
-      <div className="pw-tabs">
-        {ORDER_KINDS.map((k) => (
-          <button
-            key={k}
-            className={k === kind ? 'pw-tab pw-tab--active' : 'pw-tab'}
-            onClick={() => select(k)}
-          >
-            {ORDERS[k].label}
-            <span
-              className={
-                ORDERS[k].createdBy === 'User-created'
-                  ? 'pw-pill pw-pill--user'
-                  : 'pw-pill pw-pill--protocol'
-              }
-            >
-              {ORDERS[k].createdBy}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <div className="pw-widget__body pw-anatomy">
-        <div className="pw-anatomy__main">
-          <ItemList
-            title="offer"
-            subtitle={order.offerSubtitle}
-            items={order.offer}
-            selected={selected}
-            onPick={pick}
-          />
-
-          <ItemList
-            title="consideration"
-            subtitle={order.considerationSubtitle}
-            items={order.consideration}
-            selected={selected}
-            onPick={pick}
-            emptyLabel="nothing. it is free."
-            emptyNote="An empty consideration array is the whole liquidation mechanism. The lender pays zero for the collateral, however far above or below the debt it is worth. See 'Possible improvements'."
-          />
-
-          <ul className="pw-fields">
-            {order.fields.map((field) => (
-              <li key={field.name}>
-                <button
-                  className={[
-                    'pw-field',
-                    changed.has(field.name) && kind !== previous ? 'pw-field--changed' : '',
-                    selected?.title === field.name ? 'pw-field--selected' : ''
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => pick(field.name, field.note)}
-                >
-                  <span className="pw-field__name">{field.name}</span>
-                  <span className="pw-field__value pw-hex">
-                    {field.icon ? <TokenIcon kind={field.icon} /> : null}
-                    {field.value}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <aside className="pw-detail">
-          {selected ? (
-            <div className="pw-detail__note">
-              <h4>{selected.title}</h4>
-              {selected.note.split('\n\n').map((paragraph, i) => (
-                <p key={i}>
-                  <RichText>{paragraph}</RichText>
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p className="pw-detail__empty">Pick any row to see what it does.</p>
-          )}
-        </aside>
+  return <figure className="anatomy-lab breakout" aria-label="Anatomy of the four Seaport orders">
+    <div className="lab-heading"><span className="eyebrow">Fig. 02 <span className="lab-heading__separator">/</span> A loan, in four orders</span><span className="lab-tag">Select an order, then a field</span></div>
+    <div className="anatomy-tabs" role="tablist" aria-label="The four orders">
+      {ORDER_KINDS.map((key, index) => <button id={`${id}-tab-${index}`} key={key} role="tab" aria-selected={kind === key} aria-controls={`${id}-panel`} tabIndex={kind === key ? 0 : -1}
+        onClick={() => change(key)} onKeyDown={(event) => keyDown(event, index)}>
+        <span><small>{String(index + 1).padStart(2, '0')}</small> {TAB_LABELS[index]}</span>
+        <small>{index < 2 ? 'Signed by a person' : 'Written by Pinkwhale'}</small>
+      </button>)}
+    </div>
+    <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${ORDER_KINDS.indexOf(kind)}`} tabIndex={0}>
+      <p className="anatomy-summary">{SUMMARIES[kind]}</p>
+      <div className="anatomy-layout">
+        <div className="anatomy-rows">{rows.map((row, index) => {
+          const was = ORDERS[previous].fields.find((field) => field.name === row.name);
+          const changed = !row.primary && kind !== previous && was?.value !== order.fields.find((field) => field.name === row.name)?.value;
+          return <div className="anatomy-row" key={row.name}>
+            <button className="anatomy-field" data-selected={chosen.name === row.name} data-primary={row.primary} data-changed={changed}
+              aria-pressed={chosen.name === row.name} aria-controls={`${id}-note-${index} ${id}-note`} onClick={() => setSelected(row.name)}>
+              <span className="anatomy-field__label">{row.label}</span><span className="anatomy-field__value">{row.value}</span><span className="anatomy-field__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div id={`${id}-note-${index}`} className="anatomy-note anatomy-note--inline" hidden={chosen.name !== row.name}>{note(row)}</div>
+          </div>;
+        })}</div>
+        <aside id={`${id}-note`} className="anatomy-note anatomy-note--desktop" aria-live="polite">{note(chosen)}</aside>
       </div>
     </div>
-  );
-};
-
-type ItemListProps = {
-  title: string;
-  subtitle: string;
-  items: Item[];
-  selected: Selection;
-  onPick: (title: string, note: string) => void;
-  emptyLabel?: string;
-  emptyNote?: string;
-};
-
-const ItemList = ({title, subtitle, items, selected, onPick, emptyLabel, emptyNote}: ItemListProps) => (
-  <section className="pw-items">
-    <h5 className="pw-items__title">
-      <span className="pw-items__name">{title}</span>
-      <span className="pw-items__subtitle">{subtitle}</span>
-    </h5>
-
-    {items.length === 0 ? (
-      <button
-        className={selected?.title === title ? 'pw-item pw-item--empty pw-item--selected' : 'pw-item pw-item--empty'}
-        onClick={() => onPick(title, emptyNote ?? '')}
-      >
-        <span className="pw-item__box">[ ]</span>
-        <span className="pw-item__amount">{emptyLabel}</span>
-      </button>
-    ) : (
-      <ul className="pw-fields">
-        {items.map((item) => (
-          <li key={item.index}>
-            <button
-              className={selected?.title === item.index ? 'pw-item pw-item--selected' : 'pw-item'}
-              onClick={() => onPick(item.index, item.note)}
-            >
-              {item.icon ? <TokenIcon kind={item.icon} /> : null}
-              <span className="pw-item__amount">{item.amount}</span>
-              <span className="pw-item__type pw-hex">{item.itemType}</span>
-              {item.recipient ? (
-                <span className="pw-item__recipient">
-                  to {item.recipient.icon ? <TokenIcon kind={item.recipient.icon} /> : null}
-                  {item.recipient.label}
-                </span>
-              ) : null}
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </section>
-);
+    <figcaption className="lab-footer"><span>Ordinary Seaport fields. Different arrangements.</span><a href="/reference#the-four-orders">Full order reference ↗</a></figcaption>
+  </figure>;
+}
