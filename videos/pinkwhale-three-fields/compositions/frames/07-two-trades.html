@@ -1,0 +1,171 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+    @font-face { font-family: "Inter Symbols"; src: url("assets/fonts/Inter-symbols.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2460-2462, U+2713; font-display: block; }
+    @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+    @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+    @font-face { font-family: "Plex Mono Symbols"; src: url("assets/fonts/IBMPlexMono-symbols.woff2") format("woff2"); font-weight: 400 500; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2713; font-display: block; }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "Inter", "Inter Symbols", sans-serif;
+      color: #24252A;
+    }
+
+    /* Ground: cream field + hairline grid (the grid fades to plain ground) */
+    #t07-ground {
+      position: absolute;
+      inset: 0;
+      background: #FAFAFB;
+    }
+    #t07-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(36, 37, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(36, 37, 42, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Index chrome — top-right, baseline ~88 */
+    #t07-index {
+      position: absolute;
+      top: 70px;
+      right: 80px;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 18px;
+      letter-spacing: 0.14em;
+      color: #71737A;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Lockup — mark + wordmark, centred on y≈400 */
+    #t07-lockup {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 344px;
+      height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+    #t07-mark {
+      display: block;
+      width: 132px;
+      height: 111px;
+      transform-origin: 50% 50%;
+    }
+    #t07-wordmark {
+      font-family: "Inter", "Inter Symbols", sans-serif;
+      font-weight: 500;
+      font-size: 80px;
+      line-height: 1;
+      letter-spacing: -0.035em;
+      color: #24252A;
+      padding-bottom: 6px;
+    }
+
+    /* Thesis — headline role, centred beneath the lockup */
+    #t07-thesis {
+      position: absolute;
+      left: 80px;
+      right: 80px;
+      top: 530px;
+      text-align: center;
+      font-family: "Inter", "Inter Symbols", sans-serif;
+      font-weight: 500;
+      font-size: 50px;
+      line-height: 1.14;
+      letter-spacing: -0.03em;
+      color: #24252A;
+    }
+    #t07-thesis .t07-line {
+      display: block;
+    }
+    #t07-thesis .t07-word {
+      display: inline-block;
+    }
+
+    /* Footer — mono label, muted, low in the stage zone */
+    #t07-footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 800px;
+      text-align: center;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      color: #737B87;
+    }
+  </style>
+
+  <div data-hf-id="hf-0cyc" id="root" data-composition-id="07-two-trades" data-width="1080" data-height="1080">
+    <div data-hf-id="hf-6s2x" id="t07-ground" class="clip" data-start="0" data-duration="4" data-track-index="0">
+      <div data-hf-id="hf-l05p" id="t07-grid"></div>
+    </div>
+
+    <div data-hf-id="hf-rn62" id="t07-stage" class="clip" data-start="0" data-duration="4" data-track-index="1" style="position:absolute; inset:0;">
+      <div data-hf-id="hf-elau" id="t07-index">06/06</div>
+
+      <div data-hf-id="hf-39wr" id="t07-lockup">
+        <svg data-hf-id="hf-cikp" id="t07-mark" viewBox="0 0 28.2 23.8" aria-label="Pinkwhale">
+          <path data-hf-id="hf-4cku" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" />
+        </svg>
+        <div data-hf-id="hf-67c7" id="t07-wordmark">Pinkwhale</div>
+      </div>
+
+      <div data-hf-id="hf-n5p5" id="t07-thesis">
+        <span data-hf-id="hf-wi4x" class="t07-line t07-line-a"><span data-hf-id="hf-zw8s" class="t07-word">A</span> <span data-hf-id="hf-7up7" class="t07-word">loan</span> <span data-hf-id="hf-cgat" class="t07-word">is</span> <span data-hf-id="hf-mwy7" class="t07-word">just</span> <span data-hf-id="hf-byu1" class="t07-word">two</span> <span data-hf-id="hf-ec3y" class="t07-word">trades</span></span>
+        <span data-hf-id="hf-2nuq" class="t07-line t07-line-b"><span data-hf-id="hf-0q0s" class="t07-word">that</span> <span data-hf-id="hf-ukmq" class="t07-word">haven’t</span> <span data-hf-id="hf-7wiw" class="t07-word">happened</span> <span data-hf-id="hf-7ooh" class="t07-word">yet.</span></span>
+      </div>
+
+      <div data-hf-id="hf-v1hi" id="t07-footer">Built on Seaport 1.6</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–1.0s): grid fades to plain ground; the mark arrives, the wordmark joins.
+      tl.fromTo("#t07-grid", { opacity: 1 }, { opacity: 0, duration: 0.9, ease: "power3.inOut" }, 0);
+      tl.fromTo("#t07-mark",
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.7, ease: "expo.out" }, 0.1);
+      tl.fromTo("#t07-wordmark",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 0.3);
+
+      // Scene 2 (1.0–2.4s): the thesis reveals per word, one line at a time.
+      tl.fromTo("#t07-thesis .t07-line-a .t07-word",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", stagger: 0.06 }, 1.0);
+      tl.fromTo("#t07-thesis .t07-line-b .t07-word",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", stagger: 0.07 }, 1.55);
+
+      // Scene 3 (2.4–4.0s): the footer settles in, then everything holds perfectly still.
+      tl.fromTo("#t07-footer",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 2.45);
+
+      // Hold to the full 4s.
+      tl.set({}, {}, 4);
+
+      window.__timelines["07-two-trades"] = tl;
+    })();
+  </script>
+</template>

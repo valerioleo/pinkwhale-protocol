@@ -1,0 +1,297 @@
+<template>
+  <div data-hf-id="hf-5oxt" id="root" data-composition-id="06-guard" data-start="0" data-duration="9.6" data-width="1080" data-height="1080">
+    <style>
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+      @font-face { font-family: "Inter Symbols"; src: url("assets/fonts/Inter-symbols.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2460-2462, U+2713; font-display: block; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+      @font-face { font-family: "Plex Mono Symbols"; src: url("assets/fonts/IBMPlexMono-symbols.woff2") format("woff2"); font-weight: 400 500; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2713; font-display: block; }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: "Inter", "Inter Symbols", sans-serif;
+        color: #24252A;
+      }
+
+      /* ---- ground: full-bleed cream + 40px hairline grid (ink @ 4%) ---- */
+      [id="f06-guard-ground"] {
+        position: absolute;
+        inset: 0;
+        background-color: #FAFAFB;
+        background-image:
+          linear-gradient(rgba(36, 37, 42, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(36, 37, 42, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+
+      /* ---- index chrome ---- */
+      [id="f06-guard-index"] {
+        position: absolute;
+        right: 80px;
+        top: 68px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 24px;
+        letter-spacing: 0.14em;
+        color: #71737A;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ---- scenario strip (supporting, upper stage) ---- */
+      [id="f06-guard-scenario"] {
+        position: absolute;
+        left: 80px;
+        top: 96px;
+        width: 820px;
+      }
+      [class~="f06-guard-line"] {
+        display: block;
+        height: 50px;
+        font-size: 28px;
+        line-height: 36px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: #343A43;
+        white-space: nowrap;
+      }
+      [class~="f06-guard-word"] {
+        display: inline-block;
+        white-space: pre;
+      }
+      [class~="f06-guard-claim"] {
+        color: #86704F;
+      }
+
+      /* token avatar — rides inside its word, so it arrives with "ape" */
+      [class~="f06-guard-av"] { display: inline-block; object-fit: cover; width: 26px; height: 26px; margin-right: 6px; vertical-align: -5px; }
+      [class~="f06-guard-bayc"] { border-radius: 22%; }
+
+      /* ---- the authorizeOrder card (foreground subject) ---- */
+      [id="f06-guard-card"] {
+        position: absolute;
+        left: 80px;
+        top: 300px;
+        width: 920px;
+        height: 372px;
+        background: #FFFFFF;
+        border: 1px solid rgba(36, 37, 42, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 18px 32px #1d22300a;
+      }
+      [id="f06-guard-band"] {
+        position: absolute;
+        left: 16px;
+        top: 134px;
+        width: 886px;
+        height: 104px;
+        border-radius: 8px;
+        background-color: #EDF5F1;
+        z-index: 0;
+      }
+      [id="f06-guard-band-bar"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        height: 104px;
+        background-color: #8ABDAB;
+      }
+      [id="f06-guard-trace"] {
+        position: absolute;
+        left: 16px;
+        top: 134px;
+        width: 2px;
+        height: 104px;
+        background-color: #8ABDAB;
+        z-index: 0;
+      }
+      [id="f06-guard-code"] {
+        position: absolute;
+        left: 36px;
+        top: 28px;
+        right: 28px;
+        z-index: 1;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 400;
+        font-size: 27px;
+        font-variant-ligatures: none;
+        font-variant-numeric: tabular-nums;
+        color: #343A43;
+      }
+      [class~="f06-guard-block"] {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 92px;
+      }
+      [class~="f06-guard-row"] {
+        display: block;
+        height: 46px;
+        line-height: 46px;
+        white-space: pre;
+      }
+      [class~="f06-guard-k"] { color: #59616E; }
+      [class~="f06-guard-p"] { color: #59616E; }
+      [class~="f06-guard-f"] { color: #24252A; font-weight: 500; }
+
+      /* ---- the revert chip: the one danger accent ---- */
+      [id="f06-guard-chip"] {
+        position: absolute;
+        right: 30px;
+        top: 258px;
+        height: 34px;
+        padding: 0 12px;
+        z-index: 2;
+        border-radius: 6px;
+        border: 1px solid rgba(194, 65, 12, 0.32);
+        background: #FCE9DF;
+        color: #C2410C;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 32px;
+        white-space: pre;
+        transform-origin: 100% 50%;
+      }
+
+      /* ---- footnote caption ---- */
+      [id="f06-guard-caption"] {
+        position: absolute;
+        left: 80px;
+        top: 790px;
+        width: 920px;
+        font-size: 26px;
+        line-height: 1.35;
+        font-weight: 400;
+        color: #737B87;
+      }
+      [class~="f06-guard-go"] { color: #467A68; }
+    </style>
+
+    <div data-hf-id="hf-e2so" id="f06-guard-ground" class="clip" data-start="0" data-duration="9.6" data-track-index="0" data-layout-ignore=""></div>
+
+    <div data-hf-id="hf-nb5u" id="f06-guard-index">06/07</div>
+
+    <div data-hf-id="hf-jeti" id="f06-guard-scenario">
+      <div data-hf-id="hf-n23n" class="f06-guard-line"><span data-hf-id="hf-o2u0" class="f06-guard-word">Alice </span><span data-hf-id="hf-dz56" class="f06-guard-word">repays, </span><span data-hf-id="hf-ihy7" class="f06-guard-word">then </span><span data-hf-id="hf-ac86" class="f06-guard-word">borrows </span><span data-hf-id="hf-9q8m" class="f06-guard-word">again.</span></div>
+      <div data-hf-id="hf-akir" class="f06-guard-line"><span data-hf-id="hf-q4az" class="f06-guard-word">The </span><span data-hf-id="hf-yy9a" class="f06-guard-word">same </span><span data-hf-id="hf-udl0" class="f06-guard-word"><img class="f06-guard-av f06-guard-bayc" src="assets/tokens/bayc.png" alt="">ape </span><span data-hf-id="hf-snlk" class="f06-guard-word">is </span><span data-hf-id="hf-frwr" class="f06-guard-word">back </span><span data-hf-id="hf-nhm7" class="f06-guard-word">in </span><span data-hf-id="hf-xwj3" class="f06-guard-word">custody.</span></div>
+      <div data-hf-id="hf-a67q" class="f06-guard-line"><span data-hf-id="hf-cga7" class="f06-guard-word">Bob’s </span><span data-hf-id="hf-6dh1" class="f06-guard-word">old </span><span data-hf-id="hf-rdm0" class="f06-guard-word f06-guard-claim">default </span><span data-hf-id="hf-w9xt" class="f06-guard-word f06-guard-claim">order </span><span data-hf-id="hf-nwb4" class="f06-guard-word">is </span><span data-hf-id="hf-rhsa" class="f06-guard-word">still </span><span data-hf-id="hf-fl2s" class="f06-guard-word">valid.</span></div>
+    </div>
+
+    <div data-hf-id="hf-nxca" id="f06-guard-card">
+      <div data-hf-id="hf-txmb" id="f06-guard-trace"></div>
+      <div data-hf-id="hf-0r45" id="f06-guard-band"><div data-hf-id="hf-360t" id="f06-guard-band-bar"></div></div>
+
+      <div data-hf-id="hf-kpr3" id="f06-guard-code">
+        <div data-hf-id="hf-yajp" id="f06-guard-b1" class="f06-guard-block" style="top: 0px">
+          <span data-hf-id="hf-vzky" class="f06-guard-row"><span data-hf-id="hf-3a0j" class="f06-guard-k">function</span> <span data-hf-id="hf-rmkz" class="f06-guard-f">authorizeOrder</span><span data-hf-id="hf-qnjs" class="f06-guard-p">(</span>ZoneParameters <span data-hf-id="hf-d3jf" class="f06-guard-k">calldata</span></span>
+          <span data-hf-id="hf-3rr6" class="f06-guard-row">    zoneParameters<span data-hf-id="hf-q98r" class="f06-guard-p">)</span> <span data-hf-id="hf-q7iq" class="f06-guard-p">…</span></span>
+        </div>
+        <div data-hf-id="hf-33k0" id="f06-guard-b2" class="f06-guard-block" style="top: 112px">
+          <span data-hf-id="hf-c5gk" class="f06-guard-row">  <span data-hf-id="hf-gjv4" class="f06-guard-p">(</span><span data-hf-id="hf-uanb" class="f06-guard-k">bool</span> isValidated<span data-hf-id="hf-pdyw" class="f06-guard-p">,,</span> <span data-hf-id="hf-npzo" class="f06-guard-k">uint256</span> totalFilled<span data-hf-id="hf-nefr" class="f06-guard-p">,)</span> <span data-hf-id="hf-ib47" class="f06-guard-p">=</span></span>
+          <span data-hf-id="hf-tgzf" class="f06-guard-row">      seaport<span data-hf-id="hf-o9pm" class="f06-guard-p">.</span><span data-hf-id="hf-lixo" class="f06-guard-f">getOrderStatus</span><span data-hf-id="hf-fcy1" class="f06-guard-p">(</span>upstreamOrderHash<span data-hf-id="hf-ou34" class="f06-guard-p">);</span></span>
+        </div>
+        <div data-hf-id="hf-4ny3" id="f06-guard-b3" class="f06-guard-block" style="top: 224px">
+          <span data-hf-id="hf-7d72" class="f06-guard-row">  <span data-hf-id="hf-2l20" class="f06-guard-k">if</span> <span data-hf-id="hf-fr92" class="f06-guard-p">(</span>totalFilled <span data-hf-id="hf-dxu2" class="f06-guard-p">!=</span> 0<span data-hf-id="hf-jagb" class="f06-guard-p">)</span></span>
+          <span data-hf-id="hf-na9g" class="f06-guard-row">      <span data-hf-id="hf-dhl9" class="f06-guard-k">revert</span> <span data-hf-id="hf-73q6" class="f06-guard-f">UpstreamOrderAlreadyFulfilled</span><span data-hf-id="hf-tpew" class="f06-guard-p">();</span></span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-2mpb" id="f06-guard-chip">revert UpstreamOrderAlreadyFulfilled()</div>
+    </div>
+
+    <div data-hf-id="hf-qdrm" id="f06-guard-caption">The <span data-hf-id="hf-yka9" class="f06-guard-claim">default</span> names its <span data-hf-id="hf-ag8z" class="f06-guard-go">repayment</span>. If that was filled, the zone reverts — before any token moves.</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        var ID = "06-guard";
+        var root = document.querySelector('[data-composition-id="06-guard"]') || document;
+        function $(id) { return root.querySelector('[id="' + id + '"]'); }
+        function $$(cls, scope) { return (scope || root).querySelectorAll('[class~="' + cls + '"]'); }
+
+        var ENTER = "expo.out";      // ~ cubic-bezier(0.23, 1, 0.32, 1)
+        var MOVE = "power3.inOut";   // ~ cubic-bezier(0.77, 0, 0.175, 1)
+
+        var tl = gsap.timeline({ paused: true });
+
+        // ---------------- Scene 1 (0.0–2.8s): scenario strip, waterfall-entry ----------------
+        // Each line cascades word by word from below (binary opacity via set, whip to rest on
+        // power4.out). Lines land ~0.8s apart; the first word of each line is the anchor.
+        var lines = $$("f06-guard-line");
+        var words = $$("f06-guard-word");
+        tl.set(words, { opacity: 0 }, 0);
+        var lineStarts = [0.12, 0.92, 1.72];
+        for (var li = 0; li < lines.length; li++) {
+          var ws = $$("f06-guard-word", lines[li]);
+          var t = lineStarts[li];
+          for (var wi = 0; wi < ws.length; wi++) {
+            var anchor = wi === 0;
+            var last = wi === ws.length - 1;
+            var off = anchor ? 30 : last ? 26 : 20;
+            var dur = anchor ? 0.2 : last ? 0.2 : 0.16;
+            tl.set(ws[wi], { opacity: 1, y: off }, t);
+            tl.to(ws[wi], { y: 0, duration: dur, ease: "power4.out" }, t);
+            // gaps shrink across the cascade; the final word snaps in
+            t += anchor ? 0.075 : Math.max(0.045, 0.065 - wi * 0.003);
+          }
+        }
+
+        // ---------------- Scene 2 (2.8–5.2s): the card rises, the band sweeps ----------------
+        var card = $("f06-guard-card");
+        tl.fromTo(card,
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.65, ease: ENTER }, 2.8);
+
+        var rows = $$("f06-guard-row");
+        tl.fromTo(rows,
+          { opacity: 0, y: 8 },
+          { opacity: 1, y: 0, duration: 0.4, ease: ENTER, stagger: 0.05 }, 2.9);
+
+        var b1 = $("f06-guard-b1"), b2 = $("f06-guard-b2"), b3 = $("f06-guard-b3");
+        var band = $("f06-guard-band"), bar = $("f06-guard-band-bar"), trace = $("f06-guard-trace");
+
+        // code-highlight sweep: band wipes across the getOrderStatus statement, rest dims to ~50%
+        tl.fromTo(band,
+          { clipPath: "inset(0% 100% 0% 0%)" },
+          { clipPath: "inset(0% 0% 0% 0%)", duration: 0.7, ease: MOVE }, 3.55);
+        tl.fromTo([b1, b3],
+          { opacity: 1 },
+          { opacity: 0.5, duration: 0.7, ease: MOVE }, 3.55);
+
+        // ...then travels down to the `if` statement; the checked line keeps a quiet trace bar
+        tl.fromTo(band, { y: 0 }, { y: 112, duration: 0.7, ease: MOVE }, 4.45);
+        // second tween on b3's opacity: don’t let its from-state render at build time
+        tl.fromTo(b3, { opacity: 0.5 }, { opacity: 1, duration: 0.7, ease: MOVE, immediateRender: false }, 4.45);
+        tl.fromTo(b2, { opacity: 1 }, { opacity: 0.82, duration: 0.7, ease: MOVE }, 4.45);
+        tl.fromTo(trace, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: MOVE }, 4.75);
+
+        // ---------------- Scene 3 (5.2–6.6s): the revert chip stamps ----------------
+        tl.fromTo(band,
+          { backgroundColor: "#EDF5F1" },
+          { backgroundColor: "#FDF0E9", duration: 0.3, ease: ENTER }, 5.2);
+        tl.fromTo(bar,
+          { backgroundColor: "#8ABDAB" },
+          { backgroundColor: "rgba(194, 65, 12, 0.55)", duration: 0.3, ease: ENTER }, 5.2);
+        tl.fromTo($("f06-guard-chip"),
+          { opacity: 0, scale: 0.96 },
+          { opacity: 1, scale: 1, duration: 0.4, ease: ENTER }, 5.25);
+
+        // ---------------- Scene 4 (6.6–9.0s): caption fades up, hold ----------------
+        tl.fromTo($("f06-guard-caption"),
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.5, ease: ENTER }, 6.6);
+
+        // pad to the full frame length
+        tl.to({}, { duration: 9 }, 0);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines[ID] = tl;
+      })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,8 @@
+# Generated: rebuilt by `hyperframes snapshot`, Studio, and render.
+snapshots/
+.thumbnails/
+renders/
+.hyperframes/preview/
+# Local project-history state, per machine.
+.hyperframes/history-id
+.hyperframes/history-turns.json

@@ -1,0 +1,377 @@
+<template>
+  <style>
+    @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+    @font-face { font-family: "Inter Symbols"; src: url("assets/fonts/Inter-symbols.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2460-2462, U+2713; font-display: block; }
+    @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+    @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+    @font-face { font-family: "Plex Mono Symbols"; src: url("assets/fonts/IBMPlexMono-symbols.woff2") format("woff2"); font-weight: 400 500; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2713; font-display: block; }
+
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "Inter", "Inter Symbols", sans-serif;
+      color: #24252A;
+    }
+
+    /* ground: cream + 40px hairline grid (ink @ 4%) */
+    [class~="f05-empty-array-ground"] {
+      position: absolute;
+      inset: 0;
+      background-color: #FAFAFB;
+      background-image:
+        linear-gradient(rgba(36, 37, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(36, 37, 42, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    [class~="f05-empty-array-stage"] {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    /* the one camera wrapper — every scene element lives inside it */
+    [class~="f05-empty-array-world"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1080px;
+      height: 1080px;
+      transform-origin: 540px 540px;
+    }
+
+    [class~="f05-empty-array-index"] {
+      position: absolute;
+      right: 80px;
+      top: 70px;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 22px;
+      letter-spacing: 0.14em;
+      color: #71737A;
+    }
+
+    /* headline zone */
+    [class~="f05-empty-array-head"] {
+      position: absolute;
+      left: 80px;
+      top: 96px;
+      width: 880px;
+      font-family: "Inter", "Inter Symbols", sans-serif;
+      font-weight: 500;
+      font-size: 54px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #24252A;
+    }
+    [class~="f05-empty-array-word"] {
+      display: inline-block;
+    }
+
+    /* the Default card */
+    [class~="f05-empty-array-card"] {
+      position: absolute;
+      left: 150px;
+      top: 250px;
+      width: 780px;
+      height: 368px;
+    }
+    [class~="f05-empty-array-chrome"] {
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border: 1px solid #E3D6C2;
+      border-radius: 12px;
+      box-shadow: 0 18px 32px #1d22300a;
+    }
+    [class~="f05-empty-array-title"] {
+      position: absolute;
+      left: 28px;
+      top: 0;
+      height: 56px;
+      line-height: 56px;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 500;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      color: #86704F;
+    }
+    [class~="f05-empty-array-rule"] {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 56px;
+      height: 1px;
+      background: #ECEEF1;
+    }
+    [class~="f05-empty-array-body"] {
+      position: absolute;
+      left: 28px;
+      top: 80px;
+      width: 724px;
+    }
+    [class~="f05-empty-array-line"] {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 400;
+      font-size: 27px;
+      line-height: 44px;
+      white-space: pre;
+      font-variant-numeric: tabular-nums;
+    }
+    [class~="f05-empty-array-k"] {
+      flex: none;
+      width: 243px; /* 15ch at 27px Plex Mono (0.6em advance) — "consideration: " */
+      color: #59616E;
+    }
+    [class~="f05-empty-array-v"] {
+      color: #343A43;
+    }
+    [class~="f05-empty-array-phrase"] {
+      display: flex;
+      align-items: center;
+      width: 293px;
+    }
+    [class~="f05-empty-array-tile"] {
+      flex: none;
+      display: inline-block;
+      width: 50px;
+      height: 34px;
+      line-height: 34px;
+      text-align: center;
+      border-radius: 6px;
+      background-color: rgba(194, 169, 135, 0.18);
+      color: #86704F;
+      font-weight: 500;
+    }
+
+    /* token avatar — sits before the asset's name (sizes shared across frames) */
+    [class~="f05-empty-array-av"] { display: inline-block; object-fit: cover; width: 26px; height: 26px; margin-right: 8px; vertical-align: -6px; }
+    [class~="f05-empty-array-bayc"] { border-radius: 22%; }
+
+    /* two-window time rail */
+    [class~="f05-empty-array-rail"] {
+      position: absolute;
+      left: 150px;
+      top: 650px;
+      width: 780px;
+      height: 110px;
+    }
+    [class~="f05-empty-array-seg-go"] {
+      position: absolute;
+      left: 0;
+      top: 50px;
+      width: 380px;
+      height: 10px;
+      border-radius: 5px;
+      background: #8ABDAB;
+    }
+    [class~="f05-empty-array-seam"] {
+      position: absolute;
+      left: 386px;
+      top: 38px;
+      width: 1px;
+      height: 34px;
+      background: rgba(36, 37, 42, 0.45);
+    }
+    [class~="f05-empty-array-plus"] {
+      position: absolute;
+      left: 356px;
+      width: 60px;
+      top: 6px;
+      text-align: center;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 22px;
+      color: #59616E;
+    }
+    [class~="f05-empty-array-seg-claim"] {
+      position: absolute;
+      left: 392px;
+      top: 50px;
+      width: 388px;
+      height: 10px;
+      border-radius: 5px 0 0 5px;
+      background: linear-gradient(90deg, #C2A987 0%, rgba(194, 169, 135, 0.55) 55%, rgba(194, 169, 135, 0) 100%);
+    }
+    [class~="f05-empty-array-lbl"] {
+      position: absolute;
+      top: 76px;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 24px;
+      letter-spacing: 0.02em;
+      white-space: pre;
+    }
+    [class~="f05-empty-array-lbl-go"] {
+      left: 0;
+      color: #467A68;
+    }
+    [class~="f05-empty-array-lbl-claim"] {
+      left: 392px;
+      color: #86704F;
+    }
+
+    /* footnote zone */
+    [class~="f05-empty-array-caption"] {
+      position: absolute;
+      left: 80px;
+      top: 822px;
+      width: 860px;
+      font-family: "Inter", "Inter Symbols", sans-serif;
+      font-weight: 400;
+      font-size: 26px;
+      line-height: 1.35;
+      color: #737B87;
+    }
+    [class~="f05-empty-array-caption-key"] {
+      color: #86704F;
+      font-weight: 500;
+    }
+  </style>
+
+  <div data-hf-id="hf-d3ta" id="root" data-composition-id="05-empty-array" data-start="0" data-duration="9.6" data-width="1080" data-height="1080">
+    <div data-hf-id="hf-7pr1" id="f05-empty-array-ground" class="clip f05-empty-array-ground" data-start="0" data-duration="9.6" data-track-index="0"></div>
+
+    <div data-hf-id="hf-3faw" id="f05-empty-array-stage" class="clip f05-empty-array-stage" data-start="0" data-duration="9.6" data-track-index="1">
+      <div data-hf-id="hf-jk6a" class="f05-empty-array-world" id="f05-empty-array-world">
+        <div data-hf-id="hf-z8aq" class="f05-empty-array-head" id="f05-empty-array-head">
+          <span data-hf-id="hf-t10c" class="f05-empty-array-word">That</span>
+          <span data-hf-id="hf-5g1q" class="f05-empty-array-word">empty</span>
+          <span data-hf-id="hf-1vxy" class="f05-empty-array-word">array</span>
+          <span data-hf-id="hf-8kcl" class="f05-empty-array-word">is</span>
+          <span data-hf-id="hf-war0" class="f05-empty-array-word">the</span>
+          <span data-hf-id="hf-j7yc" class="f05-empty-array-word">whole</span>
+          <span data-hf-id="hf-hp2u" class="f05-empty-array-word">liquidation</span>
+          <span data-hf-id="hf-tev3" class="f05-empty-array-word">engine.</span>
+        </div>
+
+        <div data-hf-id="hf-3ipm" class="f05-empty-array-card">
+          <div data-hf-id="hf-xblm" class="f05-empty-array-chrome" id="f05-empty-array-chrome">
+            <div data-hf-id="hf-cyjz" class="f05-empty-array-title">Default</div>
+            <div data-hf-id="hf-rgqy" class="f05-empty-array-rule"></div>
+          </div>
+          <div data-hf-id="hf-c81o" class="f05-empty-array-body">
+            <div data-hf-id="hf-p78c" class="f05-empty-array-line f05-empty-array-l1" id="f05-empty-array-l1"><span data-hf-id="hf-4tbg" class="f05-empty-array-k">offer:</span><span data-hf-id="hf-tc10" class="f05-empty-array-v">[ <img data-hf-id="hf-3ti4" class="f05-empty-array-av f05-empty-array-bayc" src="assets/tokens/bayc.png" alt="">BAYC #8263 ]</span></div>
+            <div data-hf-id="hf-3ip8" class="f05-empty-array-line" id="f05-empty-array-hero"><span data-hf-id="hf-wa42" class="f05-empty-array-phrase"><span data-hf-id="hf-3p22" class="f05-empty-array-k">consideration:</span><span data-hf-id="hf-1x2v" class="f05-empty-array-tile" id="f05-empty-array-tile">[]</span></span></div>
+            <div data-hf-id="hf-w5zn" class="f05-empty-array-line" id="f05-empty-array-l3"><span data-hf-id="hf-h4fx" class="f05-empty-array-k">startTime:</span><span data-hf-id="hf-fis2" class="f05-empty-array-v">repayment.endTime + 1</span></div>
+            <div data-hf-id="hf-8oi4" class="f05-empty-array-line" id="f05-empty-array-l4"><span data-hf-id="hf-6yrm" class="f05-empty-array-k">endTime:</span><span data-hf-id="hf-parz" class="f05-empty-array-v">type(uint256).max</span></div>
+            <div data-hf-id="hf-9g5x" class="f05-empty-array-line" id="f05-empty-array-l5"><span data-hf-id="hf-n37s" class="f05-empty-array-k">zoneHash:</span><span data-hf-id="hf-8wda" class="f05-empty-array-v">keccak256(abi.encodePacked(</span></div>
+            <div data-hf-id="hf-de9y" class="f05-empty-array-line" id="f05-empty-array-l6"><span data-hf-id="hf-xvs8" class="f05-empty-array-k"></span><span data-hf-id="hf-7ibf" class="f05-empty-array-v">  repaymentOrderHash, bob))</span></div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-1oow" class="f05-empty-array-rail">
+          <div data-hf-id="hf-0h2i" class="f05-empty-array-seg-go" id="f05-empty-array-seg-go"></div>
+          <div data-hf-id="hf-5qe2" class="f05-empty-array-plus" id="f05-empty-array-plus">+1</div>
+          <div data-hf-id="hf-wm5u" class="f05-empty-array-seam" id="f05-empty-array-seam"></div>
+          <div data-hf-id="hf-9f0i" class="f05-empty-array-seg-claim" id="f05-empty-array-seg-claim"></div>
+          <div data-hf-id="hf-r104" class="f05-empty-array-lbl f05-empty-array-lbl-go" id="f05-empty-array-lbl-go">repayment · until endTime</div>
+          <div data-hf-id="hf-3p33" class="f05-empty-array-lbl f05-empty-array-lbl-claim" id="f05-empty-array-lbl-claim">default · from endTime + 1 · open</div>
+        </div>
+
+        <div data-hf-id="hf-pt45" class="f05-empty-array-caption" id="f05-empty-array-caption"><span data-hf-id="hf-jb0y" class="f05-empty-array-caption-key">Default:</span> opens the second repayment closes. Only Bob can fill it, for&#160;nothing.</div>
+      </div>
+
+      <div data-hf-id="hf-off5" class="f05-empty-array-index">05/06</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var ID = "05-empty-array";
+      var root = document.querySelector('[data-composition-id="' + ID + '"]');
+      function el(id) {
+        return root.querySelector('[id="f' + ID + "-" + id + '"]');
+      }
+      var world = el("world");
+      var words = root.querySelectorAll('[class~="f05-empty-array-word"]');
+
+      // ── Camera (viewport-change, single-wrapper form: T = -offset × S) ──
+      // The layout is fixed-width by construction (15ch key column at 27px Plex Mono = 243px,
+      // 50px [] tile), so the hero phrase’s world box is exact:
+      //   card x 150 + pad 28 = 178 → phrase 178..471 (293px), line 2 centre y = 250+56+24+44+22 = 396.
+      var CX = 540, CY = 540;
+      var PHRASE_W = 293;
+      var PHRASE_CX = 178 + PHRASE_W / 2; // 324.5
+      var PHRASE_CY = 396;
+      var S0 = (0.6 * 1080) / PHRASE_W; // phrase fills ~60% of the width at open (≈2.21×)
+      var OPEN_Y = 454; // phrase centred on screen at y≈454
+      var TX0 = -(PHRASE_CX - CX) * S0; // horizontally centred
+      var TY0 = OPEN_Y - CY - (PHRASE_CY - CY) * S0;
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–1.6): held, still — `consideration: []` alone at hero size.
+      // Everything else in the world starts hidden (the fromTo entrances below render their
+      // opacity-0 start state immediately, so a seek to t=0 shows the token alone).
+
+      // Scene 2 (1.6–3.6): ONE continuous decelerating pull-back to the whole Default card.
+      // Scale + counter-translate live in ONE tween on the world wrapper; GSAP composes them as
+      // translate(x, y) scale(s) about the 540/540 origin, so screen = 540 + s·offset + T and the
+      // phrase interpolates from its hero pose to its home line with no drift. Driven by tween
+      // properties (not onUpdate) so a seek with suppressed events still lands the camera.
+      tl.fromTo(
+        world,
+        { x: TX0, y: TY0, scale: S0, transformOrigin: "540px 540px", force3D: false },
+        { x: 0, y: 0, scale: 1, transformOrigin: "540px 540px", force3D: false, duration: 2.0, ease: "power4.out" },
+        1.6
+      );
+      // the card resolves around the token as the camera recedes (opacity only — the camera owns motion)
+      tl.fromTo(el("chrome"), { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 1.7);
+      tl.fromTo([el("l1"), el("l3")], { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.76);
+      tl.fromTo(el("l4"), { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.82);
+      tl.fromTo(el("l5"), { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.88);
+      tl.fromTo(el("l6"), { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.94);
+
+      // Scene 3 (3.6–6.2): two-window rail builds left → right; caption fades up.
+      tl.fromTo(
+        el("seg-go"),
+        { clipPath: "inset(0% 100% 0% 0% round 5px)" },
+        { clipPath: "inset(0% 0% 0% 0% round 5px)", duration: 0.75, ease: "none" },
+        3.7
+      );
+      tl.fromTo(el("lbl-go"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 4.1);
+      tl.fromTo(el("seam"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 4.5);
+      tl.fromTo(el("plus"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 4.55);
+      tl.fromTo(
+        el("seg-claim"),
+        { clipPath: "inset(0% 100% 0% 0% round 5px)" },
+        { clipPath: "inset(0% 0% 0% 0% round 5px)", duration: 0.85, ease: "none" },
+        4.7
+      );
+      tl.fromTo(el("lbl-claim"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 5.1);
+      tl.fromTo(el("caption"), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 5.55);
+
+      // Scene 4 (6.2–9.0): headline per-word, then the [] tile deepens once; hold still.
+      tl.fromTo(
+        words,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "expo.out", stagger: 0.055 },
+        6.3
+      );
+      var lastWord = 6.3 + (words.length - 1) * 0.055;
+      tl.fromTo(
+        el("tile"),
+        { backgroundColor: "rgba(194, 169, 135, 0.18)" },
+        { backgroundColor: "rgba(194, 169, 135, 0.36)", duration: 0.45, ease: "power2.out" },
+        lastWord + 0.12
+      );
+
+      // pin the timeline length to the frame’s 9s (the tail is a held read)
+      tl.to({}, { duration: 0 }, 9);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

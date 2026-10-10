@@ -1,0 +1,495 @@
+<template id="f02-three-fields-template">
+  <style>
+    @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+    @font-face { font-family: "Inter Symbols"; src: url("assets/fonts/Inter-symbols.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2460-2462, U+2713; font-display: block; }
+    @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+    @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+    @font-face { font-family: "Plex Mono Symbols"; src: url("assets/fonts/IBMPlexMono-symbols.woff2") format("woff2"); font-weight: 400 500; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2713; font-display: block; }
+
+    #root {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "Inter", "Inter Symbols";
+      color: #24252A;
+    }
+    :where(#root *) { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ground: cream + 40px hairline grid (ink @ 4%) */
+    [id="f02-three-fields-ground"] {
+      position: absolute;
+      inset: 0;
+      background-color: #FAFAFB;
+      background-image:
+        linear-gradient(rgba(36, 37, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(36, 37, 42, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    [id="f02-three-fields-stage"] { position: absolute; inset: 0; }
+
+    [id="f02-three-fields-index"] {
+      position: absolute;
+      right: 80px;
+      top: 72px;
+      margin-right: -0.14em;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols";
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 18px;
+      letter-spacing: 0.14em;
+      color: #71737A;
+    }
+
+    [class~="f02-three-fields-headline"] {
+      position: absolute;
+      left: 80px;
+      top: 96px;
+      width: 880px;
+      font-family: "Inter", "Inter Symbols";
+      font-weight: 500;
+      font-size: 54px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #24252A;
+    }
+    [id="f02-three-fields-h-new"] { opacity: 0; }
+    /* old headline split per word exactly like frame 01's, so the seam is pixel-identical */
+    [class~="f02-three-fields-word"] { display: inline-block; }
+
+    [id="f02-three-fields-caption"] {
+      position: absolute;
+      left: 80px;
+      top: 860px;
+      width: 920px;
+      font-family: "Inter", "Inter Symbols";
+      font-weight: 400;
+      font-size: 26px;
+      line-height: 1.35;
+      color: #737B87;
+    }
+
+    /* the order card — same geometry as frame 01 */
+    [id="f02-three-fields-card"] {
+      position: absolute;
+      left: 150px;
+      top: 300px;
+      width: 780px;
+      background: #FFFFFF;
+      border: 1px solid rgba(36, 37, 42, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 18px 32px #1d22300a;
+      overflow: hidden;
+    }
+    [id="f02-three-fields-card-head"] {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding-left: 28px;
+      border-bottom: 1px solid #ECEEF1;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols";
+      font-weight: 500;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      color: #71737A;
+    }
+    [id="f02-three-fields-card-body"] { padding: 24px 0; }
+
+    [class~="f02-three-fields-row"] {
+      position: relative;
+      height: 44px;
+      line-height: 44px;
+      padding-left: 28px;
+      white-space: nowrap;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols";
+      font-weight: 400;
+      font-size: 27px;
+      font-variant-numeric: tabular-nums;
+      font-variant-ligatures: none;
+    }
+    [class~="f02-three-fields-txt"] {
+      position: relative;
+      display: inline-block;
+      vertical-align: top;
+      transform-origin: 0% 50%;
+    }
+    [class~="f02-three-fields-k"] { display: inline-block; width: 15ch; color: #59616E; }
+    [class~="f02-three-fields-v"] { color: #343A43; }
+
+    [class~="f02-three-fields-rbg"] { position: absolute; inset: 0; display: block; opacity: 0; }
+    [class~="f02-three-fields-rbar"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      display: block;
+      background: #28A36B;
+      transform-origin: 50% 0%;
+    }
+    [class~="f02-three-fields-sign"] {
+      position: absolute;
+      left: 5px;
+      top: 0;
+      width: 18px;
+      text-align: center;
+      font-size: 24px;
+      line-height: inherit;
+      opacity: 0;
+    }
+    [class~="f02-three-fields-strike"] {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 57%;
+      height: 1px;
+      display: block;
+      background: #737B87;
+      transform-origin: 0% 50%;
+    }
+
+    /* removed: muted text, 1px strike, on tile */
+    [class~="f02-three-fields-del"] [class~="f02-three-fields-rbg"] { background: #F2F3F5; }
+    [class~="f02-three-fields-del"] [class~="f02-three-fields-sign"] { color: #737B87; }
+
+    /* added: diff-bg, 2px diff-bar, diff-sign "+", diff-text */
+    [class~="f02-three-fields-add"] { height: 0; overflow: hidden; }
+    [class~="f02-three-fields-add"] [class~="f02-three-fields-rbg"],
+    [class~="f02-three-fields-con"] [class~="f02-three-fields-rbg"] { background: #EAF6EE; }
+    [class~="f02-three-fields-add"] [class~="f02-three-fields-sign"],
+    [class~="f02-three-fields-con"] [class~="f02-three-fields-sign"] { color: #1B9C61; }
+    [class~="f02-three-fields-add"] [class~="f02-three-fields-k"],
+    [class~="f02-three-fields-add"] [class~="f02-three-fields-v"],
+    [class~="f02-three-fields-add"] [class~="f02-three-fields-zc"] { color: #286349; }
+    [class~="f02-three-fields-add"] [class~="f02-three-fields-txt"] { opacity: 0; }
+
+    [class~="f02-three-fields-zl"] { display: block; line-height: 44px; }
+    [class~="f02-three-fields-zc"] { line-height: 34px; padding-left: 17ch; }
+
+    [class~="f02-three-fields-caret"] {
+      position: relative;
+      display: inline-block;
+      width: 0;
+      height: 30px;
+      vertical-align: -7px;
+    }
+    [class~="f02-three-fields-caret"] i {
+      position: absolute;
+      left: -1px;
+      top: 0;
+      width: 2px;
+      height: 30px;
+      display: block;
+      background: #24252A;
+    }
+    [id="f02-three-fields-caret"] { opacity: 0; }
+
+    /* margin labels (the 30 beside the card) */
+    [class~="f02-three-fields-lbl"] { position: absolute; left: 946px; width: 120px; }
+    [class~="f02-three-fields-num"],
+    [class~="f02-three-fields-ltxt"] { opacity: 0; }
+    [class~="f02-three-fields-num"] {
+      font-family: "Inter", "Inter Symbols";
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 26px;
+      color: #24252A;
+    }
+    [class~="f02-three-fields-ltxt"] {
+      margin-top: 2px;
+      font-family: "Inter", "Inter Symbols";
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 20px;
+      letter-spacing: -0.005em;
+      white-space: nowrap;
+      color: #343A43;
+    }
+
+    /* the terms note */
+    [id="f02-three-fields-note"] {
+      position: absolute;
+      left: 150px;
+      top: 842px;
+      height: 48px;
+      padding: 0 16px;
+      line-height: 46px;
+      white-space: nowrap;
+      background: #FFFFFF;
+      border: 1px solid rgba(36, 37, 42, 0.12);
+      border-radius: 10px;
+      box-shadow: 0 6px 14px #1d22300a;
+      font-family: "IBM Plex Mono", "Plex Mono Symbols";
+      font-weight: 400;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+      font-variant-ligatures: none;
+      color: #343A43;
+      opacity: 0;
+    }
+    [id="f02-three-fields-note"] [class~="f02-three-fields-nk"] { color: #59616E; }
+
+    /* token avatars — sit before the asset's name (sizes shared with frame 01) */
+    [class~="f02-three-fields-av"] { display: inline-block; object-fit: cover; }
+    [class~="f02-three-fields-usdc"] { border-radius: 50%; }
+    [class~="f02-three-fields-bayc"] { border-radius: 22%; }
+    [class~="f02-three-fields-av-code"] { width: 26px; height: 26px; margin-right: 8px; vertical-align: -6px; }
+    [class~="f02-three-fields-av-cap"] { width: 26px; height: 26px; margin-right: 6px; vertical-align: -5px; }
+    [class~="f02-three-fields-av-note"] { width: 19px; height: 19px; margin-right: 6px; vertical-align: -4px; }
+
+    /* Pinkwhale mark — sits before every "pinkwhale" (code line: 26x22, 8px gap, -3px) */
+    [class~="f02-three-fields-mark"] {
+      display: inline-block;
+      width: 26px;
+      height: 22px;
+      margin-right: 8px;
+      vertical-align: -3px;
+      overflow: visible;
+      transform-origin: 50% 50%;
+    }
+    [id="f02-three-fields-tok-mark"] { display: none; } /* shown by renderEdit() once the "p" is typed */
+
+    [id="f02-three-fields-wire"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1080px;
+      height: 1080px;
+      overflow: visible;
+    }
+    [id="f02-three-fields-wire-path"] {
+      fill: none;
+      stroke: #28A36B;
+      stroke-width: 1.25;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    [id="f02-three-fields-wire-dot"] { fill: #28A36B; opacity: 0; }
+  </style>
+
+  <div data-hf-id="hf-aar8" id="root" data-composition-id="02-three-fields" data-width="1080" data-height="1080" data-start="0" data-duration="9.6">
+    <div data-hf-id="hf-vuxi" id="f02-three-fields-ground" class="clip" data-start="0" data-duration="9.6" data-track-index="0"></div>
+
+    <div data-hf-id="hf-j0z6" id="f02-three-fields-stage" class="clip" data-start="0" data-duration="9.6" data-track-index="1">
+      <div data-hf-id="hf-wx0x" id="f02-three-fields-index">02/06</div>
+
+      <h1 data-hf-id="hf-atu0" id="f02-three-fields-h-old" class="f02-three-fields-headline"><span data-hf-id="hf-lrj0" class="f02-three-fields-word">You’ve</span> <span data-hf-id="hf-1vd7" class="f02-three-fields-word">signed</span> <span data-hf-id="hf-bxxb" class="f02-three-fields-word">this</span> <span data-hf-id="hf-dhpu" class="f02-three-fields-word">before.</span></h1>
+      <h1 data-hf-id="hf-v8zr" id="f02-three-fields-h-new" class="f02-three-fields-headline">Three small configs<br data-hf-id="hf-x5px">make it a loan offer.</h1>
+
+      <div data-hf-id="hf-eaf1" id="f02-three-fields-card">
+        <div data-hf-id="hf-yfus" id="f02-three-fields-card-head">OrderParameters</div>
+        <div data-hf-id="hf-md5y" id="f02-three-fields-card-body">
+          <div data-hf-id="hf-fgyk" id="f02-three-fields-r-offerer" class="f02-three-fields-row">
+            <span data-hf-id="hf-jps5" class="f02-three-fields-txt"><span data-hf-id="hf-oi9r" class="f02-three-fields-k">offerer:</span><span data-hf-id="hf-9roi" class="f02-three-fields-v">bob</span></span>
+          </div>
+
+          <div data-hf-id="hf-o9hq" id="f02-three-fields-r-zone-old" class="f02-three-fields-row f02-three-fields-del">
+            <i data-hf-id="hf-a12j" class="f02-three-fields-rbg"></i>
+            <span data-hf-id="hf-sz1v" class="f02-three-fields-sign">-</span>
+            <span data-hf-id="hf-ervd" class="f02-three-fields-txt"><span data-hf-id="hf-vrhq" class="f02-three-fields-k">zone:</span><span data-hf-id="hf-4zqg" class="f02-three-fields-v">address(0)</span><i data-hf-id="hf-3qzq" class="f02-three-fields-strike"></i></span>
+          </div>
+          <div data-hf-id="hf-9iex" id="f02-three-fields-r-zone-new" class="f02-three-fields-row f02-three-fields-add">
+            <i data-hf-id="hf-64sr" class="f02-three-fields-rbg"></i>
+            <i data-hf-id="hf-acy5" class="f02-three-fields-rbar"></i>
+            <span data-hf-id="hf-mj8l" class="f02-three-fields-sign">+</span>
+            <span data-hf-id="hf-fysg" class="f02-three-fields-txt"><span data-hf-id="hf-sueq" class="f02-three-fields-k">zone:</span><span data-hf-id="hf-ldak" class="f02-three-fields-v"><svg data-hf-id="hf-mvyb" class="f02-three-fields-mark" viewBox="0 0 28.2 23.8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path data-hf-id="hf-4cku" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale</span></span>
+          </div>
+
+          <div data-hf-id="hf-7ro5" id="f02-three-fields-r-offer" class="f02-three-fields-row">
+            <span data-hf-id="hf-fkhf" class="f02-three-fields-txt"><span data-hf-id="hf-efpy" class="f02-three-fields-k">offer:</span><span data-hf-id="hf-2miv" class="f02-three-fields-v">[ <img data-hf-id="hf-g3td" class="f02-three-fields-av f02-three-fields-usdc f02-three-fields-av-code" src="assets/tokens/usdc.png" alt="">100 USDC ]</span></span>
+          </div>
+
+          <div data-hf-id="hf-5anj" id="f02-three-fields-r-consideration" class="f02-three-fields-row f02-three-fields-con">
+            <i data-hf-id="hf-5qhq" class="f02-three-fields-rbg"></i>
+            <i data-hf-id="hf-lykh" class="f02-three-fields-rbar"></i>
+            <span data-hf-id="hf-cfuh" class="f02-three-fields-sign">+</span>
+            <span data-hf-id="hf-dkya" class="f02-three-fields-txt"><span data-hf-id="hf-c14o" class="f02-three-fields-k">consideration:</span><span data-hf-id="hf-ocwm" class="f02-three-fields-v">[ <img data-hf-id="hf-62ep" class="f02-three-fields-av f02-three-fields-bayc f02-three-fields-av-code" src="assets/tokens/bayc.png" alt="">BAYC #8263 → <svg data-hf-id="hf-ipr7" id="f02-three-fields-tok-mark" class="f02-three-fields-mark" viewBox="0 0 28.2 23.8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path data-hf-id="hf-ca7m" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg><span data-hf-id="hf-b02r" id="f02-three-fields-tok">bob</span><span data-hf-id="hf-ioqj" id="f02-three-fields-caret" class="f02-three-fields-caret"><i data-hf-id="hf-wt6k"></i></span> ]</span></span>
+          </div>
+
+          <div data-hf-id="hf-9swg" id="f02-three-fields-r-type" class="f02-three-fields-row">
+            <span data-hf-id="hf-d6n9" class="f02-three-fields-txt"><span data-hf-id="hf-676s" class="f02-three-fields-k">orderType:</span><span data-hf-id="hf-86wf" class="f02-three-fields-v">FULL_RESTRICTED</span></span>
+          </div>
+
+          <div data-hf-id="hf-rq4o" id="f02-three-fields-r-hash-old" class="f02-three-fields-row f02-three-fields-del">
+            <i data-hf-id="hf-4jkn" class="f02-three-fields-rbg"></i>
+            <span data-hf-id="hf-2nhi" class="f02-three-fields-sign">-</span>
+            <span data-hf-id="hf-dz9b" class="f02-three-fields-txt"><span data-hf-id="hf-ottq" class="f02-three-fields-k">zoneHash:</span><span data-hf-id="hf-cn9l" class="f02-three-fields-v">0x0</span><i data-hf-id="hf-3p07" class="f02-three-fields-strike"></i></span>
+          </div>
+          <div data-hf-id="hf-r11z" id="f02-three-fields-r-hash-new" class="f02-three-fields-row f02-three-fields-add">
+            <i data-hf-id="hf-459m" class="f02-three-fields-rbg"></i>
+            <i data-hf-id="hf-mr6j" class="f02-three-fields-rbar"></i>
+            <span data-hf-id="hf-d8gj" class="f02-three-fields-sign">+</span>
+            <span data-hf-id="hf-bzq6" class="f02-three-fields-txt"><span data-hf-id="hf-g3mh" class="f02-three-fields-zl"><span data-hf-id="hf-gjqa" class="f02-three-fields-k">zoneHash:</span><span data-hf-id="hf-m164" class="f02-three-fields-v">keccak256(abi.encode(</span></span><span data-hf-id="hf-fp1f" class="f02-three-fields-zl f02-three-fields-zc">terms.consideration,</span><span data-hf-id="hf-sfah" class="f02-three-fields-zl f02-three-fields-zc">terms.duration))</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-4hi6" id="f02-three-fields-l1" class="f02-three-fields-lbl" style="top: 462px">
+        <div data-hf-id="hf-f8j0" class="f02-three-fields-num">①</div>
+        <div data-hf-id="hf-lx2b" class="f02-three-fields-ltxt">the zone</div>
+      </div>
+      <div data-hf-id="hf-ffbl" id="f02-three-fields-l2" class="f02-three-fields-lbl" style="top: 550px">
+        <div data-hf-id="hf-eu7z" class="f02-three-fields-num">②</div>
+        <div data-hf-id="hf-qapv" class="f02-three-fields-ltxt">the collateral’s<br data-hf-id="hf-rsrt">recipient</div>
+      </div>
+      <div data-hf-id="hf-bjvd" id="f02-three-fields-l3" class="f02-three-fields-lbl" style="top: 666px">
+        <div data-hf-id="hf-efwy" class="f02-three-fields-num">③</div>
+        <div data-hf-id="hf-m6g5" class="f02-three-fields-ltxt">the terms,<br data-hf-id="hf-szow">hashed</div>
+      </div>
+
+      <div data-hf-id="hf-vkpd" id="f02-three-fields-note"><span data-hf-id="hf-xd4x" class="f02-three-fields-nk">terms</span> = { <span data-hf-id="hf-10ok" class="f02-three-fields-nk">consideration:</span> [ <img data-hf-id="hf-wbi4" class="f02-three-fields-av f02-three-fields-usdc f02-three-fields-av-note" src="assets/tokens/usdc.png" alt="">USDC 100 → 110 → bob ], <span data-hf-id="hf-bmr0" class="f02-three-fields-nk">duration:</span> 30 days }</div>
+
+      <svg data-hf-id="hf-zxg2" id="f02-three-fields-wire" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+        <path data-hf-id="hf-tzxc" id="f02-three-fields-wire-path" d="M 150 866 H 132 Q 122 866 122 856 V 689 Q 122 679 132 679 H 151" />
+        <circle data-hf-id="hf-oiht" id="f02-three-fields-wire-dot" cx="151" cy="679" r="3" />
+      </svg>
+
+      <div data-hf-id="hf-vt1d" id="f02-three-fields-caption">Bob offers <img data-hf-id="hf-r10g" class="f02-three-fields-av f02-three-fields-usdc f02-three-fields-av-cap" src="assets/tokens/usdc.png" alt="">100 USDC for Alice’s <img data-hf-id="hf-gap8" class="f02-three-fields-av f02-three-fields-bayc f02-three-fields-av-cap" src="assets/tokens/bayc.png" alt="">ape. An ordinary Seaport order.</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var P = "f02-three-fields-";
+      var $ = function (id) { return document.getElementById(P + id); };
+      var q = function (el, cls) { return el.querySelector('[class~="' + P + cls + '"]'); };
+      var qa = function (el, cls) { return el.querySelectorAll('[class~="' + P + cls + '"]'); };
+
+      var EO = "expo.out";      // entrances  ~ cubic-bezier(0.23, 1, 0.32, 1)
+      var IO = "power3.inOut";  // on-screen moves ~ cubic-bezier(0.77, 0, 0.175, 1)
+      var MUTED = "#737B87";
+      var ADDED = "#286349";
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------- helpers ---------- */
+
+      // a removed line: 1px strike draws, text mutes, tile fades under it
+      function strike(row, at) {
+        var k = q(row, "k"), v = q(row, "v");
+        tl.fromTo(q(row, "strike"), { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.out" }, at);
+        tl.fromTo(q(row, "rbg"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: EO }, at);
+        tl.fromTo(q(row, "sign"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: EO }, at + 0.05);
+        tl.fromTo(k, { color: "#59616E" }, { color: MUTED, duration: 0.3, ease: EO }, at);
+        tl.fromTo(v, { color: "#343A43" }, { color: MUTED, duration: 0.3, ease: EO }, at);
+      }
+
+      // ...then it collapses: row 44 -> 28, text settles to 0.8
+      function collapse(row, at) {
+        tl.fromTo(row, { height: 44, lineHeight: "44px" }, { height: 28, lineHeight: "28px", duration: 0.45, ease: IO }, at);
+        tl.fromTo(q(row, "txt"), { scale: 1 }, { scale: 0.8, duration: 0.45, ease: IO }, at);
+        tl.fromTo(q(row, "sign"), { scale: 1 }, { scale: 0.8, duration: 0.45, ease: IO }, at);
+      }
+
+      // an added line expands in green beneath it
+      function expand(row, h, at) {
+        var txt = q(row, "txt");
+        var lines = qa(row, "zl");
+        tl.fromTo(row, { height: 0 }, { height: h, duration: 0.5, ease: IO }, at);
+        tl.fromTo(q(row, "rbg"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: EO }, at);
+        tl.fromTo(q(row, "rbar"), { scaleY: 0 }, { scaleY: 1, duration: 0.45, ease: EO }, at + 0.05);
+        tl.fromTo(q(row, "sign"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: EO }, at + 0.15);
+        if (lines.length) {
+          tl.fromTo(txt, { opacity: 0 }, { opacity: 1, duration: 0.01, ease: "none" }, at + 0.15);
+          tl.fromTo(lines, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: EO, stagger: 0.06 }, at + 0.15);
+        } else {
+          tl.fromTo(txt, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: EO }, at + 0.15);
+        }
+      }
+
+      // margin label: numeral, then its words
+      function label(el, at) {
+        tl.fromTo([q(el, "num"), q(el, "ltxt")], { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: EO, stagger: 0.06 }, at);
+      }
+
+      /* ---------- Scene 1 (0.0–0.8): headline blur-crossfade, caption fades ---------- */
+      tl.fromTo($("h-old"), { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(4px)", duration: 0.14, ease: "power1.out" }, 0.24);
+      tl.fromTo($("h-new"), { opacity: 0, filter: "blur(4px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: EO }, 0.3);
+      tl.fromTo($("caption"), { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.out" }, 0.34);
+
+      /* ---------- Scene 2 (0.8–2.8): ① zone ---------- */
+      var zoneOld = $("r-zone-old");
+      strike(zoneOld, 0.85);
+      collapse(zoneOld, 1.2);
+      expand($("r-zone-new"), 44, 1.45);
+      label($("l1"), 1.9);
+
+      /* ---------- Scene 3 (2.8–4.8): ② recipient token, in place ---------- */
+      var TOKEN = [
+        { t: 0.0, text: "bob" },
+        { t: 3.3, text: "bo" },
+        { t: 3.38, text: "b" },
+        { t: 3.46, text: "" },
+        { t: 3.78, text: "p" },
+        { t: 3.86, text: "pi" },
+        { t: 3.93, text: "pin" },
+        { t: 4.03, text: "pink" },
+        { t: 4.11, text: "pinkw" },
+        { t: 4.18, text: "pinkwh" },
+        { t: 4.26, text: "pinkwha" },
+        { t: 4.33, text: "pinkwhal" },
+        { t: 4.4, text: "pinkwhale" }
+      ];
+      var CARET_ON = 2.9, TYPE_START = 3.26, TYPE_END = 4.42, CARET_OFF = 4.5;
+      var tokEl = $("tok"), caretEl = $("caret"), tokMark = $("tok-mark");
+
+      function tokenAt(t) {
+        for (var i = TOKEN.length - 1; i >= 0; i--) {
+          if (t >= TOKEN[i].t) return TOKEN[i].text;
+        }
+        return TOKEN[0].text;
+      }
+      function caretAt(t) {
+        if (t < CARET_ON || t >= CARET_OFF) return 0;
+        if (t >= TYPE_START && t < TYPE_END) return 1;          // solid while typing
+        return Math.floor((t - CARET_ON) / 0.3) % 2 === 0 ? 1 : 0; // deterministic blink
+      }
+      function renderEdit(t) {
+        var s = tokenAt(t);
+        if (tokEl.textContent !== s) tokEl.textContent = s;
+        var md = s.charAt(0) === "p" ? "inline-block" : "none"; // the mark belongs to "pinkwhale", never to "bob"
+        if (tokMark.style.display !== md) tokMark.style.display = md;
+        caretEl.style.opacity = String(caretAt(t));
+      }
+      var drv = { t: 0 };
+      tl.fromTo(drv, { t: 0 }, { t: 9, duration: 9, ease: "none", onUpdate: function () { renderEdit(drv.t); } }, 0);
+      renderEdit(0);
+      // the whale arrives on the tick the "p" is typed (3.78), with its word
+      tl.fromTo(tokMark, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.18, ease: EO }, 3.78);
+
+      // the line becomes an added line
+      var con = $("r-consideration");
+      tl.fromTo(q(con, "rbg"), { opacity: 0 }, { opacity: 1, duration: 0.35, ease: EO }, 4.48);
+      tl.fromTo(q(con, "rbar"), { scaleY: 0 }, { scaleY: 1, duration: 0.45, ease: EO }, 4.5);
+      tl.fromTo(q(con, "sign"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: EO }, 4.55);
+      tl.fromTo(q(con, "k"), { color: "#59616E" }, { color: ADDED, duration: 0.3, ease: EO }, 4.48);
+      tl.fromTo(q(con, "v"), { color: "#343A43" }, { color: ADDED, duration: 0.3, ease: EO }, 4.48);
+      label($("l2"), 4.6);
+
+      /* ---------- Scene 4 (4.8–7.2): ③ terms hashed into zoneHash ---------- */
+      var hashOld = $("r-hash-old");
+      strike(hashOld, 4.85);
+      collapse(hashOld, 5.15);
+
+      tl.fromTo($("note"), { opacity: 0, x: -48 }, { opacity: 1, x: 0, duration: 0.7, ease: IO }, 5.3);
+
+      var wire = $("wire-path");
+      var len = wire.getTotalLength() * 1.02;
+      wire.style.strokeDasharray = String(len);
+      // +2: start 2px into the gap so no round cap is painted at the path's start before the draw
+      tl.fromTo(wire, { strokeDashoffset: len + 2 }, { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, 5.95);
+      tl.fromTo($("wire-dot"), { opacity: 0, scale: 0.6, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.3, ease: EO }, 6.37);
+
+      expand($("r-hash-new"), 112, 6.15);
+      label($("l3"), 6.75);
+
+      /* ---------- Scene 5 (7.2–9.0): held read — nothing moves ---------- */
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["02-three-fields"] = tl;
+    })();
+  </script>
+</template>

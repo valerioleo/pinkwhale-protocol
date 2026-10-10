@@ -1,0 +1,337 @@
+<template>
+  <div data-hf-id="hf-pan3" id="root" data-composition-id="04-repayment" data-width="1080" data-height="1080" data-duration="8.5">
+    <style>
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+      @font-face { font-family: "Inter Symbols"; src: url("assets/fonts/Inter-symbols.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2460-2462, U+2713; font-display: block; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+      @font-face { font-family: "Plex Mono Symbols"; src: url("assets/fonts/IBMPlexMono-symbols.woff2") format("woff2"); font-weight: 400 500; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2713; font-display: block; }
+
+      #root {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: "Inter", "Inter Symbols", sans-serif;
+        color: #24252a;
+      }
+      #root *,
+      #root *::before,
+      #root *::after {
+        box-sizing: border-box;
+      }
+
+      /* ground: cream + 40px hairline grid (ink @ 4%) */
+      .f04-repayment-bg {
+        position: absolute;
+        inset: 0;
+        background-color: #fafafb;
+        background-image:
+          linear-gradient(rgba(36, 37, 42, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(36, 37, 42, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+
+      /* index chrome, top-right */
+      .f04-repayment-index {
+        position: absolute;
+        right: 80px;
+        top: 68px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 24px;
+        letter-spacing: 0.14em;
+        color: #71737A;
+      }
+
+      /* headline zone */
+      .f04-repayment-headline {
+        position: absolute;
+        left: 80px;
+        top: 96px;
+        width: 880px;
+        font-family: "Inter", "Inter Symbols", sans-serif;
+        font-weight: 500;
+        font-size: 54px;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        color: #24252a;
+      }
+      .f04-repayment-word {
+        display: inline-block;
+        white-space: pre;
+      }
+
+      /* the Repayment order card */
+      .f04-repayment-card {
+        position: absolute;
+        left: 150px;
+        top: 256px;
+        width: 780px;
+        height: 414px;
+        background: #ffffff;
+        border: 1px solid #bfdcd0;
+        border-radius: 12px;
+        box-shadow: 0 18px 32px #1d22300a;
+        overflow: hidden;
+      }
+      .f04-repayment-card-head {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 28px;
+        border-bottom: 1px solid #e3efe9;
+      }
+      .f04-repayment-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #8abdab;
+      }
+      .f04-repayment-title {
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 500;
+        font-size: 18px;
+        letter-spacing: 0.14em;
+        color: #467A68;
+      }
+      .f04-repayment-body {
+        padding: 24px 28px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 400;
+        font-size: 27px;
+        line-height: 44px;
+        font-variant-numeric: tabular-nums; font-variant-ligatures: none;
+      }
+      .f04-repayment-line {
+        white-space: pre;
+        height: 44px;
+      }
+      .f04-repayment-line.f04-repayment-tall {
+        height: 88px;
+      }
+      .f04-repayment-k { color: #59616e; }
+      .f04-repayment-v { color: #343a43; }
+      .f04-repayment-p { color: #59616e; }
+      .f04-repayment-span {
+        border-radius: 6px;
+        padding: 2px 0;
+        color: #343a43;
+        background-color: rgba(138, 189, 171, 0);
+      }
+
+      /* live amount, on the consideration line’s continuation row */
+      .f04-repayment-readout-row {
+        white-space: pre;
+        height: 44px;
+        padding-left: 15ch;
+        display: flex;
+        align-items: center;
+      }
+      .f04-repayment-readout {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        height: 38px;
+        padding: 0 14px 0 12px;
+        border-left: 2px solid #8abdab;
+        border-radius: 0 6px 6px 0;
+        background: rgba(138, 189, 171, 0.14);
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-variant-numeric: tabular-nums; font-variant-ligatures: none;
+      }
+      .f04-repayment-readout-unit {
+        display: inline-flex;
+        align-items: center;
+        font-weight: 400;
+        font-size: 22px;
+        color: #467A68;
+        letter-spacing: 0.04em;
+      }
+      .f04-repayment-amount {
+        display: inline-block;
+        width: 6ch;
+        text-align: right;
+        font-weight: 500;
+        font-size: 27px;
+        color: #467A68;
+        font-variant-numeric: tabular-nums; font-variant-ligatures: none;
+      }
+
+      /* token avatars — sit before the asset's name (sizes shared across frames) */
+      .f04-repayment-av { display: inline-block; object-fit: cover; }
+      .f04-repayment-usdc { border-radius: 50%; }
+      .f04-repayment-bayc { border-radius: 22%; }
+      .f04-repayment-av-code { width: 26px; height: 26px; margin-right: 8px; vertical-align: -6px; }
+      .f04-repayment-av-readout { width: 24px; height: 24px; margin-right: 6px; }
+
+      /* time rail under the card */
+      .f04-repayment-track {
+        position: absolute;
+        left: 150px;
+        top: 716px;
+        width: 780px;
+        height: 4px;
+        border-radius: 2px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .f04-repayment-fill {
+        width: 100%;
+        height: 100%;
+        background: #8abdab;
+        transform-origin: left center;
+      }
+      .f04-repayment-marker {
+        position: absolute;
+        left: 143px;
+        top: 711px;
+        width: 14px;
+        height: 14px;
+        border-radius: 9999px;
+        background: #467A68;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 1px rgba(79, 138, 117, 0.35);
+      }
+      .f04-repayment-tick {
+        position: absolute;
+        top: 740px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols", monospace;
+        font-weight: 500;
+        font-size: 22px;
+        line-height: 28px;
+        letter-spacing: 0.02em;
+        color: #6D747F;
+        white-space: pre;
+      }
+      .f04-repayment-tick-start { left: 150px; }
+      .f04-repayment-tick-end { right: 150px; text-align: right; }
+
+      /* footnote captions */
+      .f04-repayment-captions {
+        position: absolute;
+        left: 80px;
+        top: 788px;
+        width: 920px;
+        font-family: "Inter", "Inter Symbols", sans-serif;
+        font-size: 26px;
+        line-height: 1.35;
+      }
+      .f04-repayment-cap1 {
+        font-weight: 400;
+        color: #737b87;
+      }
+      #root svg[class~="f04-repayment-whale"] { display: inline-block; width: 26px; height: 22px; margin-right: 6px; vertical-align: -3px; }
+      .f04-repayment-cap2 {
+        font-weight: 500;
+        color: #24252a;
+        margin-top: 4px;
+      }
+    </style>
+
+    <!-- full-bleed ground -->
+    <div data-hf-id="hf-azgn" id="f04-repayment-bg" class="clip f04-repayment-bg" data-start="0" data-duration="8.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-cojy" class="clip" id="f04-repayment-stage" data-start="0" data-duration="8.5" data-track-index="1" style="position:absolute;inset:0;">
+      <div data-hf-id="hf-0j44" class="f04-repayment-index" id="f04-repayment-index">04/06</div>
+
+      <div data-hf-id="hf-m10m" class="f04-repayment-headline" id="f04-repayment-headline"><span data-hf-id="hf-b18w" class="f04-repayment-word">Only </span><span data-hf-id="hf-v5m6" class="f04-repayment-word">Alice </span><span data-hf-id="hf-0z7g" class="f04-repayment-word">can </span><span data-hf-id="hf-r32j" class="f04-repayment-word">fill </span><span data-hf-id="hf-f0w5" class="f04-repayment-word">it, </span><span data-hf-id="hf-qwxi" class="f04-repayment-word">until </span><span data-hf-id="hf-b7z0" class="f04-repayment-word">endTime.</span></div>
+
+      <div data-hf-id="hf-77kq" class="f04-repayment-card" id="f04-repayment-card">
+        <div data-hf-id="hf-68s0" class="f04-repayment-card-head">
+          <span data-hf-id="hf-i44n" class="f04-repayment-dot"></span>
+          <span data-hf-id="hf-3hxp" class="f04-repayment-title">Repayment</span>
+        </div>
+        <div data-hf-id="hf-mbe7" class="f04-repayment-body">
+          <div data-hf-id="hf-af9h" class="f04-repayment-line" id="f04-repayment-l1"><span data-hf-id="hf-eybx" class="f04-repayment-k">offer:         </span><span data-hf-id="hf-azt3" class="f04-repayment-p">[ </span><img data-hf-id="hf-625y" class="f04-repayment-av f04-repayment-bayc f04-repayment-av-code" src="assets/tokens/bayc.png" alt=""><span data-hf-id="hf-awhh" class="f04-repayment-v">BAYC #8263</span><span data-hf-id="hf-bsf5" class="f04-repayment-p"> ]</span></div>
+          <div data-hf-id="hf-eddi" class="f04-repayment-line" id="f04-repayment-l2"><span data-hf-id="hf-rb1r" class="f04-repayment-k">consideration: </span><span data-hf-id="hf-ysx3" class="f04-repayment-p">[ </span><img data-hf-id="hf-ugbm" class="f04-repayment-av f04-repayment-usdc f04-repayment-av-code" src="assets/tokens/usdc.png" alt=""><span data-hf-id="hf-7gb5" class="f04-repayment-v">USDC </span><span data-hf-id="hf-2pw2" class="f04-repayment-span" id="f04-repayment-span">100 → 110</span><span data-hf-id="hf-zuut" class="f04-repayment-v"> → bob</span><span data-hf-id="hf-ehmd" class="f04-repayment-p"> ]</span></div>
+          <div data-hf-id="hf-xc9a" class="f04-repayment-readout-row">
+            <div data-hf-id="hf-elkw" class="f04-repayment-readout" id="f04-repayment-readout"><span data-hf-id="hf-gjho" class="f04-repayment-readout-unit"><img data-hf-id="hf-3s3l" class="f04-repayment-av f04-repayment-usdc f04-repayment-av-readout" src="assets/tokens/usdc.png" alt="">USDC</span><span data-hf-id="hf-2gws" class="f04-repayment-amount" id="f04-repayment-amount">100.00</span></div>
+          </div>
+          <div data-hf-id="hf-ibhj" class="f04-repayment-line" id="f04-repayment-l3"><span data-hf-id="hf-7qk4" class="f04-repayment-k">startTime:     </span><span data-hf-id="hf-1500" class="f04-repayment-v">now</span></div>
+          <div data-hf-id="hf-m9lk" class="f04-repayment-line" id="f04-repayment-l4"><span data-hf-id="hf-0a7f" class="f04-repayment-k">endTime:       </span><span data-hf-id="hf-2dm3" class="f04-repayment-v">now + 30 days</span></div>
+          <div data-hf-id="hf-m8h5" class="f04-repayment-line f04-repayment-tall" id="f04-repayment-l5"><span data-hf-id="hf-0sxb" class="f04-repayment-k">zoneHash:      </span><span data-hf-id="hf-upx5" class="f04-repayment-v">keccak256(abi.encodePacked(</span>
+<span data-hf-id="hf-iyp9" class="f04-repayment-v">                 bytes32(0), alice))</span></div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-75ki" class="f04-repayment-track" id="f04-repayment-track"><div data-hf-id="hf-96m6" class="f04-repayment-fill" id="f04-repayment-fill"></div></div>
+      <div data-hf-id="hf-5tge" class="f04-repayment-marker" id="f04-repayment-marker"></div>
+      <div data-hf-id="hf-c92y" class="f04-repayment-tick f04-repayment-tick-start" id="f04-repayment-tick-start">now</div>
+      <div data-hf-id="hf-uvkp" class="f04-repayment-tick f04-repayment-tick-end" id="f04-repayment-tick-end">now + 30 days</div>
+
+      <div data-hf-id="hf-y15y" class="f04-repayment-captions">
+        <div data-hf-id="hf-cnop" class="f04-repayment-cap1" id="f04-repayment-cap1">Seaport interpolates startAmount → endAmount. That’s the interest.</div>
+        <div data-hf-id="hf-yd9l" class="f04-repayment-cap2" id="f04-repayment-cap2"><svg data-hf-id="hf-yz6k" class="f04-repayment-whale" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-4cku" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>Pinkwhale has no interest code.</div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var $ = function (id) { return document.getElementById("f04-repayment-" + id); };
+        var headline = $("headline");
+        var words = headline.querySelectorAll('[class~="f04-repayment-word"]');
+        var card = $("card");
+        var lines = [$("l1"), $("l2"), $("l3"), $("l4"), $("l5")];
+        var span = $("span");
+        var readout = $("readout");
+        var amount = $("amount");
+        var track = $("track");
+        var fill = $("fill");
+        var marker = $("marker");
+        var tickStart = $("tick-start");
+        var tickEnd = $("tick-end");
+        var cap1 = $("cap1");
+        var cap2 = $("cap2");
+
+        var ENTER = "expo.out";      // ≈ cubic-bezier(0.23, 1, 0.32, 1)
+        var RAIL_START = 2.8;
+        var RAIL_END = 6.0;
+        var RAIL_DUR = RAIL_END - RAIL_START;
+        var RAIL_W = 780;
+        var FROM = 100;
+        var TO = 110;
+        var STEPS_PER_SEC = 60;
+
+        var tl = gsap.timeline({ paused: true });
+
+        // Scene 1 (0.0–1.0s): the Repayment card fills the stage; headline per-word.
+        tl.fromTo($("index"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: ENTER }, 0);
+        tl.fromTo(card, { opacity: 0, y: 12, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: ENTER }, 0.05);
+        tl.fromTo(words, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: ENTER, stagger: 0.06 }, 0.2);
+
+        // Scene 2 (1.0–2.8s): five lines top to bottom, then the amount and the rail get ready.
+        tl.fromTo(lines, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: ENTER, stagger: 0.1 }, 1.0);
+        tl.fromTo(span, { backgroundColor: "rgba(138, 189, 171, 0)", color: "#343a43" }, { backgroundColor: "rgba(138, 189, 171, 0.22)", color: "#467A68", duration: 0.4, ease: ENTER }, 2.05);
+        tl.fromTo(readout, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: ENTER }, 2.15);
+        tl.fromTo(track, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: ENTER }, 2.3);
+        tl.fromTo([tickStart, tickEnd], { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: ENTER, stagger: 0.06 }, 2.36);
+        tl.fromTo(marker, { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.4, ease: ENTER }, 2.45);
+
+        // Scene 3 (2.8–6.0s): time is linear. Rail, marker and amount share one clock.
+        tl.fromTo(fill, { scaleX: 0 }, { scaleX: 1, duration: RAIL_DUR, ease: "none" }, RAIL_START);
+        tl.fromTo(marker, { x: 0 }, { x: RAIL_W, duration: RAIL_DUR, ease: "none", immediateRender: false }, RAIL_START);
+        var steps = Math.round(RAIL_DUR * STEPS_PER_SEC);
+        for (var i = 0; i <= steps; i += 1) {
+          var p = i / steps;
+          // A trailing zero-width joiner keeps the value a string: GSAP reads a bare
+          // "105.00" as the number 105 and drops the decimals.
+          tl.set(amount, { textContent: (FROM + (TO - FROM) * p).toFixed(2) + "\u200D" }, RAIL_START + RAIL_DUR * p);
+        }
+
+        // Scene 4 (6.0–8.0s): the two captions land; hold still at 110.00.
+        tl.fromTo(cap1, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: ENTER }, 6.0);
+        tl.fromTo(cap2, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: ENTER }, 6.8);
+        tl.set({}, {}, 8);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["04-repayment"] = tl;
+      })();
+    </script>
+  </div>
+</template>

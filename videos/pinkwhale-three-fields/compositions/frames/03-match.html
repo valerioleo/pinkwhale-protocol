@@ -1,0 +1,510 @@
+<template>
+  <div data-hf-id="hf-ce3q" id="root" data-composition-id="03-match" data-start="0" data-duration="8.5" data-width="1080" data-height="1080">
+    <style>
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+      @font-face { font-family: "Inter Symbols"; src: url("assets/fonts/Inter-symbols.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2460-2462, U+2713; font-display: block; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("assets/fonts/IBMPlexMono-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+      @font-face { font-family: "Plex Mono Symbols"; src: url("assets/fonts/IBMPlexMono-symbols.woff2") format("woff2"); font-weight: 400 500; unicode-range: U+00B7, U+2014, U+2192, U+2264-2265, U+2713; font-display: block; }
+
+      #root {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: "Inter", "Inter Symbols";
+        color: #24252A;
+      }
+      .f03-match-stage *, .f03-match-stage *::before, .f03-match-stage *::after { box-sizing: border-box; }
+
+      /* ground */
+      .f03-match-bg {
+        position: absolute;
+        inset: 0;
+        background-color: #FAFAFB;
+        background-image:
+          linear-gradient(rgba(36, 37, 42, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(36, 37, 42, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .f03-match-stage { position: absolute; inset: 0; }
+
+      /* chrome */
+      .f03-match-index {
+        position: absolute;
+        right: 80px;
+        top: 70px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 22px;
+        letter-spacing: 0.14em;
+        color: #71737A;
+      }
+      .f03-match-head {
+        position: absolute;
+        left: 80px;
+        top: 96px;
+        width: 880px;
+        margin: 0;
+        font-family: "Inter", "Inter Symbols";
+        font-weight: 500;
+        font-size: 54px;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        color: #24252A;
+      }
+
+      /* shared code line */
+      .f03-match-ln { white-space: pre; position: relative; }
+      .f03-match-k { color: #59616E; }
+      .f03-match-v { color: #343A43; }
+
+      /* token avatars (sit before the asset name) */
+      .f03-match-usdc { border-radius: 50%; }
+      .f03-match-bayc { border-radius: 22%; }
+      .f03-match-tok-full { width: 26px; height: 26px; margin-right: 8px; vertical-align: -6px; }
+      .f03-match-tok-cc { width: 14px; height: 14px; margin-right: 5px; vertical-align: -2px; }
+      .f03-match-tok-chip { display: block; flex: none; width: 18px; height: 18px; margin-right: 6px; }
+
+      /* Pinkwhale mark (sits before every "pinkwhale") */
+      .f03-match-mk { display: inline-block; flex: none; overflow: visible; }
+      .f03-match-mk-full { width: 26px; height: 22px; margin-right: 8px; vertical-align: -3px; }
+      .f03-match-mk-cc { width: 15px; height: 12.7px; margin-right: 5px; vertical-align: middle; }
+      .f03-match-mk-row { width: 20px; height: 16.9px; margin-right: 5px; vertical-align: middle; }
+      .f03-match-mk-cap { width: 26px; height: 22px; margin-right: 6px; vertical-align: -3px; }
+
+      /* frame 02's full diffed card (seam replica) */
+      .f03-match-full {
+        position: absolute;
+        left: 150px;
+        top: 300px;
+        width: 780px;
+        background: #FFFFFF;
+        border: 1px solid rgba(36, 37, 42, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 18px 32px #1d22300a;
+        overflow: hidden;
+        z-index: 3;
+      }
+      .f03-match-full-hd {
+        height: 56px;
+        line-height: 56px;
+        padding-left: 28px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        font-weight: 500;
+        font-size: 18px;
+        letter-spacing: 0.14em;
+        color: #71737A;
+        border-bottom: 1px solid #ECEEF1;
+      }
+      .f03-match-full-bd {
+        padding: 24px 28px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        font-weight: 400;
+        font-size: 27px;
+        line-height: 44px;
+      }
+      .f03-match-full-bd .f03-match-add {
+        margin: 0 -28px;
+        padding-left: 28px;
+        background: #EAF6EE;
+        box-shadow: inset 2px 0 0 #28A36B;
+        color: #286349;
+      }
+      .f03-match-full-bd .f03-match-add .f03-match-k,
+      .f03-match-full-bd .f03-match-add .f03-match-v { color: #286349; }
+      .f03-match-sign {
+        position: absolute;
+        left: 5px;
+        top: 0;
+        width: 18px;
+        text-align: center;
+        font-size: 24px;
+        color: #1B9C61;
+      }
+      /* zoneHash continuation lines (frame 02: 34px lines, indented 17ch) */
+      .f03-match-full-bd .f03-match-zc { line-height: 34px; padding-left: calc(28px + 17ch); }
+      /* removed lines, collapsed as frame 02 leaves them: 28px row, text at 0.8, 1px strike on tile */
+      .f03-match-full-bd .f03-match-del {
+        margin: 0 -28px;
+        padding-left: 28px;
+        height: 28px;
+        line-height: 28px;
+        background: #F2F3F5;
+      }
+      .f03-match-full-bd .f03-match-del .f03-match-sign { color: #737B87; transform: scale(0.8); }
+      .f03-match-full-bd .f03-match-del .f03-match-k,
+      .f03-match-full-bd .f03-match-del .f03-match-v { color: #737B87; }
+      .f03-match-dt {
+        position: relative;
+        display: inline-block;
+        vertical-align: top;
+        transform: scale(0.8);
+        transform-origin: 0% 50%;
+      }
+      .f03-match-strike {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 57%;
+        height: 1px;
+        display: block;
+        background: #737B87;
+      }
+
+      /* compact orders */
+      .f03-match-cc {
+        position: absolute;
+        top: 240px;
+        width: 448px;
+        background: #FFFFFF;
+        border: 1px solid rgba(36, 37, 42, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 18px 32px #1d22300a;
+        overflow: hidden;
+        z-index: 2;
+      }
+      .f03-match-cc-hd {
+        height: 35px;
+        line-height: 34px;
+        padding-left: 18px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        font-weight: 500;
+        font-size: 14px;
+        letter-spacing: 0.14em;
+        color: #71737A;
+        border-bottom: 1px solid #ECEEF1;
+      }
+      .f03-match-cc-bd {
+        padding: 8px 18px 10px;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 24px;
+      }
+
+      /* executeLoan panel — the hero */
+      .f03-match-panel {
+        position: absolute;
+        left: 80px;
+        top: 432px;
+        width: 920px;
+        height: 304px;
+        background: #FFFFFF;
+        border: 1px solid rgba(36, 37, 42, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 18px 32px #1d22300a;
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        z-index: 2;
+      }
+      .f03-match-call {
+        position: absolute;
+        left: 28px;
+        top: 18px;
+        font-size: 22px;
+        line-height: 30px;
+        white-space: pre;
+        color: #59616E;
+      }
+      .f03-match-call b { font-weight: 500; color: #24252A; }
+      .f03-match-call i { font-style: normal; color: #343A43; }
+      .f03-match-rule {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        top: 90px;
+        height: 1px;
+        background: #ECEEF1;
+      }
+      .f03-match-row {
+        position: absolute;
+        left: 28px;
+        height: 32px;
+        font-size: 20px;
+        line-height: 32px;
+        white-space: pre;
+        color: #343A43;
+      }
+      .f03-match-ic {
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 22px;
+        height: 22px;
+        overflow: visible;
+      }
+      .f03-match-ic circle { stroke-width: 1.5; }
+      .f03-match-ic path {
+        fill: none;
+        stroke: #28A36B;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 13;
+        stroke-dashoffset: 13;
+      }
+      .f03-match-arrow {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 22px;
+        text-align: center;
+        color: #59616E;
+      }
+      .f03-match-rt { position: absolute; left: 36px; top: 0; }
+
+      /* row 4 transfer line */
+      .f03-match-sub {
+        position: absolute;
+        left: 64px;
+        top: 229px;
+        width: 700px;
+        height: 26px;
+        font-size: 17px;
+        line-height: 26px;
+        white-space: pre;
+      }
+      .f03-match-sub > span { position: absolute; top: 0; }
+      .f03-match-slot {
+        height: 26px;
+        border: 1px dashed #DADDE2;
+        border-radius: 13px;
+      }
+      .f03-match-to { color: #59616E; }
+      .f03-match-to em { font-style: normal; color: #24252A; }
+      .f03-match-badge {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 10px 0 7px;
+        background: #FFFFFF;
+        border: 1px solid rgba(36, 37, 42, 0.12);
+        border-radius: 13px;
+        color: #343A43;
+        line-height: 24px;
+      }
+      .f03-match-whale { width: 17px; height: 14.35px; display: block; }
+
+      /* travelling asset chips */
+      .f03-match-chip {
+        position: absolute;
+        top: 283px;
+        height: 26px;
+        border: 1px solid rgba(36, 37, 42, 0.2);
+        border-radius: 13px;
+        background: #F2F3F5;
+        box-shadow: 0 4px 10px rgba(29, 34, 48, 0.06);
+        font-family: "IBM Plex Mono", "Plex Mono Symbols";
+        font-size: 16px;
+        line-height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: pre;
+        color: #24252A;
+        z-index: 6;
+      }
+
+      /* pending resolution orders */
+      .f03-match-pend {
+        position: absolute;
+        top: 750px;
+        width: 448px;
+        height: 54px;
+        border: 1px solid #DADDE2;
+        border-radius: 12px;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-left: 20px;
+        font-family: "Inter", "Inter Symbols";
+        font-weight: 500;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+      }
+      .f03-match-dot { width: 10px; height: 10px; border-radius: 5px; }
+
+      .f03-match-cap {
+        position: absolute;
+        left: 80px;
+        top: 824px;
+        width: 920px;
+        margin: 0;
+        font-family: "Inter", "Inter Symbols";
+        font-weight: 400;
+        font-size: 26px;
+        line-height: 1.35;
+        color: #737B87;
+      }
+    </style>
+
+    <div data-hf-id="hf-0e67" id="f03-match-bg" class="clip f03-match-bg" data-start="0" data-duration="8.5" data-track-index="0"></div>
+
+    <div data-hf-id="hf-kvxa" id="f03-match-stage" class="clip f03-match-stage" data-start="0" data-duration="8.5" data-track-index="1">
+      <div data-hf-id="hf-zqq9" class="f03-match-index">03/06</div>
+      <h1 data-hf-id="hf-w0px" class="f03-match-head" id="f03-match-head">executeLoan checks both terms, then matches the pair.</h1>
+
+      <!-- Bob’s order, compact (lender) -->
+      <div data-hf-id="hf-oowi" class="f03-match-cc" id="f03-match-bob" style="left: 80px">
+        <div data-hf-id="hf-dps7" class="f03-match-cc-hd">lenderOrder · bob</div>
+        <div data-hf-id="hf-7i6n" class="f03-match-cc-bd">
+          <div data-hf-id="hf-m5h4" class="f03-match-ln"><span data-hf-id="hf-9x2u" class="f03-match-k">offer:         </span><span data-hf-id="hf-bt7r" class="f03-match-v">[ <img data-hf-id="hf-tk31" class="f03-match-tok-cc f03-match-usdc" src="assets/tokens/usdc.png" alt="">100 USDC ]</span></div>
+          <div data-hf-id="hf-j768" class="f03-match-ln"><span data-hf-id="hf-6qxk" class="f03-match-k">consideration: </span><span data-hf-id="hf-1wf9" class="f03-match-v">[ <img data-hf-id="hf-tk32" class="f03-match-tok-cc f03-match-bayc" src="assets/tokens/bayc.png" alt="">BAYC #8263 → <svg data-hf-id="hf-wm01" class="f03-match-mk f03-match-mk-cc" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp01" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale ]</span></div>
+          <div data-hf-id="hf-i095" class="f03-match-ln"><span data-hf-id="hf-7oy6" class="f03-match-k">zone:          </span><span data-hf-id="hf-56wc" class="f03-match-v"><svg data-hf-id="hf-wm02" class="f03-match-mk f03-match-mk-cc" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp02" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale</span></div>
+          <div data-hf-id="hf-iek6" class="f03-match-ln"><span data-hf-id="hf-62fy" class="f03-match-k">zoneHash:      </span><span data-hf-id="hf-ynpo" class="f03-match-v">keccak256(abi.encode(</span></div>
+          <div data-hf-id="hf-h7n3" class="f03-match-ln"><span data-hf-id="hf-z2st" class="f03-match-v">  terms.consideration, terms.duration))</span></div>
+        </div>
+      </div>
+
+      <!-- Alice’s mirror order, compact (borrower) -->
+      <div data-hf-id="hf-ez2r" class="f03-match-cc" id="f03-match-alice" style="left: 552px">
+        <div data-hf-id="hf-pjjo" class="f03-match-cc-hd">borrowerOrder · alice</div>
+        <div data-hf-id="hf-9zhr" class="f03-match-cc-bd">
+          <div data-hf-id="hf-hly4" class="f03-match-ln"><span data-hf-id="hf-trfe" class="f03-match-k">offer:         </span><span data-hf-id="hf-lcw6" class="f03-match-v">[ <img data-hf-id="hf-tk33" class="f03-match-tok-cc f03-match-bayc" src="assets/tokens/bayc.png" alt="">BAYC #8263 ]</span></div>
+          <div data-hf-id="hf-gf11" class="f03-match-ln"><span data-hf-id="hf-51dc" class="f03-match-k">consideration: </span><span data-hf-id="hf-bv01" class="f03-match-v">[ <img data-hf-id="hf-tk34" class="f03-match-tok-cc f03-match-usdc" src="assets/tokens/usdc.png" alt="">100 USDC → alice ]</span></div>
+          <div data-hf-id="hf-gtc2" class="f03-match-ln"><span data-hf-id="hf-f18y" class="f03-match-k">zone:          </span><span data-hf-id="hf-olok" class="f03-match-v"><svg data-hf-id="hf-wm03" class="f03-match-mk f03-match-mk-cc" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp03" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale</span></div>
+          <div data-hf-id="hf-fmez" class="f03-match-ln"><span data-hf-id="hf-8q82" class="f03-match-k">zoneHash:      </span><span data-hf-id="hf-oxwk" class="f03-match-v">keccak256(abi.encode(</span></div>
+          <div data-hf-id="hf-g0q0" class="f03-match-ln"><span data-hf-id="hf-grrr" class="f03-match-v">  terms.offer, terms.duration))</span></div>
+        </div>
+      </div>
+
+      <!-- Frame 02's end state: Bob’s diffed order, full size -->
+      <div data-hf-id="hf-91o6" class="f03-match-full" id="f03-match-full">
+        <div data-hf-id="hf-6aeu" class="f03-match-full-hd">OrderParameters</div>
+        <div data-hf-id="hf-5frs" class="f03-match-full-bd">
+          <div data-hf-id="hf-qe74" class="f03-match-ln"><span data-hf-id="hf-lmlb" class="f03-match-k">offerer:       </span><span data-hf-id="hf-n37m" class="f03-match-v">bob</span></div>
+          <div data-hf-id="hf-dz01" class="f03-match-ln f03-match-del"><span data-hf-id="hf-dz02" class="f03-match-sign">-</span><span data-hf-id="hf-dz03" class="f03-match-dt"><span data-hf-id="hf-dz04" class="f03-match-k">zone:          </span><span data-hf-id="hf-dz05" class="f03-match-v">address(0)</span><i data-hf-id="hf-dz06" class="f03-match-strike"></i></span></div>
+          <div data-hf-id="hf-xwrr" class="f03-match-ln f03-match-add"><span data-hf-id="hf-dzph" class="f03-match-sign">+</span><span data-hf-id="hf-ffjz" class="f03-match-k">zone:          </span><span data-hf-id="hf-nerh" class="f03-match-v"><svg data-hf-id="hf-wm04" class="f03-match-mk f03-match-mk-full" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp04" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale</span></div>
+          <div data-hf-id="hf-pzw3" class="f03-match-ln"><span data-hf-id="hf-u5qf" class="f03-match-k">offer:         </span><span data-hf-id="hf-1ow7" class="f03-match-v">[ <img data-hf-id="hf-tk35" class="f03-match-tok-full f03-match-usdc" src="assets/tokens/usdc.png" alt="">100 USDC ]</span></div>
+          <div data-hf-id="hf-6ifb" class="f03-match-ln f03-match-add"><span data-hf-id="hf-x6qh" class="f03-match-sign">+</span><span data-hf-id="hf-3ug9" class="f03-match-k">consideration: </span><span data-hf-id="hf-rc1l" class="f03-match-v">[ <img data-hf-id="hf-tk36" class="f03-match-tok-full f03-match-bayc" src="assets/tokens/bayc.png" alt="">BAYC #8263 → <svg data-hf-id="hf-wm05" class="f03-match-mk f03-match-mk-full" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp05" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale ]</span></div>
+          <div data-hf-id="hf-644a" class="f03-match-ln"><span data-hf-id="hf-nebo" class="f03-match-k">orderType:     </span><span data-hf-id="hf-yrw2" class="f03-match-v">FULL_RESTRICTED</span></div>
+          <div data-hf-id="hf-dz11" class="f03-match-ln f03-match-del"><span data-hf-id="hf-dz12" class="f03-match-sign">-</span><span data-hf-id="hf-dz13" class="f03-match-dt"><span data-hf-id="hf-dz14" class="f03-match-k">zoneHash:      </span><span data-hf-id="hf-dz15" class="f03-match-v">0x0</span><i data-hf-id="hf-dz16" class="f03-match-strike"></i></span></div>
+          <div data-hf-id="hf-5pt9" class="f03-match-ln f03-match-add"><span data-hf-id="hf-xzcj" class="f03-match-sign">+</span><span data-hf-id="hf-94j3" class="f03-match-k">zoneHash:      </span><span data-hf-id="hf-nqzh" class="f03-match-v">keccak256(abi.encode(</span></div>
+          <div data-hf-id="hf-8hyg" class="f03-match-ln f03-match-add f03-match-zc"><span data-hf-id="hf-nk4h" class="f03-match-v">terms.consideration,</span></div>
+          <div data-hf-id="hf-zc02" class="f03-match-ln f03-match-add f03-match-zc"><span data-hf-id="hf-zc03" class="f03-match-v">terms.duration))</span></div>
+        </div>
+      </div>
+
+      <!-- executeLoan panel -->
+      <div data-hf-id="hf-bzk2" class="f03-match-panel" id="f03-match-panel">
+        <div data-hf-id="hf-m2px" class="f03-match-call"><b data-hf-id="hf-ehya">executeLoan</b>(<i data-hf-id="hf-d0am">lenderOrder</i>, <i data-hf-id="hf-fl5q">borrowerOrder</i>,
+            <i data-hf-id="hf-3k0l">lenderTerms</i>, <i data-hf-id="hf-tir9">borrowerTerms</i>, …)</div>
+        <div data-hf-id="hf-3shs" class="f03-match-rule"></div>
+
+        <div data-hf-id="hf-k27u" class="f03-match-row" id="f03-match-r1" style="top: 101px">
+          <svg data-hf-id="hf-lutq" class="f03-match-ic" viewBox="0 0 22 22"><circle data-hf-id="hf-oe6p" id="f03-match-ring1" cx="11" cy="11" r="10" fill="#FFFFFF" stroke="#DADDE2" /><path data-hf-id="hf-kz12" id="f03-match-tick1" d="M6.5 11.3 L9.6 14.2 L15.5 8.2" /></svg>
+          <span data-hf-id="hf-74eq" class="f03-match-rt" id="f03-match-rt1">lenderTerms hash to lenderOrder.zoneHash</span>
+        </div>
+        <div data-hf-id="hf-xkcw" class="f03-match-row" id="f03-match-r2" style="top: 133px">
+          <svg data-hf-id="hf-9r9u" class="f03-match-ic" viewBox="0 0 22 22"><circle data-hf-id="hf-835i" id="f03-match-ring2" cx="11" cy="11" r="10" fill="#FFFFFF" stroke="#DADDE2" /><path data-hf-id="hf-h0x1" id="f03-match-tick2" d="M6.5 11.3 L9.6 14.2 L15.5 8.2" /></svg>
+          <span data-hf-id="hf-v2p1" class="f03-match-rt" id="f03-match-rt2">borrowerTerms hash to borrowerOrder.zoneHash</span>
+        </div>
+        <div data-hf-id="hf-ydwm" class="f03-match-row" id="f03-match-r3" style="top: 165px">
+          <svg data-hf-id="hf-a5kv" class="f03-match-ic" viewBox="0 0 22 22"><circle data-hf-id="hf-bmn7" id="f03-match-ring3" cx="11" cy="11" r="10" fill="#FFFFFF" stroke="#DADDE2" /><path data-hf-id="hf-g998" id="f03-match-tick3" d="M6.5 11.3 L9.6 14.2 L15.5 8.2" /></svg>
+          <span data-hf-id="hf-gku5" class="f03-match-rt" id="f03-match-rt3">collateral recipient is <svg data-hf-id="hf-wm06" class="f03-match-mk f03-match-mk-row" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp06" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>pinkwhale</span>
+        </div>
+        <div data-hf-id="hf-05hw" class="f03-match-row" id="f03-match-r4" style="top: 197px">
+          <span data-hf-id="hf-o4yw" class="f03-match-arrow">→</span>
+          <span data-hf-id="hf-o8w4" class="f03-match-rt">seaport.matchAdvancedOrders(…)</span>
+        </div>
+        <div data-hf-id="hf-sep2" class="f03-match-sub" id="f03-match-sub">
+          <span data-hf-id="hf-4fkr" class="f03-match-slot" style="left: 0; width: 119px"></span>
+          <span data-hf-id="hf-jsfb" class="f03-match-to" style="left: 129px">→ <em data-hf-id="hf-r1ld">alice</em></span>
+          <span data-hf-id="hf-4gbj" class="f03-match-to" style="left: 210.4px">·</span>
+          <span data-hf-id="hf-aoht" class="f03-match-slot" style="left: 230.6px; width: 138px"></span>
+          <span data-hf-id="hf-dr55" class="f03-match-to" style="left: 378.6px">→</span>
+          <span data-hf-id="hf-pvpc" class="f03-match-badge" id="f03-match-badge" style="left: 398.8px">
+            <svg data-hf-id="hf-4s2o" class="f03-match-whale" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-m9zb" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>
+            <span data-hf-id="hf-el7m">pinkwhale</span>
+          </span>
+        </div>
+        <div data-hf-id="hf-9igi" class="f03-match-row" id="f03-match-r5" style="top: 259px">
+          <span data-hf-id="hf-t7og" class="f03-match-arrow">→</span>
+          <span data-hf-id="hf-jsuc" class="f03-match-rt">seaport.validate([repayment, default])</span>
+        </div>
+      </div>
+
+      <!-- asset chips (start over their offer values in the compact orders) -->
+      <div data-hf-id="hf-gm5g" class="f03-match-chip" id="f03-match-chip-usdc" style="left: 238px; width: 119px"><img data-hf-id="hf-tk37" class="f03-match-tok-chip f03-match-usdc" src="assets/tokens/usdc.png" alt="">100 USDC</div>
+      <div data-hf-id="hf-atu3" class="f03-match-chip" id="f03-match-chip-bayc" style="left: 709.5px; width: 138px"><img data-hf-id="hf-tk38" class="f03-match-tok-chip f03-match-bayc" src="assets/tokens/bayc.png" alt="">BAYC #8263</div>
+
+      <!-- the two orders executeLoan leaves behind -->
+      <div data-hf-id="hf-l7fq" class="f03-match-pend" id="f03-match-pend-rep" style="left: 80px; color: #467A68">
+        <span data-hf-id="hf-henb" class="f03-match-dot" style="background: #8ABDAB"></span><span data-hf-id="hf-iiy2">Repayment</span>
+      </div>
+      <div data-hf-id="hf-vbkt" class="f03-match-pend" id="f03-match-pend-def" style="left: 552px; color: #86704F">
+        <span data-hf-id="hf-s7y3" class="f03-match-dot" style="background: #C2A987"></span><span data-hf-id="hf-7c0i">Default</span>
+      </div>
+
+      <p data-hf-id="hf-2knh" class="f03-match-cap" id="f03-match-cap">It leaves two orders behind.<br data-hf-id="hf-x5px">No signatures: <svg data-hf-id="hf-wm07" class="f03-match-mk f03-match-mk-cap" viewBox="0 0 28.2 23.8" aria-hidden="true"><path data-hf-id="hf-wp07" fill="#FF5FA2" fill-rule="evenodd" d="M27.1706 6.36452C26.4095 2.89934 23.3649 0.425636 19.8397 0.165247C16.8853 -0.0550824 14.2814 -0.0550824 11.4171 0.165247C7.80167 0.425636 4.66698 2.99949 4.06608 6.59486C3.51526 9.86976 3.51526 12.9644 4.16623 16.8202V16.8502C4.15622 17.2408 4.01601 17.5412 3.60539 17.9218C3.32497 18.0219 3.18476 18.0019 2.92437 17.9218C2.50374 17.6814 2.43364 17.4912 2.33349 17.2007C2.30344 17.1306 2.28341 17.0605 2.24336 16.9804L2.08312 16.2493C2.56383 15.9689 2.85427 15.8287 3.43514 15.6684V15.2478C2.90434 15.3379 2.60389 15.3279 2.08312 15.2478L1.82273 15.6684H1.51226L1.41211 15.2478C0.851273 15.3379 0.540809 15.3279 0 15.2478V15.6684C0.671004 15.7786 0.991483 15.9088 1.51226 16.2493L1.46219 16.9804C1.46219 16.9804 1.41211 17.5012 1.51226 18.3424C1.61241 19.1837 2.22333 19.9649 3.0746 20.8061C5.42812 22.6088 7.35099 23.0495 10.4657 23.3699C10.8162 23.4501 11.1767 23.5001 11.5473 23.5302C14.5317 23.7605 17.1857 23.7505 20.1802 23.4801C23.5252 23.1797 26.4496 20.8762 27.2207 17.5913C28.072 13.9559 28.102 10.6309 27.1706 6.37453V6.36452ZM19.4691 14.6769C19.4691 13.7656 20.4606 13.0245 21.6824 13.0245C22.9043 13.0245 23.8957 13.7656 23.8957 14.6769C23.8957 15.5883 22.9043 16.3294 21.6824 16.3294C20.4606 16.3294 19.4691 15.5883 19.4691 14.6769Z" /></svg>Pinkwhale validates them on chain.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        var g = function (id) { return document.getElementById("f03-match-" + id); };
+        var EO = "expo.out";      // entrances ≈ cubic-bezier(0.23,1,0.32,1)
+        var IO = "power3.inOut";  // on-screen moves ≈ cubic-bezier(0.77,0,0.175,1)
+
+        var tl = gsap.timeline({ paused: true });
+
+        gsap.set([g("full"), g("bob")], { transformOrigin: "0% 0%" });
+
+        // ── Scene 1 (0.0–1.2s): the diffed order compacts; Alice’s mirror arrives ──
+        var K = 448 / 780; // full card → compact width
+        tl.fromTo(g("full"), { x: 0, y: 0, scale: 1 }, { x: -70, y: -60, scale: K, duration: 0.85, ease: IO }, 0.1);
+        tl.fromTo(g("bob"), { x: 70, y: 60, scale: 1 / K }, { x: 0, y: 0, scale: 1, duration: 0.85, ease: IO }, 0.1);
+        tl.fromTo(g("bob"), { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 0.2);
+        tl.fromTo(g("full"), { opacity: 1 }, { opacity: 0, duration: 0.35, ease: "power1.out" }, 0.42);
+
+        tl.fromTo(g("head"),
+          { opacity: 0, y: 10, filter: "blur(4px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: EO }, 0.2);
+
+        tl.fromTo(g("alice"), { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.55, ease: EO }, 0.62);
+
+        // ── Scene 2 (1.2–4.2s): executeLoan opens; three checks tick off ~0.8s apart ──
+        tl.fromTo(g("panel"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: EO }, 1.2);
+
+        [1, 2, 3].forEach(function (n, i) {
+          var t = 1.65 + i * 0.8;
+          tl.fromTo(g("r" + n), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: EO }, t);
+          tl.fromTo(g("rt" + n), { color: "#737B87" }, { color: "#343A43", duration: 0.22, ease: "power1.out" }, t + 0.34);
+          tl.fromTo(g("ring" + n), { stroke: "#DADDE2", fill: "#FFFFFF" }, { stroke: "#28A36B", fill: "#EAF6EE", duration: 0.22, ease: "power1.out" }, t + 0.3);
+          tl.fromTo(g("tick" + n), { strokeDashoffset: 13 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, t + 0.34);
+        });
+
+        // ── Scene 3 (4.2–5.8s): matchAdvancedOrders; the assets travel ──
+        tl.fromTo(g("r4"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: EO }, 4.2);
+        tl.fromTo(g("sub"), { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: EO }, 4.27);
+        tl.fromTo(g("badge"), { scale: 0.92 }, { scale: 1, duration: 0.45, ease: EO }, 4.27);
+
+        tl.fromTo(g("chip-usdc"), { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.25, ease: EO }, 4.45);
+        tl.fromTo(g("chip-bayc"), { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.25, ease: EO }, 4.51);
+        // short ease-in-out paths: x and y on different in-out curves → a gentle arc
+        tl.to(g("chip-usdc"), { x: 145 - 238, duration: 0.75, ease: "power2.inOut" }, 4.68);
+        tl.to(g("chip-usdc"), { y: 662 - 283, duration: 0.75, ease: IO }, 4.68);
+        tl.to(g("chip-bayc"), { x: 375.6 - 709.5, duration: 0.75, ease: "power2.inOut" }, 4.76);
+        tl.to(g("chip-bayc"), { y: 662 - 283, duration: 0.75, ease: IO }, 4.76);
+
+        // the two compact orders are spent
+        tl.to([g("bob"), g("alice")], { opacity: 0.4, duration: 0.4, ease: "power1.out" }, 5.5);
+
+        // ── Scene 4 (5.8–8.0s): validate; two pending orders remain ──
+        tl.fromTo(g("r5"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: EO }, 5.85);
+        tl.fromTo([g("pend-rep"), g("pend-def")], { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, ease: EO, stagger: 0.07 }, 6.2);
+        tl.fromTo(g("cap"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.55, ease: EO }, 6.8);
+
+        // hold to the frame’s end
+        tl.to({}, { duration: 0 }, 8);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["03-match"] = tl;
+      })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "preferences": {
+    "aspect": {
+      "value": "1080x1080",
+      "confirmed_in": [
+        "pinkwhale-three-fields"
+      ],
+      "updated_at": "2026-09-27T22:09:18.564Z"
+    },
+    "destination": {
+      "value": "x-feed",
+      "confirmed_in": [
+        "pinkwhale-three-fields"
+      ],
+      "updated_at": "2026-09-27T22:09:23.368Z"
+    },
+    "language": {
+      "value": "en",
+      "confirmed_in": [
+        "pinkwhale-three-fields"
+      ],
+      "updated_at": "2026-09-27T22:09:23.401Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "pinkwhale-three-fields"
+      ],
+      "updated_at": "2026-09-27T22:09:23.432Z"
+    },
+    "storyboard": {
+      "value": "yes",
+      "confirmed_in": [
+        "pinkwhale-three-fields"
+      ],
+      "updated_at": "2026-09-27T22:09:23.463Z"
+    },
+    "style_preset.faceless-explainer": {
+      "value": "code-editorial",
+      "confirmed_in": [
+        "pinkwhale-three-fields"
+      ],
+      "updated_at": "2026-09-27T22:11:44.125Z"
+    }
+  },
+  "sightings": {}
+}
