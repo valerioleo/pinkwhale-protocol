@@ -2,9 +2,10 @@
  * ────────────────────────────────────────────────────────────────────────
  * DESIGN TOKENS — plain and light, on purpose.
  * One scheme only: black on white, greys that clear WCAG AA (4.5:1) for body
- * text on every surface here, and one blue accent. There is no dark variant —
- * half the site set its own light grounds, and a dark token set under them put
- * pale text on white.
+ * text on every surface here, and ink as the accent — the same buttons and the
+ * same type as the home page, on every page. There is no dark variant: half the
+ * site set its own light grounds, and a dark token set under them put pale text
+ * on white.
  * ────────────────────────────────────────────────────────────────────────
  */
 :root {
@@ -14,21 +15,23 @@
 
   --background: #ffffff;
   --foreground: #111111;
-  --card: #f7f7f7;
+  --card: #fafafb;
   --muted: #ececec;
   --muted-foreground: #555555;
   --border: #d4d4d4;
   --destructive: #b3261e;
   --positive: #1e6b34;
 
-  --brand: #0645ad;
+  --brand: #111111;
   --brand-foreground: #ffffff;
 
   /* Opaque, so an avatar ring cut out of it hides whatever is behind. */
   --tint: color-mix(in srgb, var(--brand) 11%, var(--card));
 
-  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-petrona), ui-serif, Georgia, serif;
+  /* One face for reading and for the interface, as on the home page. `--font-serif`
+     keeps its name for the stylesheets that ask for it. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -38,7 +41,6 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  /* Serif is the reading surface; the interface speaks sans. */
   font: 16px/1.6 var(--font-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

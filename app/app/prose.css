@@ -9,26 +9,29 @@
 /* ── Measure ────────────────────────────────────────────────────────── */
 
 /*
- * 672px, the measure valeriohq sets its own prose at. Code blocks break out of
- * it — Solidity signatures run long, and wrapping them to the prose width costs
- * more than the extra inches do.
+ * The docs sit in the site's column, so they start on the same line as the bar.
+ * Running text keeps a 672px measure inside it; code, tables and figures take the
+ * full 840px — Solidity signatures run long, and wrapping them costs more than
+ * the extra inches do.
  */
-main { max-width: 42rem; margin: 0 auto; padding: 52px 22px 120px; }
+main { max-width: var(--site-column); margin: 0 auto; padding: 64px var(--site-gutter) 112px; }
+main > :is(p, ul, ol, blockquote, h2, h3, h4, hr, details) { max-width: 42rem; }
 
 /* ── Prose ──────────────────────────────────────────────────────────── */
 
 main h1 {
-  font-size: 2.125rem; line-height: 1.15; letter-spacing: -0.02em;
-  margin: 0 0 18px; font-weight: 600; text-wrap: balance;
+  font-size: 3rem; line-height: 1.06; letter-spacing: -0.035em;
+  margin: 0 0 24px; font-weight: 500; text-wrap: balance;
 }
+@media (max-width: 859px) { main h1 { font-size: 2.5rem; } }
 main h2 {
-  font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.25;
-  letter-spacing: -0.015em; margin: 56px 0 14px; font-weight: 600;
+  font-size: 1.75rem; line-height: 1.15;
+  letter-spacing: -0.025em; margin: 64px 0 16px; font-weight: 500;
   scroll-margin-top: 76px;
 }
 main h3 {
-  font-family: var(--font-serif); font-size: 1.175rem; margin: 36px 0 10px;
-  font-weight: 600; scroll-margin-top: 76px;
+  font-size: 1.25rem; margin: 40px 0 10px; letter-spacing: -0.01em;
+  font-weight: 500; scroll-margin-top: 76px;
 }
 main h4 {
   font-family: var(--font-sans); font-size: 0.9rem; margin: 28px 0 8px;
@@ -84,12 +87,11 @@ main h1 code, main h2 code, main h3 code, main h4 code {
 /* ── Code blocks ────────────────────────────────────────────────────── */
 
 figure[data-rehype-pretty-code-figure] {
-  /* Out past the measure on both sides, back to the prose edge on narrow screens. */
-  margin: 24px -3.5rem;
+  /* The full column, wider than the running text beside it. */
+  margin: 24px 0;
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); overflow: hidden;
 }
-@media (max-width: 56rem) { figure[data-rehype-pretty-code-figure] { margin: 24px 0; } }
 
 figcaption[data-rehype-pretty-code-title] {
   font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground);
