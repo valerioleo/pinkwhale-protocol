@@ -1,13 +1,12 @@
 import Link from 'next/link';
 
-import {LandingBar} from './LandingBar';
 import {LandingCode} from './LandingCode';
 import {LoanPlayer} from './LoanPlayer';
 
 /**
  * The home page, cut down to what the loan story already shows: one claim, the
  * figure that proves it, the four reasons it works, and the code behind them. The
- * only way off the page is the playground, which has a page of its own.
+ * site's bar and foot come from the layout.
  */
 
 const REASONS = [
@@ -51,12 +50,6 @@ const REASONS = [
 
 export const Landing = () => (
   <div className="ld">
-    <LandingBar>
-      <Link className="ld-button" href="/playground">
-        Playground
-      </Link>
-    </LandingBar>
-
     <section className="ld-hero">
       <p className="ld-kicker">An experiment in composability</p>
       <h1 className="ld-title">Seaport as a loan book</h1>
@@ -111,12 +104,5 @@ export const Landing = () => (
         Open the playground
       </Link>
     </section>
-
-    <footer className="ld-foot">
-      <span>An experiment by Valerio Leo. Built on Seaport 1.6.</span>
-      <a href="https://github.com/valerioleo/pinkwhale-protocol">
-        Source <span aria-hidden="true">↗</span>
-      </a>
-    </footer>
   </div>
 );

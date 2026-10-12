@@ -6,38 +6,6 @@
  * ────────────────────────────────────────────────────────────────────────
  */
 
-/* ── Chrome ─────────────────────────────────────────────────────────── */
-
-/* A starting value for the first paint only. The loan story measures the nav and
-   overwrites it, because the height that matters is whatever the browser arrives
-   at once the fonts have loaded and the links have laid out — not a number typed
-   here that the nav is then forced to agree with. */
-:root { --nav-height: 56px; }
-
-.nav {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
-  padding: 14px 22px;
-  background: color-mix(in oklab, var(--background) 88%, transparent);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
-}
-.nav-mark {
-  font-family: var(--font-sans); font-weight: 650; font-size: 15px;
-  letter-spacing: -0.01em; color: var(--foreground); text-decoration: none;
-}
-.nav-links {
-  display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap;
-  list-style: none; margin: 0; padding: 0;
-}
-.nav-links a {
-  font-family: var(--font-sans); font-size: 13.5px;
-  color: var(--muted-foreground); text-decoration: none;
-}
-.nav-links a:hover { color: var(--brand); }
-/* Pushed to the far side: it leaves the site. */
-.nav-away { margin-left: auto; }
-
 /* ── Measure ────────────────────────────────────────────────────────── */
 
 /*

@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic';
 
 import {DemoBoundary} from '../article/LiveDemo';
-import {LandingBar} from './LandingBar';
 
 const LivePlayground = dynamic(() => import('../article/LivePlayground'), {
   ssr: false,
@@ -21,7 +20,6 @@ const LivePlayground = dynamic(() => import('../article/LivePlayground'), {
 export const PlaygroundPage = () => (
   <>
     <div className="ld">
-      <LandingBar />
 
       <section className="ld-hero ld-play-hero">
         <p className="ld-kicker">On chain</p>
@@ -41,14 +39,5 @@ export const PlaygroundPage = () => (
         <LivePlayground />
       </DemoBoundary>
     </section>
-
-    <div className="ld">
-      <footer className="ld-foot">
-        <span>An experiment by Valerio Leo. Built on Seaport 1.6.</span>
-        <a href="https://github.com/valerioleo/pinkwhale-protocol">
-          Source <span aria-hidden="true">↗</span>
-        </a>
-      </footer>
-    </div>
   </>
 );

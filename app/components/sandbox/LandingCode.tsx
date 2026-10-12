@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import {codeToHtml} from 'shiki';
 
 import {CodeTabs, type CodeTab} from './CodeTabs';
-import {REPO_URL} from './LandingBar';
+import {REPO_URL} from '../../lib/site';
 
 /**
  * The four reasons, in Solidity.

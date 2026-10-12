@@ -8,8 +8,6 @@
  * ────────────────────────────────────────────────────────────────────────
  */
 
-body:has(.ld) > .nav,
-body:has(.ld) > .site-footer { display: none; }
 main:has(.ld) { max-width: none; padding: 0; }
 /* The site's tinted ground would show above and below the page on an overscroll. */
 body:has(.ld) { background: #fff; }
@@ -44,23 +42,7 @@ body:has(.ld) { background: #fff; }
   background: #f2f3f5; color: var(--ink);
 }
 
-/* ── The bar: the brand, and the one way off the page ───────────────── */
-
-.ld-bar {
-  position: sticky; top: 0; z-index: 10;
-  background: rgb(255 255 255 / 0.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgb(229 231 235 / 0.7);
-}
-/* The bar spans the window; what is in it keeps to the page's own column. */
-.ld-bar-inner {
-  max-width: 904px; height: 64px; margin: 0 auto; padding: 0 32px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.ld-bar-actions { display: flex; align-items: center; gap: 20px; }
-.ld .ld-bar-link { font: 500 14px/1 var(--sans); color: var(--body); text-decoration: none; }
-.ld .ld-bar-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
-.ld .ld-brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 500; letter-spacing: -0.2px; color: var(--ink); text-decoration: none; }
-.ld-brand .lc-whale { display: block; flex: none; width: 26px; height: 22px; color: #ff5fa2; overflow: visible; }
+/* The bar and the foot are the site's own: app/site.css. */
 
 .ld-button {
   display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 9px 16px;
@@ -68,13 +50,13 @@ body:has(.ld) { background: #fff; }
   font: 500 14px/1 var(--sans); text-decoration: none; white-space: nowrap;
   transition: background-color 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.ld-button:hover { background: #3a3b42; color: #fff; }
+.ld-button:hover { background: #333; color: #fff; }
 .ld-button:active { transform: scale(0.97); }
-.ld-button:focus-visible { outline: 2px solid #4f8a75; outline-offset: 3px; }
+.ld-button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* ── Hero ───────────────────────────────────────────────────────────── */
 
-.ld-hero, .ld-section, .ld-play, .ld-foot { width: 100%; max-width: 904px; margin: 0 auto; padding-inline: 32px; }
+.ld-hero, .ld-section, .ld-play { width: 100%; max-width: var(--site-column); margin: 0 auto; padding-inline: var(--site-gutter); }
 .ld-hero { padding-top: 112px; padding-bottom: 88px; }
 
 .ld .ld-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
@@ -148,42 +130,29 @@ body:has(.ld) { background: #fff; }
 
 /* ── Playground ─────────────────────────────────────────────────────── */
 
+.ld-play { padding-bottom: 112px; }
 .ld-play .ld-button { margin-top: 28px; }
 
 /* The playground page: a shorter hero, then the live demo in the same column. */
 .ld-play-hero { padding-bottom: 40px; }
-.ld-play-stage { width: 100%; max-width: 904px; margin: 0 auto; padding: 0 32px; }
+.ld-play-stage { width: 100%; max-width: var(--site-column); margin: 0 auto; padding: 0 var(--site-gutter) 112px; }
 .ld-play-loading { margin-top: 28px; padding: 18px 20px; border: 1px solid #e5e7eb; border-radius: 8px; font: 14px/1.5 var(--font-inter), system-ui, sans-serif; color: #555555; }
 .ld .ld-note { margin-top: 18px; font-size: 13px; color: var(--muted); }
-
-/* ── Foot ───────────────────────────────────────────────────────────── */
-
-.ld-foot {
-  margin-top: 112px; padding-bottom: 48px;
-  display: flex; justify-content: space-between; gap: 16px;
-  font-size: 13px; color: var(--muted);
-}
-/* The rule spans the text column, not the padded box around it. */
-.ld-foot { background: linear-gradient(var(--rule), var(--rule)) no-repeat top / calc(100% - 64px) 1px; padding-top: 24px; }
-.ld-foot a { flex: none; color: var(--muted); text-decoration: none; }
-.ld-foot a:hover { color: var(--ink); }
 
 /* ── Narrow ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 859px) {
-  .ld-bar-inner { padding: 0 20px; height: 56px; }
   .ld-code-tabs { grid-template-columns: repeat(var(--tabs), auto); overflow-x: auto; gap: 18px; }
   .ld-code-indicator { display: none; }
   .ld-code-tab[aria-selected='true'] { box-shadow: inset 0 -2px 0 var(--ink); }
   .ld .ld-code-block code { font-size: 12.5px; }
-  .ld-hero, .ld-section, .ld-play, .ld-foot { padding-inline: 20px; }
   .ld-hero { padding-top: 64px; padding-bottom: 56px; }
   .ld .ld-title { font-size: 40px; letter-spacing: -0.03em; }
   .ld .ld-deck { font-size: 17px; }
   .ld-section, .ld-play { padding-top: 72px; }
+  .ld-play { padding-bottom: 72px; }
   .ld .ld-h2 { font-size: 28px; }
   .ld .ld-reasons { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .ld-play-stage { padding: 0 20px; }
+  .ld-play-stage { padding-bottom: 72px; }
   .ld-play .ld-button { width: 100%; min-height: 44px; }
-  .ld-foot { margin-top: 72px; flex-direction: column; gap: 12px; background-size: calc(100% - 40px) 1px; }
 }
