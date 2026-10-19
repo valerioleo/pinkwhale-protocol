@@ -3,6 +3,13 @@ import {isAddress} from 'viem';
 import {fundPersona, ownsActor, type Persona} from '../../../lib/server/faucet';
 
 /**
+ * A faucet claim and then the mints, each waiting on its block: a few seconds
+ * warm, and close to ten from cold, which is the whole default allowance on a
+ * plan without Fluid compute.
+ */
+export const maxDuration = 60;
+
+/**
  * Only for a signed-in visitor, and only into one of their own two actors. The
  * browser already holds the CDP access token that says who is asking, and CDP
  * says which accounts are theirs.
