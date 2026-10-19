@@ -24,7 +24,11 @@ const here = (path: string) => resolve(dirname(fileURLToPath(import.meta.url)), 
  * was only ever presentational.
  */
 const nextConfig: NextConfig = {
-  pageExtensions: ['ts', 'tsx', 'mdx']
+  pageExtensions: ['ts', 'tsx', 'mdx'],
+  // Loaded by Node at runtime rather than bundled. The SDK lazily imports its x402
+  // payment packages, which the faucet never uses and nothing installs, and a bundler
+  // has to resolve every import it sees whether or not it would ever run.
+  serverExternalPackages: ['@coinbase/cdp-sdk']
 };
 
 const withMDX = createMDX({
