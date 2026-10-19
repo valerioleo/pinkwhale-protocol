@@ -1,19 +1,37 @@
 /**
  * What a visitor is handed so they can open a loan.
  *
- * Mints run from the Privy server wallet that also deploys, so nothing here needs
- * a key on disk. The ETH drip is the one piece that cannot be sponsored: CDP
- * sponsors 7702 delegations on mainnet but not on testnets, so the first
- * transaction from a fresh persona has to be paid for the ordinary way.
+ * Mints are sent from the CDP server account that also deploys, so nothing here
+ * needs a key on disk. Gas comes from CDP's testnet faucet: CDP sponsors 7702
+ * delegations on mainnet but not on testnets, so a fresh persona pays for its
+ * transactions the ordinary way, and so does the account minting to it.
  */
-import {createPublicClient, createWalletClient, http, parseEther, type Address} from 'viem';
+import type {CdpClient} from '@coinbase/cdp-sdk';
+import {
+  createPublicClient,
+  encodeFunctionData,
+  http,
+  parseEther,
+  parseEventLogs,
+  type Address,
+  type Hash,
+  type Hex
+} from 'viem';
 
+import {ADMIN_ACCOUNT} from '../../../scripts/lib/admin';
 import {chain} from '../chain';
 import {FAUCET_USDC, PUNKS_PER_BORROWER, isShort} from '../faucet';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from '../generated';
 
-/** Enough to sign a 7702 delegation on a chain where gas is free anyway. */
-const GAS_DRIP = parseEther('0.0002');
+/** `chain`, in the name CDP knows it by. */
+const NETWORK = 'base-sepolia';
+
+/**
+ * Below this, claim more from the faucet. A claim is 0.0001 ETH and a match costs
+ * about 0.0000023 with its L1 fee, so the floor still covers a few loans and each
+ * claim lasts dozens.
+ */
+const GAS_FLOOR = parseEther('0.00002');
 
 export type Persona = 'lender' | 'borrower';
 
@@ -25,23 +43,22 @@ const required = (name: string): string => {
   return value;
 };
 
-const transport = () => http(required('BASE_SEPOLIA_RPC_URL'));
+const reader = () => createPublicClient({chain, transport: http(required('BASE_SEPOLIA_RPC_URL'))});
 
-const adminWallet = async () => {
-  const {PrivyClient} = await import('@privy-io/node');
-  const {createViemAccount} = await import('@privy-io/node/viem');
+type Reader = ReturnType<typeof reader>;
 
-  const privy = new PrivyClient({
-    appId: required('PRIVY_APP_ID'),
-    appSecret: required('PRIVY_APP_SECRET')
+const admin = async () => {
+  const {CdpClient} = await import('@coinbase/cdp-sdk');
+
+  const cdp = new CdpClient({
+    apiKeyId: required('CDP_API_KEY_ID'),
+    apiKeySecret: required('CDP_API_KEY_SECRET'),
+    walletSecret: required('CDP_WALLET_SECRET')
   });
 
-  const account = await createViemAccount(privy, {
-    walletId: required('PRIVY_ADMIN_WALLET_ID'),
-    address: required('PRIVY_ADMIN_WALLET_ADDRESS') as Address
-  });
+  const {address} = await cdp.evm.getOrCreateAccount({name: ADMIN_ACCOUNT});
 
-  return createWalletClient({account, chain, transport: transport()});
+  return {cdp, address};
 };
 
 /**
@@ -49,7 +66,7 @@ const adminWallet = async () => {
  * Transfer logs over a block range that only ever grows.
  */
 const ownedPunks = async (owner: Address): Promise<number[]> => {
-  const client = createPublicClient({chain, transport: transport()});
+  const client = reader();
   const config = {abi: cryptoPunksAbi, address: cryptoPunksAddress[chain.id]} as const;
 
   const balance = await client.readContract({...config, functionName: 'balanceOf', args: [owner]});
@@ -68,7 +85,7 @@ const ownedPunks = async (owner: Address): Promise<number[]> => {
  * record: there is no database here, and the chain already knows.
  */
 const hasBeenFunded = async (address: Address, persona: Persona) => {
-  const client = createPublicClient({chain, transport: transport()});
+  const client = reader();
 
   const [usdc, punks] = await Promise.all([
     client.readContract({
@@ -83,67 +100,76 @@ const hasBeenFunded = async (address: Address, persona: Persona) => {
   return isShort(persona, {usdc, punks}) ? null : {usdc: usdc.toString(), punks};
 };
 
-/**
- * @dev Sequential, not `Promise.all`. Every one of these is signed by the same
- *      account, so concurrent sends read the same nonce and all but the first are
- *      rejected — the same trap the deploy script hit.
- */
-export const fundPersona = async (address: Address, persona: Persona, force = false) => {
-  const publicClient = createPublicClient({chain, transport: transport()});
+/** Gas from the faucet, if this address is low on it. Measured, like everything here. */
+const topUp = (cdp: CdpClient, client: Reader) => async (address: Address): Promise<Hash[]> => {
+  if ((await client.getBalance({address})) >= GAS_FLOOR) return [];
 
+  const {transactionHash} = await cdp.evm.requestFaucet({address, network: NETWORK, token: 'eth'});
+
+  await client.waitForTransactionReceipt({hash: transactionHash});
+
+  return [transactionHash];
+};
+
+/**
+ * CDP assigns the nonce, so sends from the one admin account do not race for it —
+ * not within a request, and not across the lender's and the borrower's, which the
+ * page fires together.
+ */
+const sendFrom = (cdp: CdpClient, client: Reader, from: Address) => async (to: Address, data: Hex) => {
+  const {transactionHash} = await cdp.evm.sendTransaction({
+    address: from,
+    network: NETWORK,
+    transaction: {to, data}
+  });
+
+  return client.waitForTransactionReceipt({hash: transactionHash});
+};
+
+export const fundPersona = async (address: Address, persona: Persona, force = false) => {
   // Idempotent on purpose. Without this every click mints again, and since the
-  // mints are paid for by one shared wallet, a held-down button is a drain.
+  // mints are paid for by one shared account, a held-down button is a drain.
   // `force` is the visitor asking for more, which is a different question from
   // 'has this address been set up', and only the second one is automatic.
   const alreadyFunded = force ? null : await hasBeenFunded(address, persona);
 
   if (alreadyFunded) return {sent: [], ...alreadyFunded};
 
-  const wallet = await adminWallet();
-  const from = {account: wallet.account, chain};
-  const sent: `0x${string}`[] = [];
+  const client = reader();
+  const {cdp, address: from} = await admin();
+  const claim = topUp(cdp, client);
+  const send = sendFrom(cdp, client, from);
 
-  const drip = await wallet.sendTransaction({...from, to: address, value: GAS_DRIP});
-  sent.push(drip);
-  await publicClient.waitForTransactionReceipt({hash: drip});
+  // Together: both claims come out of CDP's faucet, so neither waits on the other.
+  const claims = (await Promise.all([claim(address), claim(from)])).flat();
 
   // Both sides, not just the lender: the borrower receives the principal from the
   // loan itself, which is short of the repayment by exactly the interest.
-  const mint = await wallet.writeContract({
-    ...from,
-    abi: usdcAbi,
-    address: usdcAddress[chain.id],
-    functionName: 'mint',
-    args: [address, FAUCET_USDC]
-  });
-
-  sent.push(mint);
-  await publicClient.waitForTransactionReceipt({hash: mint});
-
-  if (persona === 'lender') return {sent, usdc: FAUCET_USDC.toString(), punks: [] as number[]};
-
-  // `mintRandom` picks the id on chain, so which punk lands is only knowable from
-  // the receipt: read it off the Transfer topic rather than guessing.
-  const punks = await Array.from({length: PUNKS_PER_BORROWER}).reduce<Promise<number[]>>(
-    async (previous) => {
-      const ids = await previous;
-
-      const hash = await wallet.writeContract({
-        ...from,
-        abi: cryptoPunksAbi,
-        address: cryptoPunksAddress[chain.id],
-        functionName: 'mintRandom',
-        args: [address]
-      });
-
-      sent.push(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({hash});
-      const transfer = receipt.logs.find((log) => log.topics.length === 4);
-
-      return [...ids, Number(BigInt(transfer!.topics[3]!))];
-    },
-    Promise.resolve([])
+  const usdc = send(
+    usdcAddress[chain.id],
+    encodeFunctionData({abi: usdcAbi, functionName: 'mint', args: [address, FAUCET_USDC]})
   );
 
-  return {sent, usdc: FAUCET_USDC.toString(), punks};
+  const punkMints = Array.from({length: persona === 'borrower' ? PUNKS_PER_BORROWER : 0}, () =>
+    send(
+      cryptoPunksAddress[chain.id],
+      encodeFunctionData({abi: cryptoPunksAbi, functionName: 'mintRandom', args: [address]})
+    )
+  );
+
+  const [usdcReceipt, ...punkReceipts] = await Promise.all([usdc, ...punkMints]);
+
+  // `mintRandom` picks the id on chain, so which punk lands is only knowable from
+  // the receipt: read it off the Transfer event rather than guessing.
+  const punks = parseEventLogs({
+    abi: cryptoPunksAbi,
+    eventName: 'Transfer',
+    logs: punkReceipts.flatMap((receipt) => receipt.logs)
+  }).map((log) => Number(log.args.tokenId));
+
+  return {
+    sent: [...claims, usdcReceipt.transactionHash, ...punkReceipts.map((receipt) => receipt.transactionHash)],
+    usdc: FAUCET_USDC.toString(),
+    punks
+  };
 };

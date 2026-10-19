@@ -15,8 +15,10 @@ import {
   type Transport,
   type WalletClient
 } from 'viem';
-import {privateKeyToAccount} from 'viem/accounts';
+import {privateKeyToAccount, toAccount} from 'viem/accounts';
 import {anvil, baseSepolia, mainnet, sepolia} from 'viem/chains';
+
+import {ADMIN_ACCOUNT} from './lib/admin';
 
 export type WalletWithAccount = WalletClient & {account: LocalAccount};
 
@@ -27,7 +29,7 @@ type NetworkConfig = {
   rpcEnvVar: string;
   /** Live networks lend against real collections; local ones need mocks to exist. */
   deployMocks: boolean;
-  /** Anvil signs with a raw key. Everything else goes through the Privy wallet. */
+  /** Anvil signs with a raw key. Everything else goes through the CDP server account. */
   signsLocally: boolean;
 };
 
@@ -77,7 +79,7 @@ export const localWallet = (key: Hex): WalletWithAccount =>
   createWalletClient({account: privateKeyToAccount(key), chain, transport}) as WalletWithAccount;
 
 /**
- * Live networks sign through a Privy server wallet, so no deployer key is ever on
+ * Live networks sign through a CDP server account, so no deployer key is ever on
  * disk or in CI. Anvil keeps a raw key: its default account is public knowledge and
  * a local chain should not need an account with a vendor.
  */
@@ -86,18 +88,15 @@ const resolveAdminAccount = async (): Promise<LocalAccount> => {
     return privateKeyToAccount(required('DEPLOYER_PRIVATE_KEY') as Hex);
   }
 
-  const {PrivyClient} = await import('@privy-io/node');
-  const {createViemAccount} = await import('@privy-io/node/viem');
+  const {CdpClient} = await import('@coinbase/cdp-sdk');
 
-  const privy = new PrivyClient({
-    appId: required('PRIVY_APP_ID'),
-    appSecret: required('PRIVY_APP_SECRET')
+  const cdp = new CdpClient({
+    apiKeyId: required('CDP_API_KEY_ID'),
+    apiKeySecret: required('CDP_API_KEY_SECRET'),
+    walletSecret: required('CDP_WALLET_SECRET')
   });
 
-  return createViemAccount(privy, {
-    walletId: required('PRIVY_ADMIN_WALLET_ID'),
-    address: required('PRIVY_ADMIN_WALLET_ADDRESS') as `0x${string}`
-  });
+  return toAccount(await cdp.evm.getOrCreateAccount({name: ADMIN_ACCOUNT}));
 };
 
 let cachedAdminWallet: WalletWithAccount | null = null;

@@ -106,11 +106,10 @@ pnpm deploy:sepolia
 pnpm deploy:base-sepolia
 ```
 
-Live deployments sign through a **Privy server wallet**, so no deployer key sits on disk or in
-CI: fill `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_ADMIN_WALLET_ID` and
-`PRIVY_ADMIN_WALLET_ADDRESS` in `.env`, and give that wallet gas on the target chain. Anvil is
-the exception and keeps a raw key, because a local chain should not need an account with a
-vendor.
+Live deployments sign through a **CDP server account**, so no deployer key sits on disk or in
+CI: fill `CDP_API_KEY_ID`, `CDP_API_KEY_SECRET` and `CDP_WALLET_SECRET` in `.env`, and give
+that account gas on the target chain. Anvil is the exception and keeps a raw key, because a
+local chain should not need an account with a vendor.
 
 Pinkwhale points at the canonical Seaport 1.6 at
 `0x0000000000000068F116a894984e2DB1123eB395`, which is registered into `deployments/` rather
