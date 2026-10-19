@@ -11,7 +11,6 @@ import {
   createPublicClient,
   encodeFunctionData,
   http,
-  parseEther,
   parseEventLogs,
   type Address,
   type Hash,
@@ -20,18 +19,14 @@ import {
 
 import {ADMIN_ACCOUNT} from '../../../scripts/lib/admin';
 import {chain} from '../chain';
-import {FAUCET_USDC, PUNKS_PER_BORROWER, isShort} from '../faucet';
+import {GAS_FLOOR, isShort, shortfall} from '../faucet';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from '../generated';
 
 /** `chain`, in the name CDP knows it by. */
 const NETWORK = 'base-sepolia';
 
-/**
- * Below this, claim more from the faucet. A claim is 0.0001 ETH and a match costs
- * about 0.0000023 with its L1 fee, so the floor still covers a few loans and each
- * claim lasts dozens.
- */
-const GAS_FLOOR = parseEther('0.00002');
+/** How many of a visitor's accounts are the playground's: the lender and the borrower. */
+const ACTORS_PER_VISITOR = 2;
 
 export type Persona = 'lender' | 'borrower';
 
@@ -47,26 +42,60 @@ const reader = () => createPublicClient({chain, transport: http(required('BASE_S
 
 type Reader = ReturnType<typeof reader>;
 
-const admin = async () => {
+const cdpClient = async () => {
   const {CdpClient} = await import('@coinbase/cdp-sdk');
 
-  const cdp = new CdpClient({
+  return new CdpClient({
     apiKeyId: required('CDP_API_KEY_ID'),
     apiKeySecret: required('CDP_API_KEY_SECRET'),
     walletSecret: required('CDP_WALLET_SECRET')
   });
+};
 
+const admin = async () => {
+  const cdp = await cdpClient();
   const {address} = await cdp.evm.getOrCreateAccount({name: ADMIN_ACCOUNT});
 
   return {cdp, address};
+};
+
+/** CDP refusing the request, as opposed to CDP being unreachable or broken. */
+const isRefusal = (error: unknown) =>
+  error instanceof Error &&
+  'statusCode' in error &&
+  typeof error.statusCode === 'number' &&
+  error.statusCode < 500;
+
+/**
+ * Whether `accessToken` is a signed-in visitor's and `address` one of the actors
+ * the playground made for them. Without it the endpoint funds any address at all,
+ * and every one of those spends a faucet claim and a pair of punks.
+ *
+ * The oldest two rather than all of them: the same token can create more accounts,
+ * and only the first pair is the playground's.
+ */
+export const ownsActor = async (accessToken: string, address: Address) => {
+  const cdp = await cdpClient();
+
+  const visitor = await cdp.endUser.validateAccessToken({accessToken}).catch((error: unknown) => {
+    if (isRefusal(error)) return null;
+
+    throw error;
+  });
+
+  if (!visitor) return false;
+
+  return visitor.evmAccountObjects
+    .toSorted((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+    .slice(0, ACTORS_PER_VISITOR)
+    .some((account) => account.address.toLowerCase() === address.toLowerCase());
 };
 
 /**
  * The collection is enumerable, so ownership is a read rather than a replay of
  * Transfer logs over a block range that only ever grows.
  */
-const ownedPunks = async (owner: Address): Promise<number[]> => {
-  const client = reader();
+const ownedPunks = async (client: Reader, owner: Address): Promise<number[]> => {
   const config = {abi: cryptoPunksAbi, address: cryptoPunksAddress[chain.id]} as const;
 
   const balance = await client.readContract({...config, functionName: 'balanceOf', args: [owner]});
@@ -80,24 +109,20 @@ const ownedPunks = async (owner: Address): Promise<number[]> => {
   return ids.map(Number);
 };
 
-/**
- * What this actor already holds, or null if it is still short. Balances are the
- * record: there is no database here, and the chain already knows.
- */
-const hasBeenFunded = async (address: Address, persona: Persona) => {
-  const client = reader();
-
-  const [usdc, punks] = await Promise.all([
+/** What this actor holds. Balances are the record: there is no database here, and the chain already knows. */
+const holdingsOf = async (client: Reader, address: Address, persona: Persona) => {
+  const [usdc, punks, eth] = await Promise.all([
     client.readContract({
       abi: usdcAbi,
       address: usdcAddress[chain.id],
       functionName: 'balanceOf',
       args: [address]
     }),
-    persona === 'borrower' ? ownedPunks(address) : Promise.resolve([] as number[])
+    persona === 'borrower' ? ownedPunks(client, address) : Promise.resolve([] as number[]),
+    client.getBalance({address})
   ]);
 
-  return isShort(persona, {usdc, punks}) ? null : {usdc: usdc.toString(), punks};
+  return {usdc, punks, eth};
 };
 
 /** Gas from the faucet, if this address is low on it. Measured, like everything here. */
@@ -126,16 +151,16 @@ const sendFrom = (cdp: CdpClient, client: Reader, from: Address) => async (to: A
   return client.waitForTransactionReceipt({hash: transactionHash});
 };
 
-export const fundPersona = async (address: Address, persona: Persona, force = false) => {
-  // Idempotent on purpose. Without this every click mints again, and since the
-  // mints are paid for by one shared account, a held-down button is a drain.
-  // `force` is the visitor asking for more, which is a different question from
-  // 'has this address been set up', and only the second one is automatic.
-  const alreadyFunded = force ? null : await hasBeenFunded(address, persona);
-
-  if (alreadyFunded) return {sent: [], ...alreadyFunded};
-
+export const fundPersona = async (address: Address, persona: Persona) => {
   const client = reader();
+  const held = await holdingsOf(client, address, persona);
+
+  // Idempotent by measurement. Asking for a funded actor sends nothing, and asking
+  // for a short one sends only what it is short of, so neither a held-down button
+  // nor a visitor emptying their own actor on purpose drains the account paying.
+  if (!isShort(persona, held)) return {sent: [], usdc: held.usdc.toString(), punks: held.punks};
+
+  const short = shortfall(persona, held);
   const {cdp, address: from} = await admin();
   const claim = topUp(cdp, client);
   const send = sendFrom(cdp, client, from);
@@ -145,31 +170,37 @@ export const fundPersona = async (address: Address, persona: Persona, force = fa
 
   // Both sides, not just the lender: the borrower receives the principal from the
   // loan itself, which is short of the repayment by exactly the interest.
-  const usdc = send(
-    usdcAddress[chain.id],
-    encodeFunctionData({abi: usdcAbi, functionName: 'mint', args: [address, FAUCET_USDC]})
-  );
+  const usdcMints =
+    short.usdc > 0n
+      ? [
+          send(
+            usdcAddress[chain.id],
+            encodeFunctionData({abi: usdcAbi, functionName: 'mint', args: [address, short.usdc]})
+          )
+        ]
+      : [];
 
-  const punkMints = Array.from({length: persona === 'borrower' ? PUNKS_PER_BORROWER : 0}, () =>
+  const punkMints = Array.from({length: short.punks}, () =>
     send(
       cryptoPunksAddress[chain.id],
       encodeFunctionData({abi: cryptoPunksAbi, functionName: 'mintRandom', args: [address]})
     )
   );
 
-  const [usdcReceipt, ...punkReceipts] = await Promise.all([usdc, ...punkMints]);
+  const [usdcReceipts, punkReceipts] = await Promise.all([Promise.all(usdcMints), Promise.all(punkMints)]);
 
   // `mintRandom` picks the id on chain, so which punk lands is only knowable from
   // the receipt: read it off the Transfer event rather than guessing.
-  const punks = parseEventLogs({
+  const minted = parseEventLogs({
     abi: cryptoPunksAbi,
     eventName: 'Transfer',
     logs: punkReceipts.flatMap((receipt) => receipt.logs)
   }).map((log) => Number(log.args.tokenId));
 
   return {
-    sent: [...claims, usdcReceipt.transactionHash, ...punkReceipts.map((receipt) => receipt.transactionHash)],
-    usdc: FAUCET_USDC.toString(),
-    punks
+    sent: [...claims, ...[...usdcReceipts, ...punkReceipts].map((receipt) => receipt.transactionHash)],
+    usdc: (held.usdc + short.usdc).toString(),
+    punks: [...held.punks, ...minted]
   };
 };
+

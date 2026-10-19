@@ -1,5 +1,6 @@
 'use client';
 
+import {useGetAccessToken} from '@coinbase/cdp-hooks';
 import {keepPreviousData, useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {type Address} from 'viem';
 
@@ -8,9 +9,9 @@ import {isShort} from './faucet';
 import {cryptoPunksAbi, cryptoPunksAddress, usdcAbi, usdcAddress} from './generated';
 import type {Persona, Personas} from './personas';
 
-export type Holdings = {usdc: bigint; punks: number[]};
+export type Holdings = {usdc: bigint; punks: number[]; eth: bigint};
 
-const EMPTY: Holdings = {usdc: 0n, punks: []};
+const EMPTY: Holdings = {usdc: 0n, punks: [], eth: 0n};
 
 /**
  * What an address holds, straight from the chain.
@@ -22,14 +23,17 @@ const EMPTY: Holdings = {usdc: 0n, punks: []};
 const readHoldings = async (address: Address): Promise<Holdings> => {
   const punk = {abi: cryptoPunksAbi, address: cryptoPunksAddress[chain.id]} as const;
 
-  const [usdc, balance] = await Promise.all([
+  const [usdc, balance, eth] = await Promise.all([
     publicClient.readContract({
       abi: usdcAbi,
       address: usdcAddress[chain.id],
       functionName: 'balanceOf',
       args: [address]
     }),
-    publicClient.readContract({...punk, functionName: 'balanceOf', args: [address]})
+    publicClient.readContract({...punk, functionName: 'balanceOf', args: [address]}),
+    // Gas too: an actor that has spent its last claim is as stuck as one with no
+    // USDC, and the faucet only knows to top it up if this says so.
+    publicClient.getBalance({address})
   ]);
 
   const punks = await Promise.all(
@@ -38,7 +42,7 @@ const readHoldings = async (address: Address): Promise<Holdings> => {
     )
   );
 
-  return {usdc, punks: punks.map(Number)};
+  return {usdc, punks: punks.map(Number), eth};
 };
 
 export const holdingsKey = (address?: Address) => ['holdings', address] as const;
@@ -65,11 +69,21 @@ export const useHoldings = (address?: Address): Balance => {
   return {...(data ?? EMPTY), loaded: Boolean(data)};
 };
 
-const fund = async (address: Address, persona: Persona, force = false) => {
+type AccessToken = () => Promise<string | null>;
+
+/**
+ * Signed in, or not at all: the endpoint funds a visitor's own two actors and
+ * nobody else's, and the CDP access token is how it knows whose they are.
+ */
+const fund = (getAccessToken: AccessToken) => async (address: Address, persona: Persona) => {
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) throw new Error('Sign in to fund the actors.');
+
   const response = await fetch('/api/faucet', {
     method: 'POST',
-    headers: {'content-type': 'application/json'},
-    body: JSON.stringify({address, persona, force})
+    headers: {'content-type': 'application/json', authorization: `Bearer ${accessToken}`},
+    body: JSON.stringify({address, persona})
   });
 
   if (!response.ok) throw new Error((await response.json()).error ?? 'faucet failed');
@@ -97,6 +111,7 @@ export const useAutoFund = (
   balances: {lender: Balance; borrower: Balance}
 ) => {
   const queryClient = useQueryClient();
+  const {getAccessToken} = useGetAccessToken();
 
   const ensure = (persona: Persona) => ({
     queryKey: ['funded', personas?.[persona]] as const,
@@ -108,7 +123,7 @@ export const useAutoFund = (
     staleTime: Infinity,
     retry: 1,
     queryFn: async () => {
-      const result = await fund(personas![persona], persona);
+      const result = await fund(getAccessToken)(personas![persona], persona);
 
       await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
 
@@ -141,6 +156,7 @@ export const useFundActors = (
   balances: {lender: Balance; borrower: Balance}
 ) => {
   const queryClient = useQueryClient();
+  const {getAccessToken} = useGetAccessToken();
 
   const short = (['borrower', 'lender'] as const).filter((persona) =>
     knownShort(persona, balances[persona])
@@ -151,7 +167,7 @@ export const useFundActors = (
       // Sequential: both mints are signed by the same server wallet, so
       // concurrent sends read the same nonce and the second is rejected.
       for (const persona of short) {
-        await fund(personas![persona], persona, true);
+        await fund(getAccessToken)(personas![persona], persona);
 
         await queryClient.invalidateQueries({queryKey: holdingsKey(personas![persona])});
       }
