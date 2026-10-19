@@ -42,7 +42,7 @@ export const Playground = () => {
   const clearOrders = useClearOrders();
   const sign = useSignLoanOrder(personas);
   const execute = useExecuteLoan(personas, storedLoan);
-  const {loans, loading: loansLoading} = useLoans(personas?.borrower);
+  const {loans, loading: loansLoading} = useLoans(personas);
   const resolve = useResolveLoan(personas);
 
 

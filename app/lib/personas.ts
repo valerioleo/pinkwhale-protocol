@@ -7,7 +7,11 @@ import type {Address} from 'viem';
 
 export type Persona = 'lender' | 'borrower';
 
-export type Personas = {lender: Address; borrower: Address} | null;
+/**
+ * `borrowerSince` is when CDP made the borrower, in unix seconds. No loan of its
+ * can be older, which makes it where a search for them can start.
+ */
+export type Personas = {lender: Address; borrower: Address; borrowerSince: bigint} | null;
 
 /**
  * The last complete pair, held outside React so it survives a remount.
@@ -40,7 +44,11 @@ export const usePersonas = (): {personas: Personas} => {
 
   const pair: Personas =
     first && second
-      ? {lender: first.address as Address, borrower: second.address as Address}
+      ? {
+          lender: first.address as Address,
+          borrower: second.address as Address,
+          borrowerSince: BigInt(Math.floor(Date.parse(second.createdAt) / 1000))
+        }
       : null;
 
   /**

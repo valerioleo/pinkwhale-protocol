@@ -1,10 +1,11 @@
 'use client';
 
-import {keepPreviousData, useQuery} from '@tanstack/react-query';
+import {keepPreviousData, skipToken, useQuery, useQueryClient} from '@tanstack/react-query';
 import {parseAbiItem, parseEventLogs, type Address, type Log} from 'viem';
 
-import {chain, logWindows, publicClient} from './chain';
+import {blockAt, chain, fewAtATime, findFirstLog, publicClient, scanLogs} from './chain';
 import {pinkwhaleAddress, seaport16Abi, seaport16Address} from './generated';
+import type {Personas} from './personas';
 import PinkwhaleRecord from '../../deployments/84532-base-sepolia/Pinkwhale.json';
 
 /**
@@ -52,24 +53,21 @@ const CLAIMED = parseAbiItem('event DefaultedCollateralClaimed(bytes32 indexed o
 /**
  * When the loan ended and in which transaction.
  *
- * The search starts at the block the loan opened in, so it never widens as the
- * chain does; the resolving fill is always after it and usually close behind.
+ * The search starts at the block the loan opened in and stops at the first window
+ * holding the fill, which is always after it and usually close behind — so it
+ * costs what the loan lasted, not how long ago it was.
  */
 const findResolution = async (log: LoanLog, repaid: boolean) => {
   const toBlock = await publicClient.getBlockNumber();
 
-  const found = await Promise.all(
-    logWindows(log.blockNumber, toBlock).map((window) =>
-      publicClient.getLogs({
-        address: pinkwhaleAddress[chain.id],
-        event: repaid ? LOAN_REPAID : CLAIMED,
-        args: {orderHash: repaid ? log.args.loanId : log.args.defaultOrderHash},
-        ...window
-      })
-    )
+  const entry = await findFirstLog(log.blockNumber, toBlock, (window) =>
+    publicClient.getLogs({
+      address: pinkwhaleAddress[chain.id],
+      event: repaid ? LOAN_REPAID : CLAIMED,
+      args: {orderHash: repaid ? log.args.loanId : log.args.defaultOrderHash},
+      ...window
+    })
   );
-
-  const [entry] = found.flat();
 
   if (!entry) return null;
 
@@ -132,42 +130,87 @@ const describe = async (log: LoanLog) => {
 
 export type Loan = Awaited<ReturnType<typeof describe>>;
 
+/**
+ * How far before the borrower's creation to start. CDP's clock and the chain's need
+ * not agree to the second, and an hour of blocks costs nothing.
+ */
+const CLOCK_SLACK = 3600n;
+
+/**
+ * Blocks read again on every poll. A node can report a head before it has indexed
+ * that block's logs, and a cursor moved past them would never look back.
+ */
+const OVERLAP = 30n;
+
+/**
+ * What has been read so far: the block it reaches, and every loan found before it.
+ * It lives in the query's own data, so each poll reads only what came after.
+ */
+type Scan = {to: bigint; entries: {log: LoanLog; loan: Loan}[]};
+
+const loansKey = (borrower?: Address) => ['loans', borrower] as const;
+
+const logKey = (log: LoanLog) => `${log.transactionHash}:${log.logIndex}`;
+
+const scanLoans = async (previous: Scan | undefined, borrower: Address, since: bigint): Promise<Scan> => {
+  // `toBlock: 'latest'` is refused by this node even for a range it serves happily
+  // with numeric ends, so the head is resolved first.
+  const [head, deployed] = await Promise.all([publicClient.getBlock(), deployedBlock()]);
+
+  // The first read starts at the borrower's creation rather than the contract's,
+  // so a visitor's history costs what their own account's age costs.
+  const created = blockAt(since - CLOCK_SLACK, head);
+  const fromBlock = previous ? previous.to - OVERLAP : created > deployed ? created : deployed;
+
+  const found = await scanLogs(fromBlock, head.number, (window) =>
+    publicClient.getLogs({
+      address: pinkwhaleAddress[chain.id],
+      event: LOAN_EXECUTED,
+      args: {borrower},
+      ...window
+    })
+  );
+
+  const known = new Map((previous?.entries ?? []).map((entry) => [logKey(entry.log), entry]));
+  const logs = [...[...known.values()].map((entry) => entry.log), ...found.filter((log) => !known.has(logKey(log)))];
+
+  // A settled loan is final, so it is described once and carried. Only the ones
+  // still running are asked about again — and a few at a time, since each is a
+  // handful of reads and a returning visitor can have dozens.
+  const entries = await fewAtATime(logs, async (log) => {
+    const entry = known.get(logKey(log));
+
+    return entry?.loan.settled ? entry : {log, loan: await describe(log)};
+  });
+
+  return {to: previous && previous.to > head.number ? previous.to : head.number, entries};
+};
+
 /** Every loan this borrower has opened, and nobody else's: the filter is indexed. */
-export const useLoans = (borrower?: Address) => {
+export const useLoans = (personas: Personas) => {
+  const queryClient = useQueryClient();
+  const borrower = personas?.borrower;
+
   const {data, isPending} = useQuery({
-    queryKey: ['loans', borrower],
-    enabled: Boolean(borrower),
-    // Every poll walks the full history in windows and then asks Seaport about
-    // each loan it finds, so the interval is what keeps that off the node. Nothing
-    // the visitor does waits on it: the mutations invalidate this key directly, and
-    // the countdown runs on a local clock.
+    queryKey: loansKey(borrower),
+    // Nothing the visitor does waits on this: the mutations invalidate the key
+    // directly, and the countdown runs on a local clock. The interval is how soon
+    // someone else's fill shows up.
     refetchInterval: 15_000,
     // See the note in holdings.ts: once this list has been read, a changing key
     // must not put the section back to a skeleton it has already been past.
     placeholderData: keepPreviousData,
-    queryFn: async () => {
-      // Two separate refusals from this node in one call. `toBlock: 'latest'` is
-      // rejected even for a range it serves happily with numeric ends, so the head
-      // is resolved first; and the resulting range outgrew the 100,000-block cap
-      // days ago, so it is walked in windows rather than asked for at once.
-      const [fromBlock, toBlock] = await Promise.all([deployedBlock(), publicClient.getBlockNumber()]);
-
-      const found = await Promise.all(
-        logWindows(fromBlock, toBlock).map((window) =>
-          publicClient.getLogs({
-            address: pinkwhaleAddress[chain.id],
-            event: LOAN_EXECUTED,
-            args: {borrower},
-            ...window
-          })
-        )
-      );
-
-      return Promise.all(found.flat().map((log) => describe(log as LoanLog)));
-    }
+    queryFn: personas
+      ? () =>
+          scanLoans(
+            queryClient.getQueryData<Scan>(loansKey(personas.borrower)),
+            personas.borrower,
+            personas.borrowerSince
+          )
+      : skipToken
   });
 
-  const loans = data ?? [];
+  const loans = data?.entries.map((entry) => entry.loan) ?? [];
 
   // `isPending` matters to callers: before the first answer arrives we do not know
   // whether a loan is running, and guessing 'no' makes the Orders section appear
