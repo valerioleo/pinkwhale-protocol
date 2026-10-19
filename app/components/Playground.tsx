@@ -28,8 +28,15 @@ export const Playground = () => {
 
   const lender = useHoldings(personas?.lender);
   const borrower = useHoldings(personas?.borrower);
-  const {funding} = useAutoFund(personas, {lender, borrower});
+  const {funding, error: autoFundError} = useAutoFund(personas, {lender, borrower});
   const fundActors = useFundActors(personas, {lender, borrower});
+
+  // Only while someone is still short and nothing is retrying. The automatic pass
+  // keeps its error after the button has since succeeded, and a failure nobody is
+  // still suffering from is noise.
+  const fundingBusy = funding.lender || funding.borrower || fundActors.isPending;
+  const fundingError =
+    fundActors.short.length > 0 && !fundingBusy ? (fundActors.error ?? autoFundError) : null;
 
   const storedLoan = useStoredLoan();
   const clearOrders = useClearOrders();
@@ -112,6 +119,7 @@ export const Playground = () => {
               ))}
             </div>
             <p className="hint">These are real Base Sepolia accounts.</p>
+            {fundingError ? <p className="hint hint--bad">{fundingError.message}</p> : null}
           </>
         ) : isSignedIn ? (
           // Signed in, but the second account is still being created. The cards are
