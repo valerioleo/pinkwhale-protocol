@@ -10,6 +10,7 @@ import type {CdpClient} from '@coinbase/cdp-sdk';
 import {
   createPublicClient,
   encodeFunctionData,
+  formatEther,
   http,
   parseEventLogs,
   type Address,
@@ -27,6 +28,12 @@ const NETWORK = 'base-sepolia';
 
 /** How many of a visitor's accounts are the playground's: the lender and the borrower. */
 const ACTORS_PER_VISITOR = 2;
+
+/** Below this the admin cannot cover a few borrowers' mints, and the faucet is not refilling it. */
+const ADMIN_RESERVE = GAS_FLOOR / 2n;
+
+/** Punks left to mint below which the collection wants redeploying before a visitor finds out. */
+const PUNKS_RESERVE = 500n;
 
 export type Persona = 'lender' | 'borrower';
 
@@ -204,3 +211,39 @@ export const fundPersona = async (address: Address, persona: Persona) => {
   };
 };
 
+/**
+ * Whether the faucet can still do its job, for a scheduled check to ask.
+ *
+ * Each of these fails quietly from the inside: revoked credentials only surface on
+ * a visitor's first click, a refused faucet drains the admin a mint at a time, and
+ * the collection runs out a pair of punks per borrower.
+ */
+export const health = async () => {
+  const client = reader();
+  const cdp = await cdpClient();
+  const collection = {abi: cryptoPunksAbi, address: cryptoPunksAddress[chain.id]} as const;
+
+  const [account, size, minted] = await Promise.all([
+    cdp.evm.getAccount({name: ADMIN_ACCOUNT}),
+    client.readContract({...collection, functionName: 'collectionSize'}),
+    client.readContract({...collection, functionName: 'totalSupply'})
+  ]);
+
+  const gas = await client.getBalance({address: account.address});
+  const punksLeft = size - minted;
+
+  const problems = [
+    gas < ADMIN_RESERVE
+      ? `The admin account is down to ${formatEther(gas)} ETH: CDP's faucet may be refusing claims.`
+      : null,
+    punksLeft < PUNKS_RESERVE ? `Only ${punksLeft} punks are left to mint.` : null
+  ].filter((problem) => problem !== null);
+
+  return {
+    ok: problems.length === 0,
+    problems,
+    admin: account.address,
+    gas: formatEther(gas),
+    punksLeft: Number(punksLeft)
+  };
+};
