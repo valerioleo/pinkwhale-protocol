@@ -1,0 +1,20 @@
+name: Live demo
+
+# The playground fails from the inside: revoked CDP credentials, a faucet that has
+# stopped paying out, a collection running dry. None of it shows until a visitor
+# clicks, so this asks once a day, and a failed scheduled run is what emails a
+# human. GitHub pauses schedules in a public repository after sixty days without
+# a commit; the Actions tab turns it back on.
+
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  health:
+    name: Faucet health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask the live site
+        run: curl --fail-with-body --silent --show-error --max-time 60 https://pinkwhale.valeriohq.com/api/health
